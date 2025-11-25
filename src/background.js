@@ -14,17 +14,46 @@ let knownParsers = {
     shippingPrice: ".x-deliveryMessage",
     seller: ".x-sellerCard-name",
   },
+  "neokyo.com": {
+    "productTitle": {
+      "strategy": "textContent",
+      "selector": "h6.font-gothamRounded"
+    },
+    "price": {
+      "strategy": "splitPriceCurrency",
+      "selector": ".product-price-converted",
+      "param": "price"
+    },
+    "priceCurrency": {
+      "strategy": "splitPriceCurrency",
+      "selector": ".product-price-converted",
+      "param": "currency"
+    },
+    "shippingPrice": {
+      "strategy": "splitPriceCurrency",
+      "selector": "p.col-9:nth-child(12) > strong:nth-child(1)",
+      "param": "price"
+    },
+    "seller": {
+      "strategy": "urlParameter",
+      "selector": "a.col-9:nth-child(2)",
+      "param": "store_name"
+    }
+}
   // Add more known parsers here
 }
 
 // Initialize from storage
 var browser = browser || chrome // Declare browser before using it
 
+console.log(knownParsers)
+
 browser.storage.local.get(["sessions", "currentSession", "knownParsers"]).then((result) => {
   if (result.sessions) sessions = result.sessions
   if (result.currentSession) currentSession = result.currentSession
-  if (result.knownParsers) knownParsers = result.knownParsers
 })
+
+console.log(knownParsers)
 
 // Save to storage
 function saveToStorage() {
@@ -37,6 +66,11 @@ function saveToStorage() {
 
 // Message handlers
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Vérifier si le message provient d'une tab active
+  if (sender.tab && !sender.tab.active) {
+    return false;
+  }
+  
   switch (message.action) {
     case "createSession":
       createSession(message.name)
@@ -80,7 +114,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ knownParsers })
       break
     case "scrapePage":
-      scrapePage(sender.tab.id)
+      console.log("Scrape page request received for tab:", sender, message)
+      scrapePage(message.tabId)
       break
     case "optimizeSession":
       optimizeSession(message.sessionId).then((result) => sendResponse(result))
@@ -167,7 +202,16 @@ function deletePage(sessionId, productId, pageId) {
 
 // Scraping
 function scrapePage(tabId) {
-  browser.tabs.sendMessage(tabId, { action: "scrape" })
+  console.log("Checking tab status before scraping:", tabId);
+  browser.tabs.get(tabId).then(tab => {
+    if (tab.active) {
+      console.log("Sending scrape message to active tab:", tabId);
+      browser.tabs.sendMessage(tabId, { action: "scrape" })
+        .catch(error => console.error("Error sending scrape message:", error));
+    } else {
+      console.log("Tab is not active, skipping scrape:", tabId);
+    }
+  }).catch(error => console.error("Error checking tab status:", error));
 }
 
 // Optimization

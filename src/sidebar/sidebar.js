@@ -7,7 +7,7 @@ const browser = window.browser || window.chrome
 // State
 let sessions = []
 let currentSession = null
-let currentView = "sessions" // 'sessions', 'products', 'settings'
+let currentView = "sessions" // 'sessions', 'products', 'pages', 'settings'
 let currentProduct = null
 let scrapedData = null
 
@@ -21,10 +21,19 @@ function init() {
   })
 
   // Listen for messages from background script
-  browser.runtime.onMessage.addListener((message) => {
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "scrapedData") {
-      scrapedData = message.data
-      showScrapedDataModal()
+      browser.windows.getCurrent().then(currentWindow => {
+        browser.windows.getLastFocused().then(focusedWindow => {
+          if (currentWindow.id === focusedWindow.id) {
+            scrapedData = message.data
+            console.log("Received scraped data in active window:", scrapedData)
+            showScrapedDataModal()
+          } else {
+            console.log("Ignoring scraped data in inactive window")
+          }
+        });
+      });
     }
   })
 }
@@ -37,6 +46,9 @@ function renderApp() {
       break
     case "products":
       renderProductsView()
+      break
+    case "pages":
+      renderPagesView()
       break
     case "settings":
       renderSettingsView()
@@ -222,9 +234,12 @@ function renderProductsView() {
   document.querySelectorAll(".product-item").forEach((item) => {
     item.addEventListener("click", (e) => {
       if (!e.target.closest(".edit-button") && !e.target.closest(".delete-button")) {
+        console.log("Product item clicked ",item);
         const productId = item.dataset.id
-        const product = session.products.find((p) => p.id === productId)
-        showProductDetailsModal(product)
+        currentProduct = productId
+        console.log("Current product set to ",currentProduct);
+        currentView = "pages"
+        renderApp()
       }
     })
   })
@@ -243,6 +258,129 @@ function renderProductsView() {
       e.stopPropagation()
       const productId = button.dataset.id
       showDeleteProductModal(productId)
+    })
+  })
+}
+
+function renderPagesView() {
+  const session = sessions.find((s) => s.id === currentSession)
+  const product = session.products.find((p) => p.id === currentProduct)
+  console.log("Rendering pages for product ",product);
+
+  if (!session || !product) {
+    currentView = "products"
+    renderApp()
+    return
+  }
+
+  app.innerHTML = `
+    <div class="mx-4">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-3">
+          <button class="text-gray-600 p-2 cursor-pointer" id="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <h1 class="text-2xl pl-4 font-semibold text-gray-800">${product.name}</h1>
+        </div>
+      </div>
+
+      <!-- Pages List -->
+      <div class="space-y-4">
+        ${product.pages.length > 0 
+          ? product.pages.map(page => `
+            <div class="bg-white rounded-xl shadow-md p-4">
+              <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0 mr-4">
+                  <p class="text-lg font-medium text-gray-900 truncate">${page.seller || page.url}</p>
+                  <div class="mt-1 space-y-1">
+                    <p class="text-gray-600">Price: ${(() => {
+                      const p = page.price
+                      if (p === undefined || p === null || p === "") return "N/A"
+                      try {
+                        return Number(p) === 0 ? "Free" : `${p} ${page.currency || ""}`
+                      } catch (e) {
+                        return `${p} ${page.currency || ""}`
+                      }
+                    })()}</p>
+                    <p class="text-gray-600">Shipping: ${(() => {
+                      const s = page.shippingPrice
+                      if (s === undefined || s === null || s === "") return "N/A"
+                      try {
+                        return Number(s) === 0 ? "Free" : `${s} ${page.currency || ""}`
+                      } catch (e) {
+                        return `${s} ${page.currency || ""}`
+                      }
+                    })()}</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <button class="text-gray-600 p-1 cursor-pointer open-page-button" data-url="${page.url}" title="Open in new tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
+                      <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
+                    </svg>
+                  </button>
+                  <button class="text-gray-600 p-1 cursor-pointer delete-page-button" data-id="${page.id}" title="Delete page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')
+          : '<div class="bg-white rounded-xl shadow-md p-6 text-gray-500 text-center">No pages added yet</div>'
+        }
+      </div>
+
+      <!-- Add Page Button -->
+      <button id="add-page-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition-colors duration-200 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        <span class="text-lg font-medium">Add Page</span>
+      </button>
+    </div>
+  `
+
+  // Add event listeners
+  document.getElementById("back-button").addEventListener("click", () => {
+    currentView = "products"
+    renderApp()
+  })
+
+  document.getElementById("add-page-button").addEventListener("click", () => {
+    // Request scraping of the current page
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      browser.runtime.sendMessage({
+        action: "scrapePage",
+        tabId: tabs[0].id,
+      })
+    })
+  })
+
+  document.querySelectorAll(".delete-page-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const pageId = button.dataset.id
+      showDeletePageModal(pageId)
+    })
+  })
+
+  // Open page in new tab buttons
+  document.querySelectorAll('.open-page-button').forEach((button) => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const url = button.dataset.url
+      if (url) {
+        try {
+          browser.tabs.create({ url })
+        } catch (err) {
+          // Fallback for environments where browser.tabs may not be available
+          window.open(url, '_blank', 'noopener')
+        }
+      }
     })
   })
 }
@@ -268,7 +406,7 @@ function renderSettingsView() {
       <div class="space-y-6">
         <div class="bg-white rounded-xl shadow-md p-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Language</label>
-        <select id="language" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="language" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
           <option value="en" ${settings.language === "en" ? "selected" : ""}>English</option>
           <option value="fr" ${settings.language === "fr" ? "selected" : ""}>Français</option>
           <option value="es" ${settings.language === "es" ? "selected" : ""}>Español</option>
@@ -277,7 +415,7 @@ function renderSettingsView() {
 
         <div class="bg-white rounded-xl shadow-md p-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Default currency</label>
-        <select id="currency" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="currency" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
           <option value="USD" ${settings.currency === "USD" ? "selected" : ""}>US Dollar - $</option>
           <option value="EUR" ${settings.currency === "EUR" ? "selected" : ""}>Euro - €</option>
           <option value="GBP" ${settings.currency === "GBP" ? "selected" : ""}>British Pound - £</option>
@@ -289,7 +427,7 @@ function renderSettingsView() {
         <div class="flex items-center">
           <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" id="dark-mode" class="sr-only peer" ${settings.darkMode ? "checked" : ""}>
-          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
           </label>
         </div>
         </div>
@@ -298,11 +436,11 @@ function renderSettingsView() {
         <label class="block text-sm font-medium text-gray-700 mb-3">Display mode</label>
         <div class="space-y-2">
           <div class="flex items-center">
-          <input type="radio" id="sidebar-mode" name="display-mode" value="sidebar" ${settings.displayMode === "sidebar" ? "checked" : ""} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+          <input type="radio" id="sidebar-mode" name="display-mode" value="sidebar" ${settings.displayMode === "sidebar" ? "checked" : ""} class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300">
           <label for="sidebar-mode" class="ml-2 text-gray-700">Sidebar</label>
           </div>
           <div class="flex items-center">
-          <input type="radio" id="popup-mode" name="display-mode" value="popup" ${settings.displayMode === "popup" ? "checked" : ""} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+          <input type="radio" id="popup-mode" name="display-mode" value="popup" ${settings.displayMode === "popup" ? "checked" : ""} class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300">
           <label for="popup-mode" class="ml-2 text-gray-700">Pop-up</label>
           </div>
         </div>
@@ -352,28 +490,48 @@ function renderSettingsView() {
 // Modal functions
 function showNewSessionModal() {
   const modal = document.createElement("div")
-  modal.innerHTML = `
-    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
-        <h3 class="text-lg font-medium text-gray-800 mb-4">New Session</h3>
-        <input 
-          type="text" 
-          id="session-name" 
-          placeholder="Enter session name" 
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-        
-        <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
-          <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
-            Save
-          </button>
+    modal.innerHTML = `
+      <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+        <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+          <h3 class="text-lg font-medium text-gray-800 mb-4">New Session</h3>
+          <input 
+            type="text" 
+            id="session-name" 
+            placeholder="Enter session name" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+          
+          <div class="flex justify-end space-x-4">
+            <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+            <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+              Save
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   `
 
   document.body.appendChild(modal)
+
+  // Close modal when clicking overlay (and prevent propagation when clicking content)
+  const overlayEl = document.getElementById('modalOverlay')
+  const contentEl = document.getElementById('modalContent')
+  if (overlayEl) {
+    overlayEl.addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+  }
+  if (contentEl) {
+    contentEl.addEventListener('click', (ev) => ev.stopPropagation())
+  }
+
+  // Close button (top-right X)
+  const closeBtn = document.getElementById('close-optimization')
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+  }
 
   document.querySelector("#modalOverlay").addEventListener("click", () => {
     document.body.removeChild(modal)
@@ -408,24 +566,24 @@ function showNewSessionModal() {
 function showEditSessionModal(session) {
   const modal = document.createElement("div") 
   modal.innerHTML = `
-    <div id="modalOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6" onclick="event.stopPropagation()">
-        <h3 class="text-lg font-medium text-gray-800 mb-4">Edit Session</h3>
-        <input 
-          type="text" 
-          id="session-name" 
-          value="${session.name}"
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-        
-        <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
-          <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
-            Save
-          </button>
+      <div id="modalOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+        <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6" onclick="event.stopPropagation()">
+          <h3 class="text-lg font-medium text-gray-800 mb-4">Edit Session</h3>
+          <input 
+            type="text" 
+            id="session-name" 
+            value="${session.name}"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+          
+          <div class="flex justify-end space-x-4">
+            <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+            <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+              Save
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   `
 
   document.body.appendChild(modal)
@@ -521,30 +679,36 @@ function showNewProductModal() {
             type="text" 
             id="product-name" 
             placeholder="Enter product name"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6" id="has-alternatives-section" style="display:${sessions.find(s => s.id === currentSession).products.length > 0 ? 'block' : 'none'};">
           <label class="block text-sm font-medium text-gray-700 mb-1">Has alternatives</label>
-          <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="has-alternatives" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
           <p class="mt-1 text-sm text-gray-500">If the product can be replaced by another, select which ones.</p>
+
+          <div id="alternatives-list" class="mt-3 space-y-2" style="display:block; max-height:220px; overflow:auto;">
+            ${sessions.find(s => s.id === currentSession).products.map(p => `
+              <div class="flex items-center">
+                <input type="checkbox" id="alt-${p.id}" value="${p.id}" class="alt-checkbox h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-gray-500">
+                <label for="alt-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
+              </div>
+            `).join('')}
+          </div>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6" id="limited-compatibility-section" style="display:none;">
           <label class="block text-sm font-medium text-gray-700 mb-1">Limited Compatibility</label>
-          <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="limited-compatibility" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
+          <p class="mt-1 text-sm text-gray-500">If this product is not compatible with all the others, select which ones.</p>
+
+          <div id="compatible-products-list" class="mt-3 space-y-2" style="display:block; max-height:220px; overflow:auto;">
+            ${sessions.find(s => s.id === currentSession).products.map(p => `
+              <div class="flex items-center">
+                <input type="checkbox" id="compat-${p.id}" value="${p.id}" class="compat-checkbox h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-gray-500">
+                <label for="compat-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
+              </div>
+            `).join('')}
           </div>
-          <p class="mt-1 text-sm text-gray-500">If this product is not compatible with all the others, you will need to select which ones.</p>
         </div>
         
         <div class="flex justify-end space-x-4">
@@ -559,30 +723,118 @@ function showNewProductModal() {
 
   document.body.appendChild(modal)
 
+  // Wire alternatives list to show/hide limited compatibility section
+  const altListElNew = document.getElementById('alternatives-list')
+  const limitedSectionNew = document.getElementById('limited-compatibility-section')
+  const compatProductsListNew = document.getElementById('compatible-products-list')
+  
+  // Check if any alternatives are selected and show/hide limited compatibility section
+  function updateLimitedCompatibilitySectionNew() {
+    const selectedAlts = Array.from(document.querySelectorAll('#alternatives-list input.alt-checkbox:checked')).length > 0
+    if (limitedSectionNew) limitedSectionNew.style.display = selectedAlts ? 'block' : 'none'
+    if (!selectedAlts && compatProductsListNew) {
+      // Clear compatible products selection if hiding the section
+      document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => cb.checked = false)
+    }
+  }
+  
+  // Add listeners to all alternative checkboxes
+  document.querySelectorAll('#alternatives-list input.alt-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateLimitedCompatibilitySectionNew)
+  })
+
+  // Close modal when clicking overlay (and prevent propagation when clicking content)
+  const overlayEl = document.getElementById('modalOverlay')
+  const contentEl = document.getElementById('modalContent')
+  if (overlayEl) {
+    overlayEl.addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+  }
+  if (contentEl) {
+    contentEl.addEventListener('click', (ev) => ev.stopPropagation())
+  }
+
+  // Close button (top-right X)
+  const closeBtn = document.getElementById('close-optimization')
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+  }
+
+  document.querySelector("#modalOverlay").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.querySelector("#modalContent").addEventListener("click", (event) => {
+    event.stopPropagation()
+  })
+
   document.getElementById("cancel-button").addEventListener("click", () => {
     document.body.removeChild(modal)
   })
 
   document.getElementById("save-button").addEventListener("click", () => {
     const name = document.getElementById("product-name").value.trim()
-    const hasAlternatives = document.getElementById("has-alternatives").checked
-    const limitedCompatibility = document.getElementById("limited-compatibility").checked
+
+    // collect selected alternatives
+    const selectedAlts = []
+    document.querySelectorAll('#alternatives-list input.alt-checkbox:checked').forEach(cb => selectedAlts.push(cb.value))
+
+    // collect compatible products
+    const compatibleProducts = []
+    document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => compatibleProducts.push(cb.value))
 
     if (name) {
+      // Create product first to get an id, then update reciprocal alternatives
       browser.runtime
         .sendMessage({
           action: "createProduct",
           sessionId: currentSession,
           product: {
             name,
-            hasAlternatives,
-            limitedCompatibility,
+            alternatives: selectedAlts,
+            limitedCompatibilityWith: compatibleProducts,
           },
         })
         .then((response) => {
+          // sessions returned with new product
           sessions = response.sessions
-          document.body.removeChild(modal)
-          renderApp()
+          const session = sessions.find(s => s.id === currentSession)
+          const newProduct = session.products[session.products.length - 1]
+
+          // If user selected alternatives, ensure bidirectional links
+          if (selectedAlts.length > 0) {
+            session.products.forEach((prod) => {
+              if (selectedAlts.includes(prod.id)) {
+                prod.alternatives = prod.alternatives || []
+                if (!prod.alternatives.includes(newProduct.id)) prod.alternatives.push(newProduct.id)
+              }
+            })
+          }
+
+          // If user selected compatible products, ensure bidirectional links
+          if (compatibleProducts.length > 0) {
+            session.products.forEach((prod) => {
+              if (compatibleProducts.includes(prod.id)) {
+                prod.limitedCompatibilityWith = prod.limitedCompatibilityWith || []
+                if (!prod.limitedCompatibilityWith.includes(newProduct.id)) prod.limitedCompatibilityWith.push(newProduct.id)
+              }
+            })
+          }
+
+          // Save updated session if there are bidirectional links to persist
+          if (selectedAlts.length > 0 || compatibleProducts.length > 0) {
+            browser.runtime.sendMessage({ action: 'updateSession', sessionId: currentSession, updatedSession: session, session }).then((resp) => {
+              sessions = resp.sessions
+              document.body.removeChild(modal)
+              renderApp()
+            })
+          } else {
+            document.body.removeChild(modal)
+            renderApp()
+          }
         })
     }
   })
@@ -602,30 +854,36 @@ function showEditProductModal(product) {
             type="text" 
             id="product-name" 
             value="${product.name}"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6" id="has-alternatives-section" style="display:${sessions.find(s => s.id === currentSession).products.length > 1 ? 'block' : 'none'};">
           <label class="block text-sm font-medium text-gray-700 mb-1">Has alternatives</label>
-          <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="has-alternatives" class="sr-only peer" ${product.hasAlternatives ? "checked" : ""}>
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
           <p class="mt-1 text-sm text-gray-500">If the product can be replaced by another, select which ones.</p>
+
+          <div id="alternatives-list" class="mt-3 space-y-2" style="display:block; max-height:220px; overflow:auto;">
+            ${sessions.find(s => s.id === currentSession).products.filter(p => p.id !== product.id).map(p => `
+              <div class="flex items-center">
+                <input type="checkbox" id="alt-${p.id}" value="${p.id}" class="alt-checkbox h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-gray-500" ${product.alternatives && product.alternatives.includes(p.id) ? 'checked' : ''}>
+                <label for="alt-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
+              </div>
+            `).join('')}
+          </div>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6" id="limited-compatibility-section" style="display:none;">
           <label class="block text-sm font-medium text-gray-700 mb-1">Limited Compatibility</label>
-          <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="limited-compatibility" class="sr-only peer" ${product.limitedCompatibility ? "checked" : ""}>
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
           <p class="mt-1 text-sm text-gray-500">If this product is not compatible with all the others, you will need to select which ones.</p>
+
+          <div id="compatible-products-list" class="mt-3 space-y-2" style="max-height:220px; overflow:auto;">
+            ${sessions.find(s => s.id === currentSession).products.filter(p => p.id !== product.id).map(p => `
+              <div class="flex items-center">
+                <input type="checkbox" id="compat-${p.id}" value="${p.id}" class="compat-checkbox h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-gray-500" ${product.limitedCompatibilityWith && product.limitedCompatibilityWith.includes(p.id) ? 'checked' : ''}>
+                <label for="compat-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
+              </div>
+            `).join('')}
+          </div>
         </div>
         
         <div class="flex justify-end space-x-4">
@@ -640,31 +898,87 @@ function showEditProductModal(product) {
 
   document.body.appendChild(modal)
 
+  // Setup limited compatibility section visibility based on selected alternatives
+  const limitedSectionEdit = document.getElementById('limited-compatibility-section')
+  const compatProductsListEdit = document.getElementById('compatible-products-list')
+
+  // Check if any alternatives are selected and show/hide limited compatibility section
+  function updateLimitedCompatibilitySectionEdit() {
+    const selectedAlts = Array.from(document.querySelectorAll('#alternatives-list input.alt-checkbox:checked')).length > 0
+    if (limitedSectionEdit) limitedSectionEdit.style.display = selectedAlts ? 'block' : 'none'
+    if (!selectedAlts && compatProductsListEdit) {
+      // Clear compatible products selection if hiding the section
+      document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => cb.checked = false)
+    }
+  }
+
+  // Add listeners to all alternative checkboxes
+  document.querySelectorAll('#alternatives-list input.alt-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateLimitedCompatibilitySectionEdit)
+  })
+
   document.getElementById("cancel-button").addEventListener("click", () => {
     document.body.removeChild(modal)
   })
 
   document.getElementById("save-button").addEventListener("click", () => {
     const name = document.getElementById("product-name").value.trim()
-    const hasAlternatives = document.getElementById("has-alternatives").checked
-    const limitedCompatibility = document.getElementById("limited-compatibility").checked
+    
+    // collect selected alternatives
+    const selectedAlts = []
+    document.querySelectorAll('#alternatives-list input.alt-checkbox:checked').forEach(cb => {
+      if (cb.disabled) return
+      selectedAlts.push(cb.value)
+    })
+
+    // collect compatible products
+    const compatibleProducts = []
+    document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => {
+      if (cb.disabled) return
+      compatibleProducts.push(cb.value)
+    })
 
     if (name) {
-      product.name = name
-      product.hasAlternatives = hasAlternatives
-      product.limitedCompatibility = limitedCompatibility
+      const session = sessions.find(s => s.id === currentSession)
 
-      browser.runtime
-        .sendMessage({
-          action: "updateProduct",
-          sessionId: currentSession,
-          product,
-        })
-        .then((response) => {
-          sessions = response.sessions
-          document.body.removeChild(modal)
-          renderApp()
-        })
+      // update product fields
+      const prod = session.products.find(p => p.id === product.id)
+      if (!prod) return
+      prod.name = name
+      prod.alternatives = selectedAlts
+      prod.limitedCompatibilityWith = compatibleProducts
+
+      // Ensure bidirectional links: for each product in session, add/remove reciprocal
+      session.products.forEach((other) => {
+        if (other.id === prod.id) return
+        
+        // Handle alternatives bidirectional link
+        other.alternatives = other.alternatives || []
+        const shouldIncludeAlt = selectedAlts.includes(other.id)
+        const currentlyHasAlt = other.alternatives.includes(prod.id)
+        if (shouldIncludeAlt && !currentlyHasAlt) {
+          other.alternatives.push(prod.id)
+        } else if (!shouldIncludeAlt && currentlyHasAlt) {
+          other.alternatives = other.alternatives.filter(x => x !== prod.id)
+        }
+
+        // Handle limitedCompatibilityWith bidirectional link
+        other.limitedCompatibilityWith = other.limitedCompatibilityWith || []
+        const shouldIncludeCompat = compatibleProducts.includes(other.id)
+        const currentlyHasCompat = other.limitedCompatibilityWith.includes(prod.id)
+        if (shouldIncludeCompat && !currentlyHasCompat) {
+          other.limitedCompatibilityWith.push(prod.id)
+        } else if (!shouldIncludeCompat && currentlyHasCompat) {
+          other.limitedCompatibilityWith = other.limitedCompatibilityWith.filter(x => x !== prod.id)
+        }
+      })
+
+      // Save entire session to persist reciprocal changes
+  browser.runtime.sendMessage({ action: 'updateSession', sessionId: currentSession, updatedSession: session, session }).then((response) => {
+        sessions = response.sessions
+        document.body.removeChild(modal)
+        renderApp()
+      })
     }
   })
 }
@@ -673,19 +987,30 @@ function showDeleteProductModal(productId) {
   const modal = document.createElement("div")
   modal.className = "modal"
   modal.innerHTML = `
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Delete Product</h2>
-      </div>
-      <p>Are you sure you want to delete?</p>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancel-button">Cancel</button>
-        <button class="btn btn-danger" id="delete-button">Delete</button>
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Delete Product</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete this product?</p>
+        
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="delete-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   `
 
   document.body.appendChild(modal)
+
+  document.querySelector("#modalOverlay").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.querySelector("#modalContent").addEventListener("click", (event) => {
+    event.stopPropagation()
+  })
 
   document.getElementById("cancel-button").addEventListener("click", () => {
     document.body.removeChild(modal)
@@ -706,54 +1031,19 @@ function showDeleteProductModal(productId) {
   })
 }
 
-function showProductDetailsModal(product) {
-  const session = sessions.find((s) => s.id === currentSession)
-
+function showDeletePageModal(pageId) {
   const modal = document.createElement("div")
   modal.className = "modal"
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-semibold text-gray-800">${product.name}</h2>
-        </div>
-
-        <!-- Pages List -->
-        <div class="space-y-4 mb-6">
-          <label class="block text-sm font-medium text-gray-700">Pages</label>
-          ${product.pages.length > 0 
-            ? product.pages.map(page => `
-              <div class="bg-gray-50 rounded-lg p-4">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1 min-w-0 mr-4">
-                    <p class="text-sm text-gray-900 truncate">${page.url.substring(0, 30)}...</p>
-                    <p class="text-sm text-gray-600">Price: ${page.price || "N/A"}</p>
-                    <p class="text-sm text-gray-600">Shipping: ${page.shippingPrice || "N/A"}</p>
-                    <p class="text-sm text-gray-600">Seller: ${page.seller || "N/A"}</p>
-                  </div>
-                  <button class="text-gray-600 p-1 cursor-pointer delete-page-button" data-id="${page.id}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            `).join('')
-            : '<div class="text-gray-500 text-center py-4">No pages added yet</div>'
-          }
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex space-x-4">
-          <button id="close-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer bg-gray-100 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-200 transition-colors duration-200 shadow-sm">
-            <span class="text-lg font-medium">Close</span>
-          </button>
-          <button id="add-page-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition-colors duration-200 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span class="text-lg font-medium">Add Page</span>
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Delete Page</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete this page?</p>
+        
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="delete-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Delete
           </button>
         </div>
       </div>
@@ -770,41 +1060,23 @@ function showProductDetailsModal(product) {
     event.stopPropagation()
   })
 
-  document.getElementById("close-button").addEventListener("click", () => {
+  document.getElementById("cancel-button").addEventListener("click", () => {
     document.body.removeChild(modal)
   })
 
-  document.getElementById("add-page-button").addEventListener("click", () => {
-    currentProduct = product.id
-    document.body.removeChild(modal)
-
-    // Request scraping of the current page
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      browser.runtime.sendMessage({
-        action: "scrapePage",
-        tabId: tabs[0].id,
+  document.getElementById("delete-button").addEventListener("click", () => {
+    browser.runtime
+      .sendMessage({
+        action: "deletePage",
+        sessionId: currentSession,
+        productId: currentProduct,
+        pageId,
       })
-    })
-  })
-
-  document.querySelectorAll(".delete-page-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const pageId = button.dataset.id
-      browser.runtime
-        .sendMessage({
-          action: "deletePage",
-          sessionId: currentSession,
-          productId: product.id,
-          pageId,
-        })
-        .then((response) => {
-          sessions = response.sessions
-          document.body.removeChild(modal)
-          showProductDetailsModal(
-            sessions.find((s) => s.id === currentSession).products.find((p) => p.id === product.id),
-          )
-        })
-    })
+      .then((response) => {
+        sessions = response.sessions
+        document.body.removeChild(modal)
+        renderApp()
+      })
   })
 }
 
@@ -817,116 +1089,220 @@ function showScrapedDataModal() {
   const modal = document.createElement("div")
   modal.className = "modal"
 
-  if (scrapedData.hasKnownParser) {
-    // Known parser, show scraped data
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 class="modal-title">Add Page for ${product.name}</h2>
-        </div>
-        <div class="form-group">
-          <label>Is this a bundle?</label>
-          <div class="toggle-container">
-            <label class="toggle-switch">
-              <input type="checkbox" id="is-bundle">
-              <span class="slider"></span>
+  const hasKnownParser = scrapedData.hasKnownParser;
+  modal.innerHTML = `
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Add Page for ${product.name}</h3>
+        
+        ${!hasKnownParser ? 
+          `<p class="text-sm text-gray-500 mb-4">This website doesn't have a known parser. Please enter the details manually.</p>` 
+          : ''
+        }
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Is this a bundle?</label>
+          <div class="flex items-center">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="is-bundle" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
             </label>
           </div>
-          <small>A bundle contains multiple products with a single price and shipping cost.</small>
+          <p class="mt-1 text-sm text-gray-500">A bundle contains multiple products with a single price and shipping cost.</p>
         </div>
-        <div id="product-selection" class="form-group" style="display: none;">
-          <label>Select products in this bundle:</label>
-          <div class="product-selection-list">
+
+        <div id="product-selection" class="mb-6" style="display: none;">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Select products in this bundle:</label>
+          <div class="space-y-2">
             ${session.products
               .map(
                 (p) => `
-              <div class="checkbox-group">
-                <input type="checkbox" id="product-${p.id}" value="${p.id}" ${p.id === product.id ? "checked disabled" : ""}>
-                <label for="product-${p.id}">${p.name}</label>
+              <div class="flex items-center">
+                <input type="checkbox" 
+                  id="product-${p.id}" 
+                  value="${p.id}" 
+                  ${p.id === product.id ? "checked disabled" : ""}
+                  class="h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-gray-500"
+                >
+                <label for="product-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
               </div>
             `,
               )
               .join("")}
           </div>
         </div>
-        <div class="form-group">
-          <label for="page-url">URL</label>
-          <input type="text" id="page-url" class="form-control" value="${scrapedData.url}" readonly>
+
+        <div class="mb-6">
+          <label for="page-url" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+          <input 
+            type="text" 
+            id="page-url" 
+            value="${scrapedData.url}" 
+            readonly
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
         </div>
-        <div class="form-group">
-          <label for="page-price">Price</label>
-          <input type="text" id="page-price" class="form-control" value="${scrapedData.price || ""}">
+
+        <div class="mb-6">
+          <label for="page-price" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <input 
+            type="text" 
+            id="page-price" 
+            value="${scrapedData.hasKnownParser ? (scrapedData.price || "") : ""}"
+            placeholder="Enter price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
         </div>
-        <div class="form-group">
-          <label for="page-shipping">Shipping Price</label>
-          <input type="text" id="page-shipping" class="form-control" value="${scrapedData.shippingPrice || ""}">
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+            <option value="FREE" ${scrapedData.priceCurrency === "FREE" ? "selected" : ""}>Free</option>
+            <option value="ALL" ${scrapedData.priceCurrency === "ALL" ? "selected" : ""}>Albania Lek - Lek</option>
+            <option value="AFN" ${scrapedData.priceCurrency === "AFN" ? "selected" : ""}>Afghanistan Afghani - ؋</option>
+            <option value="ARS" ${scrapedData.priceCurrency === "ARS" ? "selected" : ""}>Argentina Peso - $</option>
+            <option value="AWG" ${scrapedData.priceCurrency === "AWG" ? "selected" : ""}>Aruba Guilder - ƒ</option>
+            <option value="AUD" ${scrapedData.priceCurrency === "AUD" ? "selected" : ""}>Australia Dollar - $</option>
+            <option value="AZN" ${scrapedData.priceCurrency === "AZN" ? "selected" : ""}>Azerbaijan Manat - ₼</option>
+            <option value="BSD" ${scrapedData.priceCurrency === "BSD" ? "selected" : ""}>Bahamas Dollar - $</option>
+            <option value="BBD" ${scrapedData.priceCurrency === "BBD" ? "selected" : ""}>Barbados Dollar - $</option>
+            <option value="BYN" ${scrapedData.priceCurrency === "BYN" ? "selected" : ""}>Belarus Ruble - Br</option>
+            <option value="BZD" ${scrapedData.priceCurrency === "BZD" ? "selected" : ""}>Belize Dollar - BZ$</option>
+            <option value="BMD" ${scrapedData.priceCurrency === "BMD" ? "selected" : ""}>Bermuda Dollar - $</option>
+            <option value="BOB" ${scrapedData.priceCurrency === "BOB" ? "selected" : ""}>Bolivia Bolíviano - $b</option>
+            <option value="BAM" ${scrapedData.priceCurrency === "BAM" ? "selected" : ""}>Bosnia and Herzegovina Mark - KM</option>
+            <option value="BWP" ${scrapedData.priceCurrency === "BWP" ? "selected" : ""}>Botswana Pula - P</option>
+            <option value="BGN" ${scrapedData.priceCurrency === "BGN" ? "selected" : ""}>Bulgaria Lev - лв</option>
+            <option value="BRL" ${scrapedData.priceCurrency === "BRL" ? "selected" : ""}>Brazil Real - R$</option>
+            <option value="BND" ${scrapedData.priceCurrency === "BND" ? "selected" : ""}>Brunei Dollar - $</option>
+            <option value="KHR" ${scrapedData.priceCurrency === "KHR" ? "selected" : ""}>Cambodia Riel - ៛</option>
+            <option value="CAD" ${scrapedData.priceCurrency === "CAD" ? "selected" : ""}>Canada Dollar - $</option>
+            <option value="KYD" ${scrapedData.priceCurrency === "KYD" ? "selected" : ""}>Cayman Islands Dollar - $</option>
+            <option value="CLP" ${scrapedData.priceCurrency === "CLP" ? "selected" : ""}>Chile Peso - $</option>
+            <option value="CNY" ${scrapedData.priceCurrency === "CNY" ? "selected" : ""}>China Yuan Renminbi - ¥</option>
+            <option value="COP" ${scrapedData.priceCurrency === "COP" ? "selected" : ""}>Colombia Peso - $</option>
+            <option value="CRC" ${scrapedData.priceCurrency === "CRC" ? "selected" : ""}>Costa Rica Colon - ₡</option>
+            <option value="HRK" ${scrapedData.priceCurrency === "HRK" ? "selected" : ""}>Croatia Kuna - kn</option>
+            <option value="CUP" ${scrapedData.priceCurrency === "CUP" ? "selected" : ""}>Cuba Peso - ₱</option>
+            <option value="CZK" ${scrapedData.priceCurrency === "CZK" ? "selected" : ""}>Czech Republic Koruna - Kč</option>
+            <option value="DKK" ${scrapedData.priceCurrency === "DKK" ? "selected" : ""}>Denmark Krone - kr</option>
+            <option value="DOP" ${scrapedData.priceCurrency === "DOP" ? "selected" : ""}>Dominican Republic Peso - RD$</option>
+            <option value="XCD" ${scrapedData.priceCurrency === "XCD" ? "selected" : ""}>East Caribbean Dollar - $</option>
+            <option value="EGP" ${scrapedData.priceCurrency === "EGP" ? "selected" : ""}>Egypt Pound - £</option>
+            <option value="EUR" ${scrapedData.priceCurrency === "EUR" ? "selected" : ""}>Euro - €</option>
+            <option value="FKP" ${scrapedData.priceCurrency === "FKP" ? "selected" : ""}>Falkland Islands Pound - £</option>
+            <option value="FJD" ${scrapedData.priceCurrency === "FJD" ? "selected" : ""}>Fiji Dollar - $</option>
+            <option value="GHS" ${scrapedData.priceCurrency === "GHS" ? "selected" : ""}>Ghana Cedi - ¢</option>
+            <option value="GIP" ${scrapedData.priceCurrency === "GIP" ? "selected" : ""}>Gibraltar Pound - £</option>
+            <option value="GTQ" ${scrapedData.priceCurrency === "GTQ" ? "selected" : ""}>Guatemala Quetzal - Q</option>
+            <option value="GGP" ${scrapedData.priceCurrency === "GGP" ? "selected" : ""}>Guernsey Pound - £</option>
+            <option value="GYD" ${scrapedData.priceCurrency === "GYD" ? "selected" : ""}>Guyana Dollar - $</option>
+            <option value="HNL" ${scrapedData.priceCurrency === "HNL" ? "selected" : ""}>Honduras Lempira - L</option>
+            <option value="HKD" ${scrapedData.priceCurrency === "HKD" ? "selected" : ""}>Hong Kong Dollar - $</option>
+            <option value="HUF" ${scrapedData.priceCurrency === "HUF" ? "selected" : ""}>Hungary Forint - Ft</option>
+            <option value="ISK" ${scrapedData.priceCurrency === "ISK" ? "selected" : ""}>Iceland Krona - kr</option>
+            <option value="INR" ${scrapedData.priceCurrency === "INR" ? "selected" : ""}>India Rupee - ₹</option>
+            <option value="IDR" ${scrapedData.priceCurrency === "IDR" ? "selected" : ""}>Indonesia Rupiah - Rp</option>
+            <option value="IRR" ${scrapedData.priceCurrency === "IRR" ? "selected" : ""}>Iran Rial - ﷼</option>
+            <option value="IMP" ${scrapedData.priceCurrency === "IMP" ? "selected" : ""}>Isle of Man Pound - £</option>
+            <option value="ILS" ${scrapedData.priceCurrency === "ILS" ? "selected" : ""}>Israel Shekel - ₪</option>
+            <option value="JMD" ${scrapedData.priceCurrency === "JMD" ? "selected" : ""}>Jamaica Dollar - J$</option>
+            <option value="JPY" ${scrapedData.priceCurrency === "JPY" ? "selected" : ""}>Japan Yen - ¥</option>
+            <option value="JEP" ${scrapedData.priceCurrency === "JEP" ? "selected" : ""}>Jersey Pound - £</option>
+            <option value="KZT" ${scrapedData.priceCurrency === "KZT" ? "selected" : ""}>Kazakhstan Tenge - лв</option>
+            <option value="KPW" ${scrapedData.priceCurrency === "KPW" ? "selected" : ""}>Korea (North) Won - ₩</option>
+            <option value="KRW" ${scrapedData.priceCurrency === "KRW" ? "selected" : ""}>Korea (South) Won - ₩</option>
+            <option value="KGS" ${scrapedData.priceCurrency === "KGS" ? "selected" : ""}>Kyrgyzstan Som - лв</option>
+            <option value="LAK" ${scrapedData.priceCurrency === "LAK" ? "selected" : ""}>Laos Kip - ₭</option>
+            <option value="LBP" ${scrapedData.priceCurrency === "LBP" ? "selected" : ""}>Lebanon Pound - £</option>
+            <option value="LRD" ${scrapedData.priceCurrency === "LRD" ? "selected" : ""}>Liberia Dollar - $</option>
+            <option value="MKD" ${scrapedData.priceCurrency === "MKD" ? "selected" : ""}>Macedonia Denar - ден</option>
+            <option value="MYR" ${scrapedData.priceCurrency === "MYR" ? "selected" : ""}>Malaysia Ringgit - RM</option>
+            <option value="MUR" ${scrapedData.priceCurrency === "MUR" ? "selected" : ""}>Mauritius Rupee - ₨</option>
+            <option value="MXN" ${scrapedData.priceCurrency === "MXN" ? "selected" : ""}>Mexico Peso - $</option>
+            <option value="MNT" ${scrapedData.priceCurrency === "MNT" ? "selected" : ""}>Mongolia Tughrik - ₮</option>
+            <option value="MZN" ${scrapedData.priceCurrency === "MZN" ? "selected" : ""}>Mozambique Metical - MT</option>
+            <option value="NAD" ${scrapedData.priceCurrency === "NAD" ? "selected" : ""}>Namibia Dollar - $</option>
+            <option value="NPR" ${scrapedData.priceCurrency === "NPR" ? "selected" : ""}>Nepal Rupee - ₨</option>
+            <option value="ANG" ${scrapedData.priceCurrency === "ANG" ? "selected" : ""}>Netherlands Antilles Guilder - ƒ</option>
+            <option value="NZD" ${scrapedData.priceCurrency === "NZD" ? "selected" : ""}>New Zealand Dollar - $</option>
+            <option value="NIO" ${scrapedData.priceCurrency === "NIO" ? "selected" : ""}>Nicaragua Cordoba - C$</option>
+            <option value="NGN" ${scrapedData.priceCurrency === "NGN" ? "selected" : ""}>Nigeria Naira - ₦</option>
+            <option value="NOK" ${scrapedData.priceCurrency === "NOK" ? "selected" : ""}>Norway Krone - kr</option>
+            <option value="OMR" ${scrapedData.priceCurrency === "OMR" ? "selected" : ""}>Oman Rial - ﷼</option>
+            <option value="PKR" ${scrapedData.priceCurrency === "PKR" ? "selected" : ""}>Pakistan Rupee - ₨</option>
+            <option value="PAB" ${scrapedData.priceCurrency === "PAB" ? "selected" : ""}>Panama Balboa - B/.</option>
+            <option value="PYG" ${scrapedData.priceCurrency === "PYG" ? "selected" : ""}>Paraguay Guarani - Gs</option>
+            <option value="PEN" ${scrapedData.priceCurrency === "PEN" ? "selected" : ""}>Peru Sol - S/.</option>
+            <option value="PHP" ${scrapedData.priceCurrency === "PHP" ? "selected" : ""}>Philippines Peso - ₱</option>
+            <option value="PLN" ${scrapedData.priceCurrency === "PLN" ? "selected" : ""}>Poland Zloty - zł</option>
+            <option value="QAR" ${scrapedData.priceCurrency === "QAR" ? "selected" : ""}>Qatar Riyal - ﷼</option>
+            <option value="RON" ${scrapedData.priceCurrency === "RON" ? "selected" : ""}>Romania Leu - lei</option>
+            <option value="RUB" ${scrapedData.priceCurrency === "RUB" ? "selected" : ""}>Russia Ruble - ₽</option>
+            <option value="SHP" ${scrapedData.priceCurrency === "SHP" ? "selected" : ""}>Saint Helena Pound - £</option>
+            <option value="SAR" ${scrapedData.priceCurrency === "SAR" ? "selected" : ""}>Saudi Arabia Riyal - ﷼</option>
+            <option value="RSD" ${scrapedData.priceCurrency === "RSD" ? "selected" : ""}>Serbia Dinar - Дин.</option>
+            <option value="SCR" ${scrapedData.priceCurrency === "SCR" ? "selected" : ""}>Seychelles Rupee - ₨</option>
+            <option value="SGD" ${scrapedData.priceCurrency === "SGD" ? "selected" : ""}>Singapore Dollar - $</option>
+            <option value="SBD" ${scrapedData.priceCurrency === "SBD" ? "selected" : ""}>Solomon Islands Dollar - $</option>
+            <option value="SOS" ${scrapedData.priceCurrency === "SOS" ? "selected" : ""}>Somalia Shilling - S</option>
+            <option value="ZAR" ${scrapedData.priceCurrency === "ZAR" ? "selected" : ""}>South Africa Rand - R</option>
+            <option value="LKR" ${scrapedData.priceCurrency === "LKR" ? "selected" : ""}>Sri Lanka Rupee - ₨</option>
+            <option value="SEK" ${scrapedData.priceCurrency === "SEK" ? "selected" : ""}>Sweden Krona - kr</option>
+            <option value="CHF" ${scrapedData.priceCurrency === "CHF" ? "selected" : ""}>Switzerland Franc - CHF</option>
+            <option value="SRD" ${scrapedData.priceCurrency === "SRD" ? "selected" : ""}>Suriname Dollar - $</option>
+            <option value="SYP" ${scrapedData.priceCurrency === "SYP" ? "selected" : ""}>Syria Pound - £</option>
+            <option value="TWD" ${scrapedData.priceCurrency === "TWD" ? "selected" : ""}>Taiwan New Dollar - NT$</option>
+            <option value="THB" ${scrapedData.priceCurrency === "THB" ? "selected" : ""}>Thailand Baht - ฿</option>
+            <option value="TTD" ${scrapedData.priceCurrency === "TTD" ? "selected" : ""}>Trinidad and Tobago Dollar - TT$</option>
+            <option value="TRY" ${scrapedData.priceCurrency === "TRY" ? "selected" : ""}>Turkey Lira - ₺</option>
+            <option value="TVD" ${scrapedData.priceCurrency === "TVD" ? "selected" : ""}>Tuvalu Dollar - $</option>
+            <option value="UAH" ${scrapedData.priceCurrency === "UAH" ? "selected" : ""}>Ukraine Hryvnia - ₴</option>
+            <option value="GBP" ${scrapedData.priceCurrency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
+            <option value="USD" ${scrapedData.priceCurrency === "USD" ? "selected" : ""}>United States Dollar - $</option>
+            <option value="UYU" ${scrapedData.priceCurrency === "UYU" ? "selected" : ""}>Uruguay Peso - $U</option>
+            <option value="UZS" ${scrapedData.priceCurrency === "UZS" ? "selected" : ""}>Uzbekistan Som - лв</option>
+            <option value="VEF" ${scrapedData.priceCurrency === "VEF" ? "selected" : ""}>Venezuela Bolívar - Bs</option>
+            <option value="VND" ${scrapedData.priceCurrency === "VND" ? "selected" : ""}>Viet Nam Dong - ₫</option>
+            <option value="YER" ${scrapedData.priceCurrency === "YER" ? "selected" : ""}>Yemen Rial - ﷼</option>
+            <option value="ZWD" ${scrapedData.priceCurrency === "ZWD" ? "selected" : ""}>Zimbabwe Dollar - Z$</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label for="page-seller">Seller</label>
-          <input type="text" id="page-seller" class="form-control" value="${scrapedData.seller || ""}">
+
+        <div class="mb-6">
+          <label for="page-shipping" class="block text-sm font-medium text-gray-700 mb-1">Shipping Price</label>
+          <input 
+            type="text" 
+            id="page-shipping" 
+            value="${scrapedData.hasKnownParser ? (scrapedData.shippingPrice || "") : ""}"
+            placeholder="Enter shipping price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="cancel-button">Cancel</button>
-          <button class="btn btn-primary" id="save-button">Save</button>
+
+        <div class="mb-6">
+          <label for="page-seller" class="block text-sm font-medium text-gray-700 mb-1">Seller</label>
+          <input 
+            type="text" 
+            id="page-seller" 
+            value="${scrapedData.hasKnownParser ? (scrapedData.seller || "") : ""}"
+            placeholder="Enter seller name"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Save
+          </button>
         </div>
       </div>
-    `
-  } else {
-    // Unknown parser, manual entry
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 class="modal-title">Add Page for ${product.name}</h2>
-        </div>
-        <p>This website doesn't have a known parser. Please enter the details manually.</p>
-        <div class="form-group">
-          <label>Is this a bundle?</label>
-          <div class="toggle-container">
-            <label class="toggle-switch">
-              <input type="checkbox" id="is-bundle">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <small>A bundle contains multiple products with a single price and shipping cost.</small>
-        </div>
-        <div id="product-selection" class="form-group" style="display: none;">
-          <label>Select products in this bundle:</label>
-          <div class="product-selection-list">
-            ${session.products
-              .map(
-                (p) => `
-              <div class="checkbox-group">
-                <input type="checkbox" id="product-${p.id}" value="${p.id}" ${p.id === product.id ? "checked disabled" : ""}>
-                <label for="product-${p.id}">${p.name}</label>
-              </div>
-            `,
-              )
-              .join("")}
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="page-url">URL</label>
-          <input type="text" id="page-url" class="form-control" value="${scrapedData.url}" readonly>
-        </div>
-        <div class="form-group">
-          <label for="page-price">Price</label>
-          <input type="text" id="page-price" class="form-control" placeholder="Enter price">
-        </div>
-        <div class="form-group">
-          <label for="page-shipping">Shipping Price</label>
-          <input type="text" id="page-shipping" class="form-control" placeholder="Enter shipping price">
-        </div>
-        <div class="form-group">
-          <label for="page-seller">Seller</label>
-          <input type="text" id="page-seller" class="form-control" placeholder="Enter seller name">
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="cancel-button">Cancel</button>
-          <button class="btn btn-primary" id="save-button">Save</button>
-        </div>
-      </div>
-    `
-  }
+    </div>
+  `
 
   document.body.appendChild(modal)
 
@@ -951,6 +1327,7 @@ function showScrapedDataModal() {
     const price = document.getElementById("page-price").value
     const shippingPrice = document.getElementById("page-shipping").value
     const seller = document.getElementById("page-seller").value
+    const currency = document.getElementById("page-currency").value
 
     const bundledProducts = []
     if (isBundle) {
@@ -964,6 +1341,7 @@ function showScrapedDataModal() {
       price,
       shippingPrice,
       seller,
+      currency,
       isBundle,
       bundledProducts,
       timestamp: new Date().toISOString(),
@@ -982,10 +1360,8 @@ function showScrapedDataModal() {
         scrapedData = null
 
         // Show product details again
-        const updatedProduct = sessions
-          .find((s) => s.id === currentSession)
-          .products.find((p) => p.id === currentProduct)
-        showProductDetailsModal(updatedProduct)
+        currentView = "pages"
+        renderApp()
       })
   })
 }
@@ -996,121 +1372,332 @@ function showOptimizationModal() {
   const modal = document.createElement("div")
   modal.className = "modal"
   modal.innerHTML = `
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Optimize Shopping</h2>
-      </div>
-      <p>Configure delivery settings for each seller before optimizing.</p>
-      <div class="seller-settings">
-        ${getUniqueSellers(session)
-          .map(
-            (seller) => `
-          <div class="seller-setting">
-            <h3>${seller}</h3>
-            <div class="form-group">
-              <label>Delivery Type</label>
-              <select class="form-control delivery-type" data-seller="${seller}">
-                <option value="fixed">Fixed Price</option>
-                <option value="free-threshold">Free Above Threshold</option>
-                <option value="first-item">First Item Full Price, Discounted Additional</option>
-              </select>
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6" style="max-height:80vh; overflow-y:auto;">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Optimize Shopping</h3>
+
+        <p class="text-sm text-gray-500 mb-4">Configure delivery settings for each seller before optimizing.</p>
+
+        <div class="space-y-4 seller-settings">
+          ${getUniqueSellers(session)
+            .map(
+              (seller) => `
+            <div class="mb-4 seller-card bg-white rounded-lg p-4 border border-gray-200">
+              <h4 class="text-sm font-medium text-gray-800 mb-2 truncate">${seller}</h4>
+
+              <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Same seller as :</label>
+                <select class="same-seller-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
+                  <option value="None">None</option>
+                  ${getUniqueSellers(session).filter(s => s !== seller).map(s2 => `<option value="${s2}">${s2}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="mb-3 flex items-center justify-between free-delivery-row">
+                <label class="text-sm font-medium text-gray-700">Free delivery</label>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="free-delivery-toggle sr-only peer" data-seller="${seller}">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
+                </label>
+              </div>
+
+              <div class="mb-3 delivery-type-row">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Delivery pricing type</label>
+                <select class="delivery-type w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
+                  <option value="fixed">Addition of per-item delivery prices</option>
+                  <option value="first-item">First item full price then discounted additional</option>
+                  <option value="free-threshold">Free above threshold</option>
+                </select>
+              </div>
+
+              <div id="delivery-options-${seller.replace(/\s+/g, "-")}">
+                <div class="option-block option-fixed fixed-price mb-3" data-option="fixed" style="display: none;">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Delivery price per following product</label>
+                  <input type="number" class="additional-items-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
+                </div>
+
+                <div class="option-block option-first first-item mb-3" data-option="first-item" style="display: none;">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">First item price</label>
+                  <input type="number" class="first-item-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
+                </div>
+
+                <div class="option-block option-first-additional first-item mb-3" data-option="first-item-additional" style="display: none;">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Delivery price for following product</label>
+                  <input type="number" class="following-items-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
+                </div>
+
+                <div class="option-block option-free free-threshold mb-3" data-option="free-threshold" style="display: none;">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Free delivery over :</label>
+                  <input type="number" class="free-threshold-value w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
+                </div>
+              </div>
             </div>
-            <div class="delivery-options" id="delivery-options-${seller.replace(/\s+/g, "-")}">
-              <div class="form-group fixed-price">
-                <label>Fixed Delivery Price</label>
-                <input type="number" class="form-control fixed-price-value" data-seller="${seller}" step="0.01" min="0">
-              </div>
-              <div class="form-group free-threshold" style="display: none;">
-                <label>Free Delivery Threshold</label>
-                <input type="number" class="form-control free-threshold-value" data-seller="${seller}" step="0.01" min="0">
-              </div>
-              <div class="form-group first-item" style="display: none;">
-                <label>First Item Price</label>
-                <input type="number" class="form-control first-item-price" data-seller="${seller}" step="0.01" min="0">
-              </div>
-              <div class="form-group first-item" style="display: none;">
-                <label>Additional Items Price</label>
-                <input type="number" class="form-control additional-items-price" data-seller="${seller}" step="0.01" min="0">
-              </div>
-            </div>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancel-button">Cancel</button>
-        <button class="btn btn-primary" id="optimize-button">Optimize</button>
+          `,
+            )
+            .join("")}
+        </div>
+
+        <div class="flex justify-end space-x-4 mt-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="start-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded">Optimize</button>
+        </div>
       </div>
     </div>
   `
 
   document.body.appendChild(modal)
 
+  // Prevent body scroll while modal is open
+  document.body.style.overflow = 'hidden'
+
+  // Centralized close helper so we always restore body scroll
+  function closeModal() {
+    try {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal)
+      }
+    } catch (err) {
+      // ignore
+    }
+    document.body.style.overflow = ''
+  }
+
+  // Allow clicking overlay to close modal
+  const overlayEl = document.getElementById('modalOverlay')
+  const contentEl = document.getElementById('modalContent')
+  if (overlayEl) overlayEl.addEventListener('click', closeModal)
+  if (contentEl) contentEl.addEventListener('click', (ev) => ev.stopPropagation())
+
+  // Wire same-seller select and free delivery toggles
+  document.querySelectorAll('.same-seller-select').forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      const seller = e.target.dataset.seller
+      const value = e.target.value
+
+  // If copied from another seller, copy values and disable inputs
+      if (value && value !== 'None') {
+        const source = value
+        // copy free toggle
+        const srcFree = document.querySelector(`.free-delivery-toggle[data-seller="${source}"]`)
+        const dstFree = document.querySelector(`.free-delivery-toggle[data-seller="${seller}"]`)
+        if (srcFree && dstFree) {
+          dstFree.checked = srcFree.checked
+          try { dstFree.dispatchEvent(new Event('change')) } catch (e) {}
+        }
+
+        // copy delivery type
+        const srcType = document.querySelector(`.delivery-type[data-seller="${source}"]`)
+        const dstType = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
+        if (srcType && dstType) {
+          dstType.value = srcType.value
+          try { dstType.dispatchEvent(new Event('change')) } catch (e) {}
+        }
+
+        // copy inputs
+        const fields = ['free-threshold-value', 'first-item-price', 'following-items-price', 'additional-items-price', 'fixed-price-value']
+        fields.forEach((cls) => {
+          const src = document.querySelector(`.${cls}[data-seller="${source}"]`)
+          const dst = document.querySelector(`.${cls}[data-seller="${seller}"]`)
+          if (src && dst) dst.value = src.value
+        })
+
+        // disable dst inputs to indicate copy
+        const inputs = document.querySelectorAll(`.seller-card [data-seller="${seller}"]`)
+        inputs.forEach((inp) => {
+          if (!inp.classList.contains('same-seller-select')) inp.disabled = true
+        })
+
+        // hide all other rows for this seller (only keep same-seller select visible)
+        const sellerCard = sel.closest('.seller-card') || document.querySelector(`.seller-card [data-seller="${seller}"]`)?.closest('.seller-card')
+        if (sellerCard) {
+          const freeRow = sellerCard.querySelector('.free-delivery-row')
+          const deliveryRow = sellerCard.querySelector('.delivery-type-row')
+          const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
+          if (freeRow) freeRow.style.display = 'none'
+          if (deliveryRow) deliveryRow.style.display = 'none'
+          if (optionsContainer) optionsContainer.style.display = 'none'
+        }
+      } else {
+        // None selected -> enable inputs and default to free delivery = false
+        const inputs = document.querySelectorAll(`.seller-card [data-seller="${seller}"]`)
+        inputs.forEach((inp) => {
+          if (!inp.classList.contains('same-seller-select')) inp.disabled = false
+        })
+        const freeToggle = document.querySelector(`.free-delivery-toggle[data-seller="${seller}"]`)
+        if (freeToggle) {
+          freeToggle.checked = false
+        }
+
+        // Ensure delivery type selector is visible but option blocks are hidden by default
+        const deliveryRow = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
+        const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
+        if (deliveryRow) deliveryRow.parentElement.style.display = 'block'
+        if (optionsContainer) {
+          optionsContainer.style.display = 'block'
+          optionsContainer.querySelectorAll('.option-block').forEach((el) => (el.style.display = 'none'))
+        }
+
+        // ensure free delivery row is visible
+        const sellerCard = sel.closest('.seller-card') || document.querySelector(`.seller-card [data-seller="${seller}"]`)?.closest('.seller-card')
+        if (sellerCard) {
+          const freeRow = sellerCard.querySelector('.free-delivery-row')
+          if (freeRow) freeRow.style.display = 'flex'
+        }
+      }
+    })
+  })
+
+  // Free delivery toggle behavior
+  document.querySelectorAll('.free-delivery-toggle').forEach((toggle) => {
+    toggle.addEventListener('change', (e) => {
+      const seller = e.target.dataset.seller
+      const checked = e.target.checked
+      const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
+      const deliveryRow = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
+      if (!optionsContainer || !deliveryRow) return
+
+      if (checked) {
+        // If delivery is free (always), hide delivery type selector and all option fields
+        if (deliveryRow) deliveryRow.parentElement.style.display = 'none'
+        if (optionsContainer) optionsContainer.style.display = 'none'
+      } else {
+        // show delivery type selector and ensure options container is visible but with option-blocks hidden
+        if (deliveryRow) deliveryRow.parentElement.style.display = 'block'
+        if (optionsContainer) {
+          optionsContainer.style.display = 'block'
+          optionsContainer.querySelectorAll('.option-block').forEach((el) => (el.style.display = 'none'))
+        }
+        const evt = new Event('change')
+        document.querySelectorAll(`.delivery-type[data-seller="${seller}"]`).forEach((d) => d.dispatchEvent(evt))
+      }
+    })
+  })
+
   // Add event listeners for delivery type changes
   document.querySelectorAll(".delivery-type").forEach((select) => {
     select.addEventListener("change", (e) => {
       const seller = e.target.dataset.seller
       const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
+      if (!optionsContainer) return
 
-      // Hide all options first
-      optionsContainer.querySelectorAll(".fixed-price, .free-threshold, .first-item").forEach((el) => {
-        el.style.display = "none"
+      // Remove highlight from all seller cards and highlight current
+      document.querySelectorAll('.seller-card').forEach((sc) => {
+        sc.classList.remove('ring-2', 'ring-gray-500', 'border-gray-500')
+      })
+      const sellerCard = e.target.closest('.seller-card')
+      if (sellerCard) {
+        sellerCard.classList.add('ring-2', 'ring-gray-500', 'border-gray-500')
+      }
+
+      // Hide all option blocks
+      optionsContainer.querySelectorAll('.option-block').forEach((el) => {
+        el.style.display = 'none'
       })
 
-      // Show selected option
+      // Show selected option blocks
       const selectedType = e.target.value
-      if (selectedType === "fixed") {
-        optionsContainer.querySelectorAll(".fixed-price").forEach((el) => {
-          el.style.display = "block"
-        })
-      } else if (selectedType === "free-threshold") {
-        optionsContainer.querySelectorAll(".free-threshold").forEach((el) => {
-          el.style.display = "block"
-        })
-      } else if (selectedType === "first-item") {
-        optionsContainer.querySelectorAll(".first-item").forEach((el) => {
-          el.style.display = "block"
-        })
+      if (selectedType === 'fixed') {
+        // 'Addition of per-item delivery price' has no extra fields to display
+        // keep all option-blocks hidden
+      } else if (selectedType === 'free-threshold') {
+        optionsContainer.querySelectorAll('.option-block[data-option="free-threshold"]').forEach((el) => (el.style.display = 'block'))
+      } else if (selectedType === 'first-item') {
+        // show both first-item and additional price blocks
+        optionsContainer.querySelectorAll('.option-block[data-option="first-item"]').forEach((el) => (el.style.display = 'block'))
+        optionsContainer.querySelectorAll('.option-block[data-option="first-item-additional"]').forEach((el) => (el.style.display = 'block'))
       }
     })
   })
 
   document.getElementById("cancel-button").addEventListener("click", () => {
-    document.body.removeChild(modal)
+    closeModal()
   })
 
-  document.getElementById("optimize-button").addEventListener("click", () => {
+  document.getElementById("start-button").addEventListener("click", () => {
     // Collect delivery rules
     const deliveryRules = []
+    console.log('click click click');
 
     getUniqueSellers(session).forEach((seller) => {
-      const typeSelect = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
-      const type = typeSelect.value
+      // If this seller copies another seller, resolve to that one
+      const sameSelect = document.querySelector(`.same-seller-select[data-seller="${seller}"]`)
+      const effectiveSeller = sameSelect && sameSelect.value && sameSelect.value !== 'None' ? sameSelect.value : seller
 
-      const rule = {
-        seller,
-        type,
+      const freeToggle = document.querySelector(`.free-delivery-toggle[data-seller="${effectiveSeller}"]`)
+      const isFree = freeToggle ? freeToggle.checked : false
+
+      const rule = { seller }
+
+      if (isFree) {
+        rule.type = 'free'
+        const thresholdInput = document.querySelector(`.free-threshold-value[data-seller="${effectiveSeller}"]`)
+        rule.threshold = Number.parseFloat(thresholdInput && thresholdInput.value) || 0
+      } else {
+        const typeSelect = document.querySelector(`.delivery-type[data-seller="${effectiveSeller}"]`)
+        const type = typeSelect ? typeSelect.value : 'fixed'
+        rule.type = type
+
+        if (type === 'fixed') {
+          // 'fixed' type (addition of per-delivery prices) does not expose additional fields
+          // leave rule with type only; per-item delivery will be handled during optimization via page data
+        } else if (type === 'first-item') {
+          const first = document.querySelector(`.first-item-price[data-seller="${effectiveSeller}"]`)
+          const additional = document.querySelector(`.following-items-price[data-seller="${effectiveSeller}"]`)
+          rule.firstItemPrice = Number.parseFloat(first && first.value) || 0
+          rule.additionalItemsPrice = Number.parseFloat(additional && additional.value) || 0
+        } else if (type === 'free-threshold') {
+          const threshold = document.querySelector(`.free-threshold-value[data-seller="${effectiveSeller}"]`)
+          rule.threshold = Number.parseFloat(threshold && threshold.value) || 0
+        }
       }
 
-      if (type === "fixed") {
-        const priceInput = document.querySelector(`.fixed-price-value[data-seller="${seller}"]`)
-        rule.fixedPrice = Number.parseFloat(priceInput.value) || 0
-      } else if (type === "free-threshold") {
-        const thresholdInput = document.querySelector(`.free-threshold-value[data-seller="${seller}"]`)
-        rule.threshold = Number.parseFloat(thresholdInput.value) || 0
-      } else if (type === "first-item") {
-        const firstItemInput = document.querySelector(`.first-item-price[data-seller="${seller}"]`)
-        const additionalItemsInput = document.querySelector(`.additional-items-price[data-seller="${seller}"]`)
-        rule.firstItemPrice = Number.parseFloat(firstItemInput.value) || 0
-        rule.additionalItemsPrice = Number.parseFloat(additionalItemsInput.value) || 0
-      }
+      // If copying, record origin
+      if (sameSelect && sameSelect.value && sameSelect.value !== 'None') rule.copiedFrom = sameSelect.value
 
       deliveryRules.push(rule)
     })
 
     // Save delivery rules to session
     session.deliveryRules = deliveryRules
+
+    // Prepare export data with products and sellers
+    const exportData = {
+      session: {
+        id: session.id,
+        name: session.name,
+        created: session.created,
+      },
+      products: session.products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        pages: product.pages.map((page) => ({
+          id: page.id,
+          url: page.url,
+          price: page.price,
+          shippingPrice: page.shippingPrice,
+          currency: page.currency,
+          seller: page.seller,
+          isBundle: page.isBundle,
+          bundledProducts: page.bundledProducts || [],
+        })),
+        alternatives: product.alternatives || [],
+        limitedCompatibilityWith: product.limitedCompatibilityWith || [],
+      })),
+      sellers: getUniqueSellers(session),
+      deliveryRules: deliveryRules,
+    }
+
+    // Export JSON to file
+    const jsonString = JSON.stringify(exportData, null, 2)
+    const blob = new Blob([jsonString], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `optimization-${session.name.replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
 
     browser.runtime
       .sendMessage({
@@ -1125,7 +1712,7 @@ function showOptimizationModal() {
             sessionId: currentSession,
           })
           .then((result) => {
-            document.body.removeChild(modal)
+            closeModal()
 
             if (result.success) {
               // Open results page
