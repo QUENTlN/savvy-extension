@@ -104,6 +104,22 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       deletePage(message.sessionId, message.productId, message.pageId)
       sendResponse({ success: true, sessions, currentSession })
       break
+    case "updatePage":
+      updatePage(message.sessionId, message.productId, message.pageId, message.updatedPage)
+      sendResponse({ success: true, sessions, currentSession })
+      break
+    case "createBundle":
+      createBundle(message.sessionId, message.bundle)
+      sendResponse({ success: true, sessions, currentSession })
+      break
+    case "updateBundle":
+      updateBundle(message.sessionId, message.bundleId, message.updatedBundle)
+      sendResponse({ success: true, sessions, currentSession })
+      break
+    case "deleteBundle":
+      deleteBundle(message.sessionId, message.bundleId)
+      sendResponse({ success: true, sessions, currentSession })
+      break
     case "getSessions":
       sendResponse({ sessions, currentSession })
       break
@@ -129,6 +145,7 @@ function createSession(name) {
     id: Date.now().toString(),
     name,
     products: [],
+    bundles: [],
     created: new Date().toISOString(),
   }
   sessions.push(newSession)
@@ -200,6 +217,50 @@ function deletePage(sessionId, productId, pageId) {
   }
 }
 
+function updatePage(sessionId, productId, pageId, updatedPage) {
+  const session = sessions.find((s) => s.id === sessionId)
+  if (session) {
+    const product = session.products.find((p) => p.id === productId)
+    if (product) {
+      const pageIndex = product.pages.findIndex((p) => p.id === pageId)
+      if (pageIndex !== -1) {
+        product.pages[pageIndex] = { ...product.pages[pageIndex], ...updatedPage }
+        saveToStorage()
+      }
+    }
+  }
+}
+
+// Bundle management
+function createBundle(sessionId, bundle) {
+  const session = sessions.find((s) => s.id === sessionId)
+  if (session) {
+    if (!session.bundles) session.bundles = []
+    bundle.id = Date.now().toString()
+    session.bundles.push(bundle)
+    saveToStorage()
+  }
+}
+
+function updateBundle(sessionId, bundleId, updatedBundle) {
+  const session = sessions.find((s) => s.id === sessionId)
+  if (session && session.bundles) {
+    const bundleIndex = session.bundles.findIndex((b) => b.id === bundleId)
+    if (bundleIndex !== -1) {
+      session.bundles[bundleIndex] = { ...session.bundles[bundleIndex], ...updatedBundle }
+      saveToStorage()
+    }
+  }
+}
+
+function deleteBundle(sessionId, bundleId) {
+  const session = sessions.find((s) => s.id === sessionId)
+  if (session && session.bundles) {
+    session.bundles = session.bundles.filter((b) => b.id !== bundleId)
+    saveToStorage()
+  }
+}
+
 // Scraping
 function scrapePage(tabId) {
   console.log("Checking tab status before scraping:", tabId);
@@ -215,6 +276,28 @@ function scrapePage(tabId) {
 }
 
 // Optimization
+function getUniqueSellers(session) {
+  const sellers = new Set()
+
+  session.products.forEach((product) => {
+    product.pages.forEach((page) => {
+      if (page.seller) {
+        sellers.add(page.seller)
+      }
+    })
+  })
+
+  if (session.bundles) {
+    session.bundles.forEach((bundle) => {
+      if (bundle.seller) {
+        sellers.add(bundle.seller)
+      }
+    })
+  }
+
+  return Array.from(sellers)
+}
+
 async function optimizeSession(sessionId) {
   const session = sessions.find((s) => s.id === sessionId)
   if (!session) return { success: false, error: "Session not found" }
@@ -222,18 +305,27 @@ async function optimizeSession(sessionId) {
   try {
     // Prepare data for the backend
     const data = {
+      session: {
+        id: session.id,
+        name: session.name,
+        created: session.created,
+      },
       products: session.products.map((product) => ({
         id: product.id,
         name: product.name,
         pages: product.pages.map((page) => ({
+          id: page.id,
           url: page.url,
           price: page.price,
           shippingPrice: page.shippingPrice,
+          currency: page.currency,
           seller: page.seller,
-          isBundle: page.isBundle,
-          bundledProducts: page.bundledProducts || [],
         })),
+        alternatives: product.alternatives || [],
+        limitedCompatibilityWith: product.limitedCompatibilityWith || [],
       })),
+      bundles: session.bundles || [],
+      sellers: getUniqueSellers(session),
       deliveryRules: session.deliveryRules || [],
     }
 

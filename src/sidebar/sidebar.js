@@ -180,7 +180,12 @@ function renderProductsView() {
             <div class="flex justify-between items-center cursor-pointer">
               <div class="flex-1 min-w-0 mr-4 cursor-pointer">
                 <h2 class="text-xl font-medium text-gray-800 truncate">${product.name}</h2>
-                <p class="text-gray-600 text-md truncate">${product.pages.length} Pages</p>
+                <p class="text-gray-600 text-md truncate">
+                  ${product.pages.length} Pages
+                  ${session.bundles && session.bundles.some(b => b.products.includes(product.id)) 
+                    ? ` • ${session.bundles.filter(b => b.products.includes(product.id)).length} Bundles` 
+                    : ''}
+                </p>
               </div>
               <div class="flex space-x-2 flex-shrink-0">
                 <button class="text-gray-600 p-1 cursor-pointer edit-button" data-id="${product.id}">
@@ -289,8 +294,9 @@ function renderPagesView() {
 
       <!-- Pages List -->
       <div class="space-y-4">
-        ${product.pages.length > 0 
-          ? product.pages.map(page => `
+        ${product.pages.length > 0 || (session.bundles && session.bundles.some(b => b.products.includes(product.id)))
+          ? `
+            ${product.pages.map(page => `
             <div class="bg-white rounded-xl shadow-md p-4">
               <div class="flex justify-between items-start">
                 <div class="flex-1 min-w-0 mr-4">
@@ -322,6 +328,11 @@ function renderPagesView() {
                       <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
                     </svg>
                   </button>
+                  <button class="text-gray-600 p-1 cursor-pointer edit-page-button" data-id="${page.id}" title="Edit page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
                   <button class="text-gray-600 p-1 cursor-pointer delete-page-button" data-id="${page.id}" title="Delete page">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -330,7 +341,57 @@ function renderPagesView() {
                 </div>
               </div>
             </div>
-          `).join('')
+            `).join('')}
+            ${session.bundles && session.bundles.filter(b => b.products.includes(product.id)).map(bundle => `
+            <div class="bg-blue-50 border border-blue-200 rounded-xl shadow-md p-4">
+              <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0 mr-4">
+                  <div class="flex items-center space-x-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">BUNDLE</span>
+                    <p class="text-lg font-medium text-gray-900 truncate">${bundle.seller || bundle.url}</p>
+                  </div>
+                  <div class="mt-1 space-y-1">
+                    <p class="text-gray-600">Price: ${(() => {
+                      const p = bundle.price
+                      if (p === undefined || p === null || p === "") return "N/A"
+                      try {
+                        return Number(p) === 0 ? "Free" : `${p} ${bundle.currency || ""}`
+                      } catch (e) {
+                        return `${p} ${bundle.currency || ""}`
+                      }
+                    })()}</p>
+                    <p class="text-gray-600">Shipping: ${(() => {
+                      const s = bundle.shippingPrice
+                      if (s === undefined || s === null || s === "") return "N/A"
+                      try {
+                        return Number(s) === 0 ? "Free" : `${s} ${bundle.currency || ""}`
+                      } catch (e) {
+                        return `${s} ${bundle.currency || ""}`
+                      }
+                    })()}</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <button class="text-gray-600 p-1 cursor-pointer open-page-button" data-url="${bundle.url}" title="Open in new tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
+                      <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
+                    </svg>
+                  </button>
+                  <button class="text-gray-600 p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="Edit bundle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                  <button class="text-gray-600 p-1 cursor-pointer delete-bundle-button" data-id="${bundle.id}" title="Delete bundle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            `).join('')}
+            `
           : '<div class="bg-white rounded-xl shadow-md p-6 text-gray-500 text-center">No pages added yet</div>'
         }
       </div>
@@ -365,6 +426,32 @@ function renderPagesView() {
     button.addEventListener("click", () => {
       const pageId = button.dataset.id
       showDeletePageModal(pageId)
+    })
+  })
+
+  document.querySelectorAll(".delete-bundle-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const bundleId = button.dataset.id
+      showDeleteBundleModal(bundleId)
+    })
+  })
+
+  document.querySelectorAll(".edit-page-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const pageId = button.dataset.id
+      const session = sessions.find((s) => s.id === currentSession)
+      const product = session.products.find((p) => p.id === currentProduct)
+      const page = product.pages.find((p) => p.id === pageId)
+      showEditPageModal(page)
+    })
+  })
+
+  document.querySelectorAll(".edit-bundle-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const bundleId = button.dataset.id
+      const session = sessions.find((s) => s.id === currentSession)
+      const bundle = session.bundles.find((b) => b.id === bundleId)
+      showEditBundleModal(bundle)
     })
   })
 
@@ -983,6 +1070,319 @@ function showEditProductModal(product) {
   })
 }
 
+function showEditPageModal(page) {
+  const modal = document.createElement("div")
+  modal.className = "modal"
+  modal.innerHTML = `
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Edit Page</h3>
+        
+        <div class="mb-6">
+          <label for="page-url" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+          <input 
+            type="text" 
+            id="page-url" 
+            value="${page.url}" 
+            readonly
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-price" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <input 
+            type="text" 
+            id="page-price" 
+            value="${page.price || ""}"
+            placeholder="Enter price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+            <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>Free</option>
+            <option value="EUR" ${page.currency === "EUR" ? "selected" : ""}>Euro - €</option>
+            <option value="USD" ${page.currency === "USD" ? "selected" : ""}>United States Dollar - $</option>
+            <option value="GBP" ${page.currency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
+            <!-- Add other currencies as needed -->
+          </select>
+        </div>
+
+        <div class="mb-6">
+          <label for="page-shipping" class="block text-sm font-medium text-gray-700 mb-1">Shipping Price</label>
+          <input 
+            type="text" 
+            id="page-shipping" 
+            value="${page.shippingPrice || ""}"
+            placeholder="Enter shipping price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-seller" class="block text-sm font-medium text-gray-700 mb-1">Seller</label>
+          <input 
+            type="text" 
+            id="page-seller" 
+            value="${page.seller || ""}"
+            placeholder="Enter seller name"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+
+  document.body.appendChild(modal)
+
+  document.querySelector("#modalOverlay").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.querySelector("#modalContent").addEventListener("click", (event) => {
+    event.stopPropagation()
+  })
+
+  document.getElementById("cancel-button").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.getElementById("save-button").addEventListener("click", () => {
+    const price = document.getElementById("page-price").value
+    const shippingPrice = document.getElementById("page-shipping").value
+    const seller = document.getElementById("page-seller").value
+    const currency = document.getElementById("page-currency").value
+
+    const updatedPage = {
+      price,
+      shippingPrice,
+      seller,
+      currency,
+    }
+
+    browser.runtime
+      .sendMessage({
+        action: "updatePage",
+        sessionId: currentSession,
+        productId: currentProduct,
+        pageId: page.id,
+        updatedPage,
+      })
+      .then((response) => {
+        sessions = response.sessions
+        document.body.removeChild(modal)
+        renderApp()
+      })
+  })
+}
+
+function showEditBundleModal(bundle) {
+  const session = sessions.find((s) => s.id === currentSession)
+  const modal = document.createElement("div")
+  modal.className = "modal"
+  modal.innerHTML = `
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Edit Bundle</h3>
+        
+        <div class="mb-6">
+          <label for="page-url" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+          <input 
+            type="text" 
+            id="page-url" 
+            value="${bundle.url}" 
+            readonly
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Select products in this bundle:</label>
+          <div class="space-y-2">
+            ${session.products
+              .map(
+                (p) => `
+              <div class="flex items-center">
+                <input type="checkbox" 
+                  id="product-${p.id}" 
+                  value="${p.id}" 
+                  ${bundle.products.includes(p.id) ? "checked" : ""}
+                  class="h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-500"
+                >
+                <label for="product-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label for="page-price" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <input 
+            type="text" 
+            id="page-price" 
+            value="${bundle.price || ""}"
+            placeholder="Enter price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+            <option value="FREE" ${bundle.currency === "FREE" ? "selected" : ""}>Free</option>
+            <option value="EUR" ${bundle.currency === "EUR" ? "selected" : ""}>Euro - €</option>
+            <option value="USD" ${bundle.currency === "USD" ? "selected" : ""}>United States Dollar - $</option>
+            <option value="GBP" ${bundle.currency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
+            <!-- Add other currencies as needed -->
+          </select>
+        </div>
+
+        <div class="mb-6">
+          <label for="page-shipping" class="block text-sm font-medium text-gray-700 mb-1">Shipping Price</label>
+          <input 
+            type="text" 
+            id="page-shipping" 
+            value="${bundle.shippingPrice || ""}"
+            placeholder="Enter shipping price"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-seller" class="block text-sm font-medium text-gray-700 mb-1">Seller</label>
+          <input 
+            type="text" 
+            id="page-seller" 
+            value="${bundle.seller || ""}"
+            placeholder="Enter seller name"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="save-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+
+  document.body.appendChild(modal)
+
+  document.querySelector("#modalOverlay").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.querySelector("#modalContent").addEventListener("click", (event) => {
+    event.stopPropagation()
+  })
+
+  document.getElementById("cancel-button").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.getElementById("save-button").addEventListener("click", () => {
+    const price = document.getElementById("page-price").value
+    const shippingPrice = document.getElementById("page-shipping").value
+    const seller = document.getElementById("page-seller").value
+    const currency = document.getElementById("page-currency").value
+    
+    const products = []
+    document.querySelectorAll('#modalContent input[type="checkbox"]:checked').forEach((checkbox) => {
+      products.push(checkbox.value)
+    })
+
+    const updatedBundle = {
+      price,
+      shippingPrice,
+      seller,
+      currency,
+      products,
+    }
+
+    browser.runtime
+      .sendMessage({
+        action: "updateBundle",
+        sessionId: currentSession,
+        bundleId: bundle.id,
+        updatedBundle,
+      })
+      .then((response) => {
+        sessions = response.sessions
+        document.body.removeChild(modal)
+        renderApp()
+      })
+  })
+}
+
+function showDeleteBundleModal(bundleId) {
+  const modal = document.createElement("div")
+  modal.className = "modal"
+  modal.innerHTML = `
+    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Delete Bundle</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete this bundle?</p>
+        
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
+          <button id="delete-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded flex items-center">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+
+  document.body.appendChild(modal)
+
+  document.querySelector("#modalOverlay").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.querySelector("#modalContent").addEventListener("click", (event) => {
+    event.stopPropagation()
+  })
+
+  document.getElementById("cancel-button").addEventListener("click", () => {
+    document.body.removeChild(modal)
+  })
+
+  document.getElementById("delete-button").addEventListener("click", () => {
+    browser.runtime
+      .sendMessage({
+        action: "deleteBundle",
+        sessionId: currentSession,
+        bundleId,
+      })
+      .then((response) => {
+        sessions = response.sessions
+        document.body.removeChild(modal)
+        renderApp()
+      })
+  })
+}
+
 function showDeleteProductModal(productId) {
   const modal = document.createElement("div")
   modal.className = "modal"
@@ -1329,40 +1729,63 @@ function showScrapedDataModal() {
     const seller = document.getElementById("page-seller").value
     const currency = document.getElementById("page-currency").value
 
-    const bundledProducts = []
     if (isBundle) {
+      const bundle = {
+        url,
+        price,
+        shippingPrice,
+        seller,
+        currency,
+        products: [],
+        timestamp: new Date().toISOString(),
+      }
+      
       document.querySelectorAll('#product-selection input[type="checkbox"]:checked').forEach((checkbox) => {
-        bundledProducts.push(checkbox.value)
+        bundle.products.push(checkbox.value)
       })
+
+      browser.runtime
+        .sendMessage({
+          action: "createBundle",
+          sessionId: currentSession,
+          bundle,
+        })
+        .then((response) => {
+          sessions = response.sessions
+          document.body.removeChild(modal)
+          scrapedData = null
+
+          // Show product details again
+          currentView = "pages"
+          renderApp()
+        })
+    } else {
+      const page = {
+        url,
+        price,
+        shippingPrice,
+        seller,
+        currency,
+        timestamp: new Date().toISOString(),
+      }
+
+      browser.runtime
+        .sendMessage({
+          action: "addPage",
+          sessionId: currentSession,
+          productId: currentProduct,
+          page,
+        })
+        .then((response) => {
+          sessions = response.sessions
+          document.body.removeChild(modal)
+          scrapedData = null
+
+          // Show product details again
+          currentView = "pages"
+          renderApp()
+        })
     }
-
-    const page = {
-      url,
-      price,
-      shippingPrice,
-      seller,
-      currency,
-      isBundle,
-      bundledProducts,
-      timestamp: new Date().toISOString(),
-    }
-
-    browser.runtime
-      .sendMessage({
-        action: "addPage",
-        sessionId: currentSession,
-        productId: currentProduct,
-        page,
-      })
-      .then((response) => {
-        sessions = response.sessions
-        document.body.removeChild(modal)
-        scrapedData = null
-
-        // Show product details again
-        currentView = "pages"
-        renderApp()
-      })
   })
 }
 
@@ -1677,12 +2100,11 @@ function showOptimizationModal() {
           shippingPrice: page.shippingPrice,
           currency: page.currency,
           seller: page.seller,
-          isBundle: page.isBundle,
-          bundledProducts: page.bundledProducts || [],
         })),
         alternatives: product.alternatives || [],
         limitedCompatibilityWith: product.limitedCompatibilityWith || [],
       })),
+      bundles: session.bundles || [],
       sellers: getUniqueSellers(session),
       deliveryRules: deliveryRules,
     }
@@ -1702,7 +2124,8 @@ function showOptimizationModal() {
     browser.runtime
       .sendMessage({
         action: "updateSession",
-        session,
+        sessionId: currentSession,
+        updatedSession: session,
       })
       .then(() => {
         // Start optimization
@@ -1739,6 +2162,14 @@ function getUniqueSellers(session) {
       }
     })
   })
+
+  if (session.bundles) {
+    session.bundles.forEach((bundle) => {
+      if (bundle.seller) {
+        sellers.add(bundle.seller)
+      }
+    })
+  }
 
   return Array.from(sellers)
 }
