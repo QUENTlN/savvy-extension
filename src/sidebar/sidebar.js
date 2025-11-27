@@ -53,6 +53,9 @@ function renderApp() {
     case "settings":
       renderSettingsView()
       break
+    case "deliveryRules":
+      renderDeliveryRulesView()
+      break
     default:
       renderSessionsView()
   }
@@ -212,6 +215,15 @@ function renderProductsView() {
           </svg>
           <span class="text-lg font-medium">New Product</span>
         </button>
+      </div>
+      
+      <div class="flex space-x-4 mt-4">
+        <button id="edit-rules-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer bg-blue-50 text-blue-700 px-4 py-3 rounded-xl hover:bg-blue-100 transition-colors duration-200 shadow-sm border border-blue-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span class="text-lg font-medium">Delivery Rules</span>
+        </button>
         <button id="optimize-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition-colors duration-200 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -232,8 +244,29 @@ function renderProductsView() {
     showNewProductModal()
   })
 
+  document.getElementById("edit-rules-button").addEventListener("click", () => {
+    currentView = "deliveryRules"
+    renderApp()
+  })
+
   document.getElementById("optimize-button").addEventListener("click", () => {
-    showOptimizationModal()
+    // Trigger optimization directly
+    browser.runtime
+      .sendMessage({
+        action: "optimizeSession",
+        sessionId: currentSession,
+      })
+      .then((result) => {
+        if (result.success) {
+          // Open results page
+          browser.runtime.sendMessage({
+            action: "showOptimizationResults",
+            result: result.result,
+          })
+        } else {
+          alert(`Optimization failed: ${result.error}`)
+        }
+      })
   })
 
   document.querySelectorAll(".product-item").forEach((item) => {
@@ -1096,7 +1129,7 @@ function showEditPageModal(page) {
             id="page-price" 
             value="${page.price || ""}"
             placeholder="Enter price"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1104,7 +1137,7 @@ function showEditPageModal(page) {
           <label for="page-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
           <select 
             id="page-currency" 
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
             <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>Free</option>
             <option value="EUR" ${page.currency === "EUR" ? "selected" : ""}>Euro - €</option>
@@ -1121,7 +1154,7 @@ function showEditPageModal(page) {
             id="page-shipping" 
             value="${page.shippingPrice || ""}"
             placeholder="Enter shipping price"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1132,7 +1165,7 @@ function showEditPageModal(page) {
             id="page-seller" 
             value="${page.seller || ""}"
             placeholder="Enter seller name"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1205,7 +1238,7 @@ function showEditBundleModal(bundle) {
             id="page-url" 
             value="${bundle.url}" 
             readonly
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1220,7 +1253,7 @@ function showEditBundleModal(bundle) {
                   id="product-${p.id}" 
                   value="${p.id}" 
                   ${bundle.products.includes(p.id) ? "checked" : ""}
-                  class="h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-500"
+                  class="h-4 w-4 accent-gray-800 border-gray-300 rounded focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                 >
                 <label for="product-${p.id}" class="ml-2 text-sm text-gray-700">${p.name}</label>
               </div>
@@ -1237,7 +1270,7 @@ function showEditBundleModal(bundle) {
             id="page-price" 
             value="${bundle.price || ""}"
             placeholder="Enter price"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1245,7 +1278,7 @@ function showEditBundleModal(bundle) {
           <label for="page-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
           <select 
             id="page-currency" 
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
             <option value="FREE" ${bundle.currency === "FREE" ? "selected" : ""}>Free</option>
             <option value="EUR" ${bundle.currency === "EUR" ? "selected" : ""}>Euro - €</option>
@@ -1262,7 +1295,7 @@ function showEditBundleModal(bundle) {
             id="page-shipping" 
             value="${bundle.shippingPrice || ""}"
             placeholder="Enter shipping price"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1273,7 +1306,7 @@ function showEditBundleModal(bundle) {
             id="page-seller" 
             value="${bundle.seller || ""}"
             placeholder="Enter seller name"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 focus:border-transparent"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
@@ -1789,107 +1822,109 @@ function showScrapedDataModal() {
   })
 }
 
-function showOptimizationModal() {
+function renderDeliveryRulesView() {
   const session = sessions.find((s) => s.id === currentSession)
+  if (!session) {
+    currentView = "sessions"
+    renderApp()
+    return
+  }
 
-  const modal = document.createElement("div")
-  modal.className = "modal"
-  modal.innerHTML = `
-    <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div id="modalContent" class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6" style="max-height:80vh; overflow-y:auto;">
-        <h3 class="text-lg font-medium text-gray-800 mb-4">Optimize Shopping</h3>
+  // Helper to safely get nested properties
+  const getRule = (seller) => (session.deliveryRules || []).find(r => r.seller === seller) || {}
 
-        <p class="text-sm text-gray-500 mb-4">Configure delivery settings for each seller before optimizing.</p>
-
-        <div class="space-y-4 seller-settings">
-          ${getUniqueSellers(session)
-            .map(
-              (seller) => `
-            <div class="mb-4 seller-card bg-white rounded-lg p-4 border border-gray-200">
-              <h4 class="text-sm font-medium text-gray-800 mb-2 truncate">${seller}</h4>
-
-              <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Same seller as :</label>
-                <select class="same-seller-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
-                  <option value="None">None</option>
-                  ${getUniqueSellers(session).filter(s => s !== seller).map(s2 => `<option value="${s2}">${s2}</option>`).join('')}
-                </select>
-              </div>
-
-              <div class="mb-3 flex items-center justify-between free-delivery-row">
-                <label class="text-sm font-medium text-gray-700">Free delivery</label>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="free-delivery-toggle sr-only peer" data-seller="${seller}">
-                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
-                </label>
-              </div>
-
-              <div class="mb-3 delivery-type-row">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Delivery pricing type</label>
-                <select class="delivery-type w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
-                  <option value="fixed">Addition of per-item delivery prices</option>
-                  <option value="first-item">First item full price then discounted additional</option>
-                  <option value="free-threshold">Free above threshold</option>
-                </select>
-              </div>
-
-              <div id="delivery-options-${seller.replace(/\s+/g, "-")}">
-                <div class="option-block option-fixed fixed-price mb-3" data-option="fixed" style="display: none;">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Delivery price per following product</label>
-                  <input type="number" class="additional-items-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
-                </div>
-
-                <div class="option-block option-first first-item mb-3" data-option="first-item" style="display: none;">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">First item price</label>
-                  <input type="number" class="first-item-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
-                </div>
-
-                <div class="option-block option-first-additional first-item mb-3" data-option="first-item-additional" style="display: none;">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Delivery price for following product</label>
-                  <input type="number" class="following-items-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
-                </div>
-
-                <div class="option-block option-free free-threshold mb-3" data-option="free-threshold" style="display: none;">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Free delivery over :</label>
-                  <input type="number" class="free-threshold-value w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0">
-                </div>
-              </div>
-            </div>
-          `,
-            )
-            .join("")}
-        </div>
-
-        <div class="flex justify-end space-x-4 mt-4">
-          <button id="cancel-button" class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 cursor-pointer rounded">Cancel</button>
-          <button id="start-button" class="px-4 py-2 bg-gray-800 text-white font-medium cursor-pointer rounded">Optimize</button>
+  app.innerHTML = `
+    <div class="mx-4 pb-8">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-3">
+          <button class="text-gray-600 p-2 cursor-pointer" id="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <h1 class="text-2xl pl-4 font-semibold text-gray-800">Delivery Rules</h1>
         </div>
       </div>
+
+      <p class="text-sm text-gray-500 mb-6">Configure delivery settings for each seller.</p>
+
+      <div class="space-y-4 seller-settings">
+        ${getUniqueSellers(session)
+          .map(
+            (seller) => {
+              const rule = getRule(seller)
+              const copiedFrom = rule.copiedFrom || 'None'
+              const isFree = rule.type === 'free'
+              const type = rule.type === 'free' ? 'fixed' : (rule.type || 'fixed') // Default to fixed if free or undefined
+              
+              return `
+          <div class="mb-4 seller-card bg-white rounded-xl shadow-md p-4 border border-gray-100">
+            <h4 class="text-lg font-medium text-gray-800 mb-3 truncate border-b pb-2">${seller}</h4>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Same seller as :</label>
+              <select class="same-seller-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
+                <option value="None" ${copiedFrom === 'None' ? 'selected' : ''}>None</option>
+                ${getUniqueSellers(session).filter(s => s !== seller).map(s2 => `<option value="${s2}" ${copiedFrom === s2 ? 'selected' : ''}>${s2}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="mb-4 flex items-center justify-between free-delivery-row" style="display: ${copiedFrom !== 'None' ? 'none' : 'flex'}">
+              <label class="text-sm font-medium text-gray-700">Free delivery</label>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="free-delivery-toggle sr-only peer" data-seller="${seller}" ${isFree ? 'checked' : ''}>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
+              </label>
+            </div>
+
+            <div class="mb-4 delivery-type-row" style="display: ${copiedFrom !== 'None' || isFree ? 'none' : 'block'}">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Delivery pricing type</label>
+              <select class="delivery-type w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
+                <option value="fixed" ${type === 'fixed' ? 'selected' : ''}>Addition of per-item delivery prices</option>
+                <option value="first-item" ${type === 'first-item' ? 'selected' : ''}>First item full price then discounted additional</option>
+                <option value="free-threshold" ${type === 'free-threshold' ? 'selected' : ''}>Free above threshold</option>
+              </select>
+            </div>
+
+            <div id="delivery-options-${seller.replace(/\s+/g, "-")}" style="display: ${copiedFrom !== 'None' || isFree ? 'none' : 'block'}">
+              <div class="option-block option-fixed fixed-price mb-3" data-option="fixed" style="display: none;">
+                <!-- No extra fields for fixed -->
+              </div>
+
+              <div class="option-block option-first first-item mb-3" data-option="first-item" style="display: ${type === 'first-item' ? 'block' : 'none'};">
+                <label class="block text-sm font-medium text-gray-700 mb-1">First item price</label>
+                <input type="number" class="first-item-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.firstItemPrice || ''}">
+              </div>
+
+              <div class="option-block option-first-additional first-item mb-3" data-option="first-item-additional" style="display: ${type === 'first-item' ? 'block' : 'none'};">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Delivery price for following product</label>
+                <input type="number" class="following-items-price w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.additionalItemsPrice || ''}">
+              </div>
+
+              <div class="option-block option-free free-threshold mb-3" data-option="free-threshold" style="display: ${type === 'free-threshold' || isFree ? 'block' : 'none'};">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Free delivery over :</label>
+                <input type="number" class="free-threshold-value w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.threshold || ''}">
+              </div>
+            </div>
+          </div>
+        `
+            }
+          )
+          .join("")}
+      </div>
+
+      <button id="save-rules-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition-colors duration-200 shadow-sm">
+        <span class="text-lg font-medium">Save Rules</span>
+      </button>
     </div>
   `
 
-  document.body.appendChild(modal)
-
-  // Prevent body scroll while modal is open
-  document.body.style.overflow = 'hidden'
-
-  // Centralized close helper so we always restore body scroll
-  function closeModal() {
-    try {
-      if (document.body.contains(modal)) {
-        document.body.removeChild(modal)
-      }
-    } catch (err) {
-      // ignore
-    }
-    document.body.style.overflow = ''
-  }
-
-  // Allow clicking overlay to close modal
-  const overlayEl = document.getElementById('modalOverlay')
-  const contentEl = document.getElementById('modalContent')
-  if (overlayEl) overlayEl.addEventListener('click', closeModal)
-  if (contentEl) contentEl.addEventListener('click', (ev) => ev.stopPropagation())
+  // Add event listeners
+  document.getElementById("back-button").addEventListener("click", () => {
+    currentView = "products"
+    renderApp()
+  })
 
   // Wire same-seller select and free delivery toggles
   document.querySelectorAll('.same-seller-select').forEach((sel) => {
@@ -1897,74 +1932,25 @@ function showOptimizationModal() {
       const seller = e.target.dataset.seller
       const value = e.target.value
 
-  // If copied from another seller, copy values and disable inputs
+      const sellerCard = sel.closest('.seller-card')
+      const freeRow = sellerCard.querySelector('.free-delivery-row')
+      const deliveryRow = sellerCard.querySelector('.delivery-type-row')
+      const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
+
       if (value && value !== 'None') {
-        const source = value
-        // copy free toggle
-        const srcFree = document.querySelector(`.free-delivery-toggle[data-seller="${source}"]`)
-        const dstFree = document.querySelector(`.free-delivery-toggle[data-seller="${seller}"]`)
-        if (srcFree && dstFree) {
-          dstFree.checked = srcFree.checked
-          try { dstFree.dispatchEvent(new Event('change')) } catch (e) {}
-        }
-
-        // copy delivery type
-        const srcType = document.querySelector(`.delivery-type[data-seller="${source}"]`)
-        const dstType = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
-        if (srcType && dstType) {
-          dstType.value = srcType.value
-          try { dstType.dispatchEvent(new Event('change')) } catch (e) {}
-        }
-
-        // copy inputs
-        const fields = ['free-threshold-value', 'first-item-price', 'following-items-price', 'additional-items-price', 'fixed-price-value']
-        fields.forEach((cls) => {
-          const src = document.querySelector(`.${cls}[data-seller="${source}"]`)
-          const dst = document.querySelector(`.${cls}[data-seller="${seller}"]`)
-          if (src && dst) dst.value = src.value
-        })
-
-        // disable dst inputs to indicate copy
-        const inputs = document.querySelectorAll(`.seller-card [data-seller="${seller}"]`)
-        inputs.forEach((inp) => {
-          if (!inp.classList.contains('same-seller-select')) inp.disabled = true
-        })
-
-        // hide all other rows for this seller (only keep same-seller select visible)
-        const sellerCard = sel.closest('.seller-card') || document.querySelector(`.seller-card [data-seller="${seller}"]`)?.closest('.seller-card')
-        if (sellerCard) {
-          const freeRow = sellerCard.querySelector('.free-delivery-row')
-          const deliveryRow = sellerCard.querySelector('.delivery-type-row')
-          const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
-          if (freeRow) freeRow.style.display = 'none'
-          if (deliveryRow) deliveryRow.style.display = 'none'
-          if (optionsContainer) optionsContainer.style.display = 'none'
-        }
+        // Hide controls
+        if (freeRow) freeRow.style.display = 'none'
+        if (deliveryRow) deliveryRow.style.display = 'none'
+        if (optionsContainer) optionsContainer.style.display = 'none'
       } else {
-        // None selected -> enable inputs and default to free delivery = false
-        const inputs = document.querySelectorAll(`.seller-card [data-seller="${seller}"]`)
-        inputs.forEach((inp) => {
-          if (!inp.classList.contains('same-seller-select')) inp.disabled = false
-        })
-        const freeToggle = document.querySelector(`.free-delivery-toggle[data-seller="${seller}"]`)
-        if (freeToggle) {
-          freeToggle.checked = false
-        }
-
-        // Ensure delivery type selector is visible but option blocks are hidden by default
-        const deliveryRow = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
-        const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
-        if (deliveryRow) deliveryRow.parentElement.style.display = 'block'
-        if (optionsContainer) {
-          optionsContainer.style.display = 'block'
-          optionsContainer.querySelectorAll('.option-block').forEach((el) => (el.style.display = 'none'))
-        }
-
-        // ensure free delivery row is visible
-        const sellerCard = sel.closest('.seller-card') || document.querySelector(`.seller-card [data-seller="${seller}"]`)?.closest('.seller-card')
-        if (sellerCard) {
-          const freeRow = sellerCard.querySelector('.free-delivery-row')
-          if (freeRow) freeRow.style.display = 'flex'
+        // Show controls
+        if (freeRow) freeRow.style.display = 'flex'
+        
+        // Check if free delivery is enabled to decide visibility of other controls
+        const freeToggle = sellerCard.querySelector('.free-delivery-toggle')
+        if (freeToggle && !freeToggle.checked) {
+          if (deliveryRow) deliveryRow.style.display = 'block'
+          if (optionsContainer) optionsContainer.style.display = 'block'
         }
       }
     })
@@ -1977,21 +1963,30 @@ function showOptimizationModal() {
       const checked = e.target.checked
       const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
       const deliveryRow = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
+      
       if (!optionsContainer || !deliveryRow) return
 
       if (checked) {
         // If delivery is free (always), hide delivery type selector and all option fields
+        // But show threshold field if it was free-threshold? No, "Free delivery" toggle usually means ALWAYS free (threshold 0) or just free. 
+        // Based on previous logic: "Free delivery" toggle seemed to imply simple free delivery.
+        // Actually, let's look at previous logic:
+        // if (isFree) { rule.type = 'free'; rule.threshold = ... }
+        // Wait, if "Free delivery" toggle is ON, it showed nothing in previous code?
+        // Previous code: if (checked) { hide deliveryRow; hide optionsContainer }
+        // So it means unconditionally free.
+        
         if (deliveryRow) deliveryRow.parentElement.style.display = 'none'
         if (optionsContainer) optionsContainer.style.display = 'none'
       } else {
-        // show delivery type selector and ensure options container is visible but with option-blocks hidden
+        // show delivery type selector
         if (deliveryRow) deliveryRow.parentElement.style.display = 'block'
         if (optionsContainer) {
           optionsContainer.style.display = 'block'
-          optionsContainer.querySelectorAll('.option-block').forEach((el) => (el.style.display = 'none'))
+          // Trigger change on delivery type to show correct fields
+          const typeSelect = document.querySelector(`.delivery-type[data-seller="${seller}"]`)
+          if (typeSelect) typeSelect.dispatchEvent(new Event('change'))
         }
-        const evt = new Event('change')
-        document.querySelectorAll(`.delivery-type[data-seller="${seller}"]`).forEach((d) => d.dispatchEvent(evt))
       }
     })
   })
@@ -2003,15 +1998,6 @@ function showOptimizationModal() {
       const optionsContainer = document.getElementById(`delivery-options-${seller.replace(/\s+/g, "-")}`)
       if (!optionsContainer) return
 
-      // Remove highlight from all seller cards and highlight current
-      document.querySelectorAll('.seller-card').forEach((sc) => {
-        sc.classList.remove('ring-2', 'ring-gray-500', 'border-gray-500')
-      })
-      const sellerCard = e.target.closest('.seller-card')
-      if (sellerCard) {
-        sellerCard.classList.add('ring-2', 'ring-gray-500', 'border-gray-500')
-      }
-
       // Hide all option blocks
       optionsContainer.querySelectorAll('.option-block').forEach((el) => {
         el.style.display = 'none'
@@ -2021,48 +2007,82 @@ function showOptimizationModal() {
       const selectedType = e.target.value
       if (selectedType === 'fixed') {
         // 'Addition of per-item delivery price' has no extra fields to display
-        // keep all option-blocks hidden
       } else if (selectedType === 'free-threshold') {
         optionsContainer.querySelectorAll('.option-block[data-option="free-threshold"]').forEach((el) => (el.style.display = 'block'))
       } else if (selectedType === 'first-item') {
-        // show both first-item and additional price blocks
         optionsContainer.querySelectorAll('.option-block[data-option="first-item"]').forEach((el) => (el.style.display = 'block'))
         optionsContainer.querySelectorAll('.option-block[data-option="first-item-additional"]').forEach((el) => (el.style.display = 'block'))
       }
     })
   })
 
-  document.getElementById("cancel-button").addEventListener("click", () => {
-    closeModal()
-  })
-
-  document.getElementById("start-button").addEventListener("click", () => {
+  document.getElementById("save-rules-button").addEventListener("click", () => {
     // Collect delivery rules
     const deliveryRules = []
-    console.log('click click click');
 
     getUniqueSellers(session).forEach((seller) => {
-      // If this seller copies another seller, resolve to that one
       const sameSelect = document.querySelector(`.same-seller-select[data-seller="${seller}"]`)
-      const effectiveSeller = sameSelect && sameSelect.value && sameSelect.value !== 'None' ? sameSelect.value : seller
+      const copiedFrom = sameSelect && sameSelect.value && sameSelect.value !== 'None' ? sameSelect.value : null
 
+      // If copied, we just record the source. The backend/optimizer will handle resolving the values.
+      // But for UI consistency if we re-open, we might want to know it's copied.
+      
+      // We need to resolve values to save them? Or just save "copiedFrom"?
+      // Previous implementation:
+      // if (sameSelect && ... !== 'None') rule.copiedFrom = sameSelect.value
+      // And it also tried to resolve effectiveSeller to get values.
+      // Let's stick to saving the configuration.
+      
+      const rule = { seller }
+      if (copiedFrom) {
+        rule.copiedFrom = copiedFrom
+        // We can optionally copy the values from the source seller right now for the rule object, 
+        // but strictly speaking 'copiedFrom' is enough if the consumer logic handles it.
+        // However, to be safe and consistent with previous logic, let's grab values from the UI 
+        // (which might be hidden/disabled) or just rely on the fact that we will look up the source.
+        // The previous logic did: const effectiveSeller = ...
+        // Let's do that.
+      }
+
+      // We always save the values present in the inputs, even if hidden, 
+      // OR we look at the effective seller's inputs.
+      // Since we didn't implement the "copy values to disabled inputs" logic in this new view 
+      // (I removed the complex copy logic to simplify, assuming 'copiedFrom' is the source of truth),
+      // we should rely on 'copiedFrom'. 
+      // BUT, `optimizeSession` in background.js expects `deliveryRules` array. 
+      // Does `optimizeSession` handle `copiedFrom`? 
+      // Checking background.js... `optimizeSession` just passes `deliveryRules` to the backend.
+      // So the backend must handle it, OR we must resolve it here.
+      // The previous `showOptimizationModal` logic DID resolve it before creating the JSON.
+      // It did: `const effectiveSeller = ...` and read inputs from that seller.
+      // So I should do the same here to ensure the saved rules are complete.
+
+      const effectiveSeller = copiedFrom || seller
+      
       const freeToggle = document.querySelector(`.free-delivery-toggle[data-seller="${effectiveSeller}"]`)
       const isFree = freeToggle ? freeToggle.checked : false
 
-      const rule = { seller }
-
       if (isFree) {
         rule.type = 'free'
-        const thresholdInput = document.querySelector(`.free-threshold-value[data-seller="${effectiveSeller}"]`)
-        rule.threshold = Number.parseFloat(thresholdInput && thresholdInput.value) || 0
+        // For free type, we might still want a threshold if it was "free-threshold" but the toggle overrides it?
+        // In previous logic: if (isFree) { rule.type = 'free'; rule.threshold = ... }
+        // Wait, if isFree (the toggle) is true, it means ALWAYS free. 
+        // But the previous code read `.free-threshold-value`. 
+        // Let's check the previous code again.
+        // `const thresholdInput = document.querySelector('.free-threshold-value[data-seller="${effectiveSeller}"]')`
+        // `rule.threshold = ...`
+        // This implies even if "Free delivery" toggle is ON, it looks for a threshold?
+        // But the UI hid the options. So the threshold would be whatever was there or empty.
+        // If the toggle means "Always Free", threshold should probably be 0.
+        // Let's assume 0 if hidden.
+        rule.threshold = 0 
       } else {
         const typeSelect = document.querySelector(`.delivery-type[data-seller="${effectiveSeller}"]`)
         const type = typeSelect ? typeSelect.value : 'fixed'
         rule.type = type
 
         if (type === 'fixed') {
-          // 'fixed' type (addition of per-delivery prices) does not expose additional fields
-          // leave rule with type only; per-item delivery will be handled during optimization via page data
+          // No extra fields
         } else if (type === 'first-item') {
           const first = document.querySelector(`.first-item-price[data-seller="${effectiveSeller}"]`)
           const additional = document.querySelector(`.following-items-price[data-seller="${effectiveSeller}"]`)
@@ -2073,53 +2093,16 @@ function showOptimizationModal() {
           rule.threshold = Number.parseFloat(threshold && threshold.value) || 0
         }
       }
-
-      // If copying, record origin
-      if (sameSelect && sameSelect.value && sameSelect.value !== 'None') rule.copiedFrom = sameSelect.value
+      
+      if (copiedFrom) {
+        rule.copiedFrom = copiedFrom
+      }
 
       deliveryRules.push(rule)
     })
 
-    // Save delivery rules to session
+    // Update session
     session.deliveryRules = deliveryRules
-
-    // Prepare export data with products and sellers
-    const exportData = {
-      session: {
-        id: session.id,
-        name: session.name,
-        created: session.created,
-      },
-      products: session.products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        pages: product.pages.map((page) => ({
-          id: page.id,
-          url: page.url,
-          price: page.price,
-          shippingPrice: page.shippingPrice,
-          currency: page.currency,
-          seller: page.seller,
-        })),
-        alternatives: product.alternatives || [],
-        limitedCompatibilityWith: product.limitedCompatibilityWith || [],
-      })),
-      bundles: session.bundles || [],
-      sellers: getUniqueSellers(session),
-      deliveryRules: deliveryRules,
-    }
-
-    // Export JSON to file
-    const jsonString = JSON.stringify(exportData, null, 2)
-    const blob = new Blob([jsonString], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `optimization-${session.name.replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
 
     browser.runtime
       .sendMessage({
@@ -2127,26 +2110,11 @@ function showOptimizationModal() {
         sessionId: currentSession,
         updatedSession: session,
       })
-      .then(() => {
-        // Start optimization
-        browser.runtime
-          .sendMessage({
-            action: "optimizeSession",
-            sessionId: currentSession,
-          })
-          .then((result) => {
-            closeModal()
-
-            if (result.success) {
-              // Open results page
-              browser.runtime.sendMessage({
-                action: "showOptimizationResults",
-                result: result.result,
-              })
-            } else {
-              alert(`Optimization failed: ${result.error}`)
-            }
-          })
+      .then((response) => {
+        sessions = response.sessions
+        // Go back to product list
+        currentView = "products"
+        renderApp()
       })
   })
 }
