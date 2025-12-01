@@ -693,6 +693,11 @@ function showNewSessionModal() {
   document.getElementById("save-button").addEventListener("click", () => {
     const name = document.getElementById("session-name").value.trim()
     if (name) {
+      if (sessions.some(s => s.name === name)) {
+        alert("A session with this name already exists. Please choose another name.")
+        return
+      }
+
       browser.runtime
         .sendMessage({
           action: "createSession",
@@ -2197,10 +2202,20 @@ function importSession() {
             return;
           }
 
-          // Create new session with imported name
+          // Check for name collision
+          let name = sessionData.name
+          while (sessions.some(s => s.name === name)) {
+             name = prompt(`The session name "${name}" is already taken. Please enter a new name:`, name + " (Imported)")
+             if (name === null) return // User cancelled
+             name = name.trim()
+             if (!name) return // Empty name
+          }
+          sessionData.name = name
+
+          // Create new session with checked name
           browser.runtime.sendMessage({
             action: "createSession",
-            name: sessionData.name + " (Imported)"
+            name: name
           }).then(response => {
              const newSessionId = response.currentSession;
              
