@@ -2,23 +2,41 @@
 let sessions = []
 let currentSession = null
 let knownParsers = {
-  "amazon.com": {
-    productTitle: ".product-title-word-break",
-    price: ".a-price .a-offscreen",
-    shippingPrice: "#deliveryBlockMessage",
-    seller: ".tabular-buybox-text",
+  "amazon": {
+    "price": {
+      "strategy": "extractPrice",
+      "selector": ".reinventPricePriceToPayMargin"
+    },
+    "priceCurrency": {
+      "strategy": "extractCurrency",
+      "selector": ".reinventPricePriceToPayMargin"
+    },
+    "shippingPrice": {
+      "strategy": "none"
+    },
+    "seller": {
+      "strategy": "domainName"
+    }
   },
-  "ebay.com": {
-    productTitle: ".x-item-title__mainTitle",
-    price: ".x-price-primary",
-    shippingPrice: ".x-deliveryMessage",
-    seller: ".x-sellerCard-name",
+  "ebay": {
+    "price": {
+      "strategy": "extractPrice",
+      "selector": ".x-price-primary > span:nth-child(1)"  
+    },
+    "priceCurrency": {
+      "strategy": "extractCurrency",
+      "selector": ".x-price-primary > span:nth-child(1)"
+    },
+    "shippingPrice": {
+      "strategy": "extractPrice",
+      "selector": "div.false > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)"  
+    },
+    "seller": {
+      "strategy": "domainNameAndSeller",
+      "selector": ".x-sellercard-atf__info__about-seller > a:nth-child(1) > span:nth-child(1)"
+    }
   },
   "neokyo.com": {
-    "productTitle": {
-      "strategy": "textContent",
-      "selector": "h6.font-gothamRounded"
-    },
     "price": {
       "strategy": "splitPriceCurrency",
       "selector": ".product-price-converted",
