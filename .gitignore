@@ -5,4 +5,4 @@ build/*
 !build/
 
 *.md
-!README.md
+!/README.md

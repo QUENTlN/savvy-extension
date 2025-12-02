@@ -1,3 +1,9 @@
+// Ensure `browser` is available in all browsers (Firefox, Chrome, etc.)
+if (typeof browser === "undefined" && typeof chrome !== "undefined") {
+  // eslint-disable-next-line no-global-assign
+  browser = chrome
+}
+
 console.log("Content script initializing...");
 
 // Listen for scrape command from background script

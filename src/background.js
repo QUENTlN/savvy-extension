@@ -1,77 +1,17 @@
 // Store for sessions, products, and pages
 let sessions = []
 let currentSession = null
-let knownParsers = {
-  "amazon": {
-    "price": {
-      "strategy": "extractPrice",
-      "selector": ".reinventPricePriceToPayMargin"
-    },
-    "priceCurrency": {
-      "strategy": "extractCurrency",
-      "selector": ".reinventPricePriceToPayMargin"
-    },
-    "shippingPrice": {
-      "strategy": "none"
-    },
-    "seller": {
-      "strategy": "domainName"
-    }
-  },
-  "ebay": {
-    "price": {
-      "strategy": "extractPrice",
-      "selector": ".x-price-primary > span:nth-child(1)"  
-    },
-    "priceCurrency": {
-      "strategy": "extractCurrency",
-      "selector": ".x-price-primary > span:nth-child(1)"
-    },
-    "shippingPrice": {
-      "strategy": "extractPrice",
-      "selector": "div.false > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)"  
-    },
-    "seller": {
-      "strategy": "domainNameAndSeller",
-      "selector": ".x-sellercard-atf__info__about-seller > a:nth-child(1) > span:nth-child(1)"
-    }
-  },
-  "neokyo.com": {
-    "price": {
-      "strategy": "splitPriceCurrency",
-      "selector": ".product-price-converted",
-      "param": "price"
-    },
-    "priceCurrency": {
-      "strategy": "splitPriceCurrency",
-      "selector": ".product-price-converted",
-      "param": "currency"
-    },
-    "shippingPrice": {
-      "strategy": "splitPriceCurrency",
-      "selector": "p.col-9:nth-child(12) > strong:nth-child(1)",
-      "param": "price"
-    },
-    "seller": {
-      "strategy": "urlParameter",
-      "selector": "a.col-9:nth-child(2)",
-      "param": "store_name"
-    }
-}
-  // Add more known parsers here
-}
 
-// Initialize from storage
-var browser = browser || chrome // Declare browser before using it
-
-console.log(knownParsers)
-
+// Initialize from storage (sessions, current session, and optionally knownParsers overrides)
 browser.storage.local.get(["sessions", "currentSession", "knownParsers"]).then((result) => {
-  if (result.sessions) sessions = result.sessions
-  if (result.currentSession) currentSession = result.currentSession
-})
+  sessions = result.sessions || []
+  currentSession = result.currentSession || null
 
-console.log(knownParsers)
+  // Allow overriding default parsers from storage if present
+  if (result.knownParsers && typeof knownParsers !== "undefined") {
+    knownParsers = result.knownParsers
+  }
+})
 
 // Save to storage
 function saveToStorage() {
@@ -82,91 +22,143 @@ function saveToStorage() {
   })
 }
 
-// Message handlers
+// Message handlers map: treat background as a small JSON RPC API
+const messageHandlers = {
+  // Sessions
+  createSession: (message) => {
+    createSession(message.name)
+    return { success: true, sessions, currentSession }
+  },
+  updateSession: (message) => {
+    updateSession(message.sessionId, message.updatedSession)
+    return { success: true, sessions, currentSession }
+  },
+  deleteSession: (message) => {
+    deleteSession(message.sessionId)
+    return { success: true, sessions, currentSession }
+  },
+  setCurrentSession: (message) => {
+    setCurrentSession(message.sessionId)
+    return { success: true, currentSession }
+  },
+
+  // Products
+  createProduct: (message) => {
+    createProduct(message.sessionId, message.product)
+    return { success: true, sessions, currentSession }
+  },
+  deleteProduct: (message) => {
+    deleteProduct(message.sessionId, message.productId)
+    return { success: true, sessions, currentSession }
+  },
+
+  // Pages
+  addPage: (message) => {
+    addPage(message.sessionId, message.productId, message.page)
+    return { success: true, sessions, currentSession }
+  },
+  deletePage: (message) => {
+    deletePage(message.sessionId, message.productId, message.pageId)
+    return { success: true, sessions, currentSession }
+  },
+  updatePage: (message) => {
+    updatePage(message.sessionId, message.productId, message.pageId, message.updatedPage)
+    return { success: true, sessions, currentSession }
+  },
+
+  // Bundles
+  createBundle: (message) => {
+    createBundle(message.sessionId, message.bundle)
+    return { success: true, sessions, currentSession }
+  },
+  updateBundle: (message) => {
+    updateBundle(message.sessionId, message.bundleId, message.updatedBundle)
+    return { success: true, sessions, currentSession }
+  },
+  deleteBundle: (message) => {
+    deleteBundle(message.sessionId, message.bundleId)
+    return { success: true, sessions, currentSession }
+  },
+
+  // Alternative groups
+  createAlternativeGroup: (message) => {
+    createAlternativeGroup(message.sessionId, message.group)
+    return { success: true, sessions, currentSession }
+  },
+  updateAlternativeGroup: (message) => {
+    updateAlternativeGroup(message.sessionId, message.groupId, message.updatedGroup)
+    return { success: true, sessions, currentSession }
+  },
+  deleteAlternativeGroup: (message) => {
+    deleteAlternativeGroup(message.sessionId, message.groupId)
+    return { success: true, sessions, currentSession }
+  },
+
+  // Read-only queries
+  getSessions: () => ({ sessions, currentSession }),
+  getCurrentSession: () => ({ currentSession }),
+  getKnownParsers: () => ({ knownParsers }),
+
+  // Actions
+  scrapePage: (message, sender) => {
+    console.log("Scrape page request received for tab:", sender, message)
+    scrapePage(message.tabId)
+    // No response expected by caller
+    return undefined
+  },
+
+  // Optimization
+  optimizeSession: async (message) => {
+    return optimizeSession(message.sessionId)
+  },
+
+  // Open optimization results in a new tab
+  showOptimizationResults: (message) => {
+    browser.tabs.create({
+      url: "results/results.html",
+    })
+    return { success: true }
+  },
+}
+
+// Central runtime message listener
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Vérifier si le message provient d'une tab active
+  // Ignore messages from non-active tabs when they have a tab context
   if (sender.tab && !sender.tab.active) {
-    return false;
+    return false
   }
-  
-  switch (message.action) {
-    case "createSession":
-      createSession(message.name)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "updateSession":
-      updateSession(message.sessionId, message.updatedSession)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "deleteSession":
-      deleteSession(message.sessionId)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "setCurrentSession":
-      setCurrentSession(message.sessionId)
-      sendResponse({ success: true, currentSession })
-      break
-    case "createProduct":
-      createProduct(message.sessionId, message.product)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "deleteProduct":
-      deleteProduct(message.sessionId, message.productId)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "addPage":
-      addPage(message.sessionId, message.productId, message.page)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "deletePage":
-      deletePage(message.sessionId, message.productId, message.pageId)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "updatePage":
-      updatePage(message.sessionId, message.productId, message.pageId, message.updatedPage)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "createBundle":
-      createBundle(message.sessionId, message.bundle)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "updateBundle":
-      updateBundle(message.sessionId, message.bundleId, message.updatedBundle)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "deleteBundle":
-      deleteBundle(message.sessionId, message.bundleId)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "createAlternativeGroup":
-      createAlternativeGroup(message.sessionId, message.group)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "updateAlternativeGroup":
-      updateAlternativeGroup(message.sessionId, message.groupId, message.updatedGroup)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "deleteAlternativeGroup":
-      deleteAlternativeGroup(message.sessionId, message.groupId)
-      sendResponse({ success: true, sessions, currentSession })
-      break
-    case "getSessions":
-      sendResponse({ sessions, currentSession })
-      break
-    case "getCurrentSession":
-      sendResponse({ currentSession })
-      break
-    case "getKnownParsers":
-      sendResponse({ knownParsers })
-      break
-    case "scrapePage":
-      console.log("Scrape page request received for tab:", sender, message)
-      scrapePage(message.tabId)
-      break
-    case "optimizeSession":
-      optimizeSession(message.sessionId).then((result) => sendResponse(result))
-      return true // For async response
+
+  const handler = messageHandlers[message.action]
+  if (!handler) {
+    return false
   }
+
+  try {
+    const result = handler(message, sender, sendResponse)
+
+    // Async handler returning a Promise
+    if (result && typeof result.then === "function") {
+      result
+        .then((data) => {
+          sendResponse(data)
+        })
+        .catch((error) => {
+          console.error("Error in async background handler:", error)
+          sendResponse({ success: false, error: error.message || String(error) })
+        })
+      return true // Keep the message channel open for async response
+    }
+
+    // Synchronous handler result
+    if (typeof result !== "undefined") {
+      sendResponse(result)
+    }
+  } catch (error) {
+    console.error("Error in background handler:", error)
+    sendResponse({ success: false, error: error.message || String(error) })
+  }
+
+  return false
 })
 
 // Session management
@@ -393,12 +385,3 @@ async function optimizeSession(sessionId) {
     return { success: false, error: error.message }
   }
 }
-
-// Open optimization results in a new tab
-browser.runtime.onMessage.addListener((message) => {
-  if (message.action === "showOptimizationResults") {
-    browser.tabs.create({
-      url: "results/results.html",
-    })
-  }
-})

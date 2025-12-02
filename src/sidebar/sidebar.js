@@ -1,111 +1,10 @@
 // DOM Elements
 const app = document.getElementById("app")
 
-// Declare browser
-const browser = window.browser || window.chrome
-
-// State
-let sessions = []
-let currentSession = null
-let currentView = "sessions" // 'sessions', 'products', 'pages', 'settings', 'deliveryRules', 'alternatives'
-let currentProduct = null
-let scrapedData = null
-
-// Modal utility functions for UX
-function setupAutoFocus(modal) {
-  // Focus on the first input, select, or textarea that is not disabled
-  setTimeout(() => {
-    const firstInput = modal.querySelector('input:not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled])')
-    if (firstInput) {
-      firstInput.focus()
-    }
-  }, 0)
-}
-
-function setupEscapeKey(modal, closeCallback) {
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      closeCallback()
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }
-  document.addEventListener('keydown', handleEscape)
-}
-
-function setupEnterKey(modal, submitCallback) {
-  const handleEnter = (e) => {
-    // Don't submit on Enter if we're in a textarea
-    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-      e.preventDefault()
-      submitCallback()
-    }
-  }
-  modal.addEventListener('keydown', handleEnter)
-}
-
-function showFieldError(fieldId, errorMessage) {
-  const field = document.getElementById(fieldId)
-  if (!field) return
-  
-  // Add error styling to field
-  field.classList.add('border-red-500', 'focus:ring-red-500')
-  field.classList.remove('border-gray-300', 'focus:ring-gray-500')
-  
-  // Remove any existing error message
-  const existingError = field.parentElement.querySelector('.field-error-message')
-  if (existingError) {
-    existingError.remove()
-  }
-  
-  // Add error message
-  const errorDiv = document.createElement('p')
-  errorDiv.className = 'field-error-message text-sm text-red-600 mt-1'
-  errorDiv.textContent = errorMessage
-  field.parentElement.appendChild(errorDiv)
-}
-
-function clearFieldError(fieldId) {
-  const field = document.getElementById(fieldId)
-  if (!field) return
-  
-  // Remove error styling
-  field.classList.remove('border-red-500', 'focus:ring-red-500')
-  field.classList.add('border-gray-300', 'focus:ring-gray-500')
-  
-  // Remove error message
-  const errorMessage = field.parentElement.querySelector('.field-error-message')
-  if (errorMessage) {
-    errorMessage.remove()
-  }
-}
-
-function clearAllErrors(modal) {
-  // Remove all error styling and messages
-  modal.querySelectorAll('.border-red-500').forEach(field => {
-    field.classList.remove('border-red-500', 'focus:ring-red-500')
-    field.classList.add('border-gray-300', 'focus:ring-gray-500')
-  })
-  modal.querySelectorAll('.field-error-message').forEach(msg => msg.remove())
-}
-
-function validateRequiredField(fieldId, fieldName) {
-  const field = document.getElementById(fieldId)
-  if (!field) return true
-  
-  const value = field.value.trim()
-  if (!value) {
-    showFieldError(fieldId, `${fieldName} is required`)
-    return false
-  }
-  
-  clearFieldError(fieldId)
-  return true
-}
-
 // Initialize
 function init() {
   // Load data from storage
-  browser.runtime.sendMessage({ action: "getSessions" }).then((response) => {
+  SidebarAPI.getSessions().then((response) => {
     sessions = response.sessions
     currentSession = response.currentSession
     renderApp()
@@ -236,10 +135,7 @@ function renderSessionsView() {
       if (!e.target.closest(".edit-button") && !e.target.closest(".delete-button") && !e.target.closest(".export-button")) {
         const sessionId = item.dataset.id
         currentSession = sessionId
-        browser.runtime.sendMessage({
-          action: "setCurrentSession",
-          sessionId,
-        })
+        SidebarAPI.setCurrentSession(sessionId)
         currentView = "products"
         renderApp()
       }
@@ -379,18 +275,10 @@ function renderProductsView() {
 
   document.getElementById("optimize-button").addEventListener("click", () => {
     // Trigger optimization directly
-    browser.runtime
-      .sendMessage({
-        action: "optimizeSession",
-        sessionId: currentSession,
-      })
-      .then((result) => {
+    SidebarAPI.optimizeSession(currentSession).then((result) => {
         if (result.success) {
           // Open results page
-          browser.runtime.sendMessage({
-            action: "showOptimizationResults",
-            result: result.result,
-          })
+          SidebarAPI.showOptimizationResults(result.result)
         } else {
           alert(`Optimization failed: ${result.error}`)
         }
@@ -597,10 +485,9 @@ function renderPagesView() {
   document.getElementById("add-page-button").addEventListener("click", () => {
     // Request scraping of the current page
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      browser.runtime.sendMessage({
-        action: "scrapePage",
-        tabId: tabs[0].id,
-      })
+      if (tabs && tabs[0]) {
+        SidebarAPI.requestScrapeForTab(tabs[0].id)
+      }
     })
   })
 
@@ -1076,17 +963,11 @@ function showNewProductModal() {
     document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => compatibleProducts.push(cb.value))
 
     // Create product first to get an id, then update reciprocal alternatives
-    browser.runtime
-      .sendMessage({
-        action: "createProduct",
-        sessionId: currentSession,
-        product: {
-          name,
-          quantity,
-          limitedCompatibilityWith: compatibleProducts,
-        },
-      })
-      .then((response) => {
+    SidebarAPI.createProduct(currentSession, {
+      name,
+      quantity,
+      limitedCompatibilityWith: compatibleProducts,
+    }).then((response) => {
         // sessions returned with new product
         sessions = response.sessions
         const session = sessions.find(s => s.id === currentSession)
@@ -1104,7 +985,7 @@ function showNewProductModal() {
 
         // Save updated session if there are bidirectional links to persist
         if (compatibleProducts.length > 0) {
-          browser.runtime.sendMessage({ action: 'updateSession', sessionId: currentSession, updatedSession: session, session }).then((resp) => {
+          SidebarAPI.updateSession(currentSession, session).then((resp) => {
             sessions = resp.sessions
             closeModal()
             renderApp()
@@ -1314,7 +1195,7 @@ function showEditProductModal(product) {
     })
 
     // Save entire session to persist reciprocal changes
-    browser.runtime.sendMessage({ action: 'updateSession', sessionId: currentSession, updatedSession: session, session }).then((response) => {
+    SidebarAPI.updateSession(currentSession, session).then((response) => {
       sessions = response.sessions
       closeModal()
       renderApp()
@@ -2668,10 +2549,7 @@ function importSession() {
           sessionData.name = name
 
           // Create new session with checked name
-          browser.runtime.sendMessage({
-            action: "createSession",
-            name: name
-          }).then(response => {
+          SidebarAPI.createSession(name).then(response => {
              const newSessionId = response.currentSession;
              
              // Update the new session with imported data
@@ -2682,11 +2560,7 @@ function importSession() {
                created: new Date().toISOString()
              };
 
-             browser.runtime.sendMessage({
-               action: "updateSession",
-               sessionId: newSessionId,
-               updatedSession: updatedSession
-             }).then(updateResponse => {
+             SidebarAPI.updateSession(newSessionId, updatedSession).then(updateResponse => {
                sessions = updateResponse.sessions;
                currentSession = newSessionId;
                renderApp();
@@ -2971,11 +2845,7 @@ function showNewAlternativeGroupModal() {
       return
     }
 
-    browser.runtime.sendMessage({
-      action: "createAlternativeGroup",
-      sessionId: currentSession,
-      group: { name, options }
-    }).then(response => {
+    SidebarAPI.createAlternativeGroup(currentSession, { name, options }).then(response => {
       sessions = response.sessions
       closeModal()
       renderAlternativesView()
@@ -3163,12 +3033,7 @@ function showEditAlternativeGroupModal(group) {
       return
     }
 
-    browser.runtime.sendMessage({
-      action: "updateAlternativeGroup",
-      sessionId: currentSession,
-      groupId: group.id,
-      updatedGroup: { name, options }
-    }).then(response => {
+    SidebarAPI.updateAlternativeGroup(currentSession, group.id, { name, options }).then(response => {
       sessions = response.sessions
       closeModal()
       renderAlternativesView()
@@ -3209,11 +3074,7 @@ function showDeleteAlternativeGroupModal(groupId) {
   document.getElementById('cancel-button').addEventListener('click', close)
 
   document.getElementById('delete-button').addEventListener('click', () => {
-    browser.runtime.sendMessage({
-      action: "deleteAlternativeGroup",
-      sessionId: currentSession,
-      groupId
-    }).then(response => {
+    SidebarAPI.deleteAlternativeGroup(currentSession, groupId).then(response => {
       sessions = response.sessions
       close()
       renderAlternativesView()
