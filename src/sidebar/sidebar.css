@@ -65,7 +65,7 @@ body {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --input: 0 0% 20%;
     --ring: 0 0% 83.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -87,7 +87,55 @@ body {
   * {
     @apply border-[hsl(var(--border))];
   }
+  html {
+    @apply bg-[hsl(var(--background))];
+  }
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+  }
+  #app {
+    @apply min-h-screen bg-[hsl(var(--background))];
+  }
+}
+
+@layer components {
+  /* Card backgrounds and text */
+  .card-bg {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+  }
+  .card-text {
+    color: hsl(var(--card-foreground));
+  }
+  
+  /* Muted text */
+  .muted-text {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  /* Secondary backgrounds and text */
+  .secondary-bg {
+    background-color: hsl(var(--secondary));
+  }
+  .secondary-text {
+    color: hsl(var(--secondary-foreground));
+  }
+  
+  /* Primary backgrounds and text */
+  .primary-bg {
+    background-color: hsl(var(--primary));
+  }
+  .primary-text {
+    color: hsl(var(--primary-foreground));
+  }
+  
+  /* Borders */
+  .border-default {
+    border-color: hsl(var(--border));
+  }
+  
+  /* Input backgrounds */
+  .input-bg {
+    background-color: hsl(var(--input));
   }
 }
