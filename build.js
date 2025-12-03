@@ -293,8 +293,102 @@ async function processFile(filePath) {
 // Find the first argument that doesn't start with '--'
 const args = process.argv.slice(2);
 const changedFilePath = args.find(arg => !arg.startsWith('--'));
+const isWatchMode = process.argv.includes('--watch');
 
-if (changedFilePath) {
+// Watch mode implementation
+async function watchMode() {
+    console.log(`\n🔍 Watch mode enabled. Monitoring changes for ${targetBrowser}...\n`);
+    
+    // Perform initial build
+    await build();
+    
+    let debounceTimer = null;
+    const debounceDelay = 300; // milliseconds
+    
+    // Function to handle file changes with debouncing
+    const handleFileChange = (eventType, filename, watchPath) => {
+        if (!filename) return;
+        
+        const fullPath = path.join(watchPath, filename);
+        
+        // Ignore build directory, node_modules, and hidden files
+        if (fullPath.includes('build') || 
+            fullPath.includes('node_modules') || 
+            filename.startsWith('.')) {
+            return;
+        }
+        
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            console.log(`\n📝 Change detected: ${filename}`);
+            
+            try {
+                const stats = await fs.stat(fullPath);
+                
+                if (stats.isFile()) {
+                    // Check if it's a manifest file
+                    if (filename.startsWith('manifest') && filename.endsWith('.json')) {
+                        console.log('Manifest file changed, rebuilding...');
+                        await copyManifest();
+                    }
+                    // Process individual files for faster rebuilds
+                    else if (fullPath.startsWith(srcDir)) {
+                        await processFile(fullPath);
+                        
+                        // If HTML or JS changed, reprocess all CSS files
+                        // This is necessary for Tailwind to detect new utility classes
+                        if (fullPath.endsWith('.html') || fullPath.endsWith('.js')) {
+                            console.log('🎨 Reprocessing CSS files for Tailwind...');
+                            await processCssFiles();
+                        }
+                    }
+                    else if (fullPath.startsWith(publicDir)) {
+                        // Handle public folder changes
+                        const relativePath = path.relative(publicDir, fullPath);
+                        const destPath = path.join(buildDir, relativePath);
+                        
+                        if (!filename.startsWith('manifest')) {
+                            await fs.ensureDir(path.dirname(destPath));
+                            await fs.copy(fullPath, destPath);
+                            console.log(`Public file copied: ${relativePath}`);
+                        }
+                    }
+                } else {
+                    // If directory changed or complex change, do full rebuild
+                    console.log('Performing full rebuild...');
+                    await build();
+                }
+                
+                console.log('✅ Rebuild complete!\n');
+            } catch (err) {
+                // If file was deleted or error occurred, do full rebuild
+                console.log('Change detected, performing full rebuild...');
+                await build();
+                console.log('✅ Rebuild complete!\n');
+            }
+        }, debounceDelay);
+    };
+    
+    // Watch src directory
+    fs.watch(srcDir, { recursive: true }, (eventType, filename) => {
+        handleFileChange(eventType, filename, srcDir);
+    });
+    
+    // Watch public directory
+    fs.watch(publicDir, { recursive: true }, (eventType, filename) => {
+        handleFileChange(eventType, filename, publicDir);
+    });
+    
+    console.log('👀 Watching for changes... (Press Ctrl+C to stop)\n');
+}
+
+// Main execution logic
+if (isWatchMode) {
+    watchMode().catch(err => {
+        console.error('Watch mode failed:', err);
+        process.exit(1);
+    });
+} else if (changedFilePath) {
     processFile(changedFilePath).then(() => {
         console.log('File processing completed.');
     }).catch(err => {

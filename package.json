@@ -4,32 +4,30 @@
   "main": "index.js",
   "scripts": {
     "dev": "node build.js",
-    "watch": "node watch.js",
     "build": "NODE_ENV=production node build.js --browser=firefox",
     "build:firefox": "NODE_ENV=production node build.js --browser=firefox",
     "build:chrome": "NODE_ENV=production node build.js --browser=chrome",
+    "watch:firefox": "node build.js --watch --browser=firefox",
+    "watch:chrome": "node build.js --watch --browser=chrome",
     "clean": "rimraf build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QUENTlN/buy4least-extension.git"
+    "url": "git+https://github.com/QUENTlN/savvy-extension.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/QUENTlN/buy4least-extension/issues"
+    "url": "https://github.com/QUENTlN/savvy-extension/issues"
   },
-  "homepage": "https://github.com/QUENTlN/buy4least-extension#readme",
+  "homepage": "https://github.com/QUENTlN/savvy-extension#readme",
   "description": "",
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.4",
-    "autoprefixer": "^10.4.21",
     "cssnano": "^7.0.6",
     "fs-extra": "^11.3.0",
     "postcss": "^8.5.3",
-    "postcss-cli": "^11.0.1",
-    "tailwindcss": "^4.1.4",
     "uglify-js": "^3.19.3"
   }
 }
