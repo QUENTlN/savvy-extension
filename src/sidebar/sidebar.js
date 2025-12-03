@@ -581,9 +581,7 @@ function renderSettingsView() {
         <div class="card-bg rounded-xl shadow-md p-4">
         <label class="block text-sm font-medium secondary-text mb-1">Default currency</label>
         <select id="currency" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
-          <option value="USD" ${settings.currency === "USD" ? "selected" : ""}>US Dollar - $</option>
-          <option value="EUR" ${settings.currency === "EUR" ? "selected" : ""}>Euro - €</option>
-          <option value="GBP" ${settings.currency === "GBP" ? "selected" : ""}>British Pound - £</option>
+          ${CURRENCIES.map(c => `<option value="${c.code}" ${(settings.currency || DEFAULT_CURRENCY) === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
         </select>
         </div>
 
@@ -1251,10 +1249,7 @@ function showEditPageModal(page) {
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
             <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>Free</option>
-            <option value="EUR" ${page.currency === "EUR" ? "selected" : ""}>Euro - €</option>
-            <option value="USD" ${page.currency === "USD" ? "selected" : ""}>United States Dollar - $</option>
-            <option value="GBP" ${page.currency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
-            <!-- Add other currencies as needed -->
+            ${CURRENCIES.map(c => `<option value="${c.code}" ${page.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
           </select>
         </div>
 
@@ -1470,10 +1465,7 @@ function showEditBundleModal(bundle) {
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
             <option value="FREE" ${bundle.currency === "FREE" ? "selected" : ""}>Free</option>
-            <option value="EUR" ${bundle.currency === "EUR" ? "selected" : ""}>Euro - €</option>
-            <option value="USD" ${bundle.currency === "USD" ? "selected" : ""}>United States Dollar - $</option>
-            <option value="GBP" ${bundle.currency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
-            <!-- Add other currencies as needed -->
+            ${CURRENCIES.map(c => `<option value="${c.code}" ${bundle.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
           </select>
         </div>
 
