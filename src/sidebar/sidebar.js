@@ -392,8 +392,8 @@ function renderPagesView() {
                 </div>
                 <div class="flex items-start space-x-2">
                   <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${page.url}" title="${t("pages.openInNewTab")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
-                      <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </button>
                   <button class="muted-text p-1 cursor-pointer edit-page-button" data-id="${page.id}" title="${t("pages.editPageTitle")}">
@@ -411,12 +411,12 @@ function renderPagesView() {
             </div>
             `).join('')}
             ${session.bundles && session.bundles.filter(b => b.products && b.products.some(bp => bp.productId === product.id)).map(bundle => `
-            <div class="bg-blue-50 border border-blue-200 rounded-xl shadow-md p-4">
+            <div class="secondary-bg border border-default rounded-xl shadow-md p-4">
               <div class="flex justify-between items-start">
                 <div class="flex-1 min-w-0 mr-4">
                   <div class="flex items-center space-x-2">
-                    <span class="bg-blue-100 muted-text text-xs font-semibold px-2.5 py-0.5 rounded">${t("products.bundle").toUpperCase()}</span>
-                    <p class="text-lg font-medium text-[hsl(var(--foreground))] truncate">${bundle.seller || bundle.url}</p>
+                    <span class="card-bg secondary-text text-xs font-semibold px-2.5 py-0.5 rounded border border-default">${t("products.bundle").toUpperCase()}</span>
+                    <p class="text-lg font-medium card-text truncate">${bundle.seller || bundle.url}</p>
                   </div>
                   <div class="mt-1 space-y-1">
                     <p class="muted-text">${t("pages.price")}: ${(() => {
@@ -455,8 +455,8 @@ function renderPagesView() {
                 </div>
                 <div class="flex items-start space-x-2">
                   <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${bundle.url}" title="${t("pages.openInNewTab")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
-                      <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </button>
                   <button class="muted-text p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="${t("bundles.editBundle")}">
@@ -881,7 +881,7 @@ function showNewProductModal() {
         </div>
 
         <div class="mb-6">
-          <button id="toggle-compatibility" class="text-sm text-blue-600 hover:muted-text font-medium flex items-center cursor-pointer">
+          <button id="toggle-compatibility" class="text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -1060,19 +1060,19 @@ function showEditProductModal(product) {
           <p class="mt-1 text-sm muted-text">${t("modals.howManyNeeded")}</p>
         </div>
 
-        ${sessions.find(s => s.id === currentSession).alternativeGroups && sessions.find(s => s.id === currentSession).alternativeGroups.some(g => g.options.some(opt => opt.productIds.includes(product.id))) ? `
-          <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-3">
+        ${sessions.find(s => s.id === currentSession).alternativeGroups && sessions.find(s => s.id === currentSession).alternativeGroups.some(g => g.options.some(opt => opt.products?.some(p => p.productId === product.id))) ? `
+          <div class="mb-6 secondary-bg border border-default rounded-lg p-3">
             <div class="flex">
-              <svg class="h-5 w-5 text-amber-400 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
-              <p class="text-sm text-amber-800">${t("modals.alternativeGroupWarning")}</p>
+              <p class="text-sm secondary-text">${t("modals.alternativeGroupWarning")}</p>
             </div>
           </div>
         ` : ''}
 
         <div class="mb-6">
-          <button id="toggle-compatibility" class="text-sm text-blue-600 hover:muted-text font-medium flex items-center cursor-pointer">
+          <button id="toggle-compatibility" class="text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -2694,7 +2694,7 @@ function showNewAlternativeGroupModal() {
           <div id="options-container" class="space-y-4">
             <!-- Options will be added here -->
           </div>
-          <button id="add-option-button" class="mt-2 text-sm text-blue-600 hover:muted-text font-medium flex items-center">
+          <button id="add-option-button" class="mt-2 text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -2721,8 +2721,8 @@ function showNewAlternativeGroupModal() {
     div.innerHTML = `
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-semibold secondary-text">Option ${optionCount}</span>
-        <button class="text-red-500 hover:text-red-700 remove-option-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button class="muted-text hover:opacity-70 cursor-pointer remove-option-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -2800,7 +2800,7 @@ function showNewAlternativeGroupModal() {
         // The requirement is "dont au moins 1 par option et au moins 2 options"
         // So every visible option block MUST have at least 1 product? Or we just filter out empty ones?
         // "dont au moins 1 par option" suggests every defined option must be valid.
-        optDiv.classList.add('border-red-500')
+        optDiv.classList.add('error-border')
         hasEmptyOption = true
       }
     })
@@ -2812,7 +2812,7 @@ function showNewAlternativeGroupModal() {
       let errorMsg = container.nextElementSibling
       if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
         errorMsg = document.createElement('p')
-        errorMsg.className = 'field-error-message text-sm text-red-600 mt-1'
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
       errorMsg.textContent = 'Each option must have at least one product selected.'
@@ -2824,7 +2824,7 @@ function showNewAlternativeGroupModal() {
       if (errorMsg && errorMsg.classList.contains('field-error-message')) {
         errorMsg.remove()
       }
-      document.querySelectorAll('#options-container > div').forEach(d => d.classList.remove('border-red-500'))
+      document.querySelectorAll('#options-container > div').forEach(d => d.classList.remove('error-border'))
     }
 
     if (options.length < 2) {
@@ -2832,7 +2832,7 @@ function showNewAlternativeGroupModal() {
       let errorMsg = container.nextElementSibling
       if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
         errorMsg = document.createElement('p')
-        errorMsg.className = 'field-error-message text-sm text-red-600 mt-1'
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
       errorMsg.textContent = 'Please add at least two options with selected products.'
@@ -2886,7 +2886,7 @@ function showEditAlternativeGroupModal(group) {
           <div id="options-container" class="space-y-4">
             <!-- Options will be added here -->
           </div>
-          <button id="add-option-button" class="mt-2 text-sm text-blue-600 hover:muted-text font-medium flex items-center">
+          <button id="add-option-button" class="mt-2 text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -2913,8 +2913,8 @@ function showEditAlternativeGroupModal(group) {
     div.innerHTML = `
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-semibold secondary-text">Option ${optionCount}</span>
-        <button class="text-red-500 hover:text-red-700 remove-option-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button class="muted-text hover:opacity-70 cursor-pointer remove-option-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -2990,7 +2990,7 @@ function showEditAlternativeGroupModal(group) {
       if (products.length > 0) {
         options.push({ products })
       } else {
-        optDiv.classList.add('border-red-500')
+        optDiv.classList.add('error-border')
         hasEmptyOption = true
       }
     })
@@ -3000,7 +3000,7 @@ function showEditAlternativeGroupModal(group) {
       let errorMsg = container.nextElementSibling
       if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
         errorMsg = document.createElement('p')
-        errorMsg.className = 'field-error-message text-sm text-red-600 mt-1'
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
       errorMsg.textContent = 'Each option must have at least one product selected.'
@@ -3012,7 +3012,7 @@ function showEditAlternativeGroupModal(group) {
       if (errorMsg && errorMsg.classList.contains('field-error-message')) {
         errorMsg.remove()
       }
-      document.querySelectorAll('#options-container > div').forEach(d => d.classList.remove('border-red-500'))
+      document.querySelectorAll('#options-container > div').forEach(d => d.classList.remove('error-border'))
     }
 
     if (options.length < 2) {
@@ -3020,7 +3020,7 @@ function showEditAlternativeGroupModal(group) {
       let errorMsg = container.nextElementSibling
       if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
         errorMsg = document.createElement('p')
-        errorMsg.className = 'field-error-message text-sm text-red-600 mt-1'
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
       errorMsg.textContent = 'Please add at least two options with selected products.'

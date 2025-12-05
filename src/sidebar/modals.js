@@ -38,8 +38,8 @@ function showFieldError(fieldId, errorMessage) {
   if (!field) return
 
   // Add error styling to field
-  field.classList.add("border-red-500", "focus:ring-red-500")
-  field.classList.remove("border-gray-300", "focus:ring-gray-500")
+  field.classList.add("error-border", "error-ring")
+  field.classList.remove("border-default", "focus:ring-gray-500")
 
   // Remove any existing error message
   const existingError = field.parentElement.querySelector(".field-error-message")
@@ -49,7 +49,7 @@ function showFieldError(fieldId, errorMessage) {
 
   // Add error message
   const errorDiv = document.createElement("p")
-  errorDiv.className = "field-error-message text-sm text-red-600 mt-1"
+  errorDiv.className = "field-error-message text-sm error-text mt-1"
   errorDiv.textContent = errorMessage
   field.parentElement.appendChild(errorDiv)
 }
@@ -59,8 +59,8 @@ function clearFieldError(fieldId) {
   if (!field) return
 
   // Remove error styling
-  field.classList.remove("border-red-500", "focus:ring-red-500")
-  field.classList.add("border-gray-300", "focus:ring-gray-500")
+  field.classList.remove("error-border", "error-ring")
+  field.classList.add("border-default", "focus:ring-gray-500")
 
   // Remove error message
   const errorMessage = field.parentElement.querySelector(".field-error-message")
@@ -71,9 +71,9 @@ function clearFieldError(fieldId) {
 
 function clearAllErrors(modal) {
   // Remove all error styling and messages
-  modal.querySelectorAll(".border-red-500").forEach((field) => {
-    field.classList.remove("border-red-500", "focus:ring-red-500")
-    field.classList.add("border-gray-300", "focus:ring-gray-500")
+  modal.querySelectorAll(".error-border").forEach((field) => {
+    field.classList.remove("error-border", "error-ring")
+    field.classList.add("border-default", "focus:ring-gray-500")
   })
   modal.querySelectorAll(".field-error-message").forEach((msg) => msg.remove())
 }
