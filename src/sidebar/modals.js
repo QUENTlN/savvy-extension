@@ -84,7 +84,7 @@ function validateRequiredField(fieldId, fieldName) {
 
   const value = field.value.trim()
   if (!value) {
-    showFieldError(fieldId, `${fieldName} is required`)
+    showFieldError(fieldId, t("modals.fieldRequired", { fieldName }))
     return false
   }
 

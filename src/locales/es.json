@@ -24,7 +24,8 @@
         "exportSession": "Exportar sesión",
         "sessionExists": "Ya existe una sesión con este nombre",
         "confirmDelete": "¿Está seguro de que desea eliminar esta sesión? Esta acción no se puede deshacer.",
-        "deleteButton": "Eliminar sesión"
+        "deleteButton": "Eliminar sesión",
+        "invalidFormat": "Formato de archivo de sesión inválido"
     },
     "products": {
         "newProduct": "Nuevo producto",
@@ -98,7 +99,9 @@
         "noGroups": "No se han creado grupos alternativos",
         "confirmDelete": "¿Está seguro de que desea eliminar este grupo?",
         "deleteButton": "Eliminar grupo",
-        "overrideNotice": "Las cantidades especificadas aquí anularán las cantidades del producto durante la optimización."
+        "overrideNotice": "Las cantidades especificadas aquí anularán las cantidades del producto durante la optimización.",
+        "errorOptionEmpty": "Cada opción debe tener al menos un producto seleccionado.",
+        "errorMinOptions": "Por favor, añada al menos dos opciones con productos seleccionados."
     },
     "deliveryRules": {
         "title": "Reglas de entrega",
@@ -168,7 +171,10 @@
         "selectProductsInBundle": "Seleccione productos en este paquete:",
         "itemsPerPurchaseHelp": "Cuántos artículos se incluyen en una compra (p. ej., 2 para un paquete de 2)",
         "maxPerPurchaseHelp": "Número máximo de veces que puede comprar en esta página",
-        "leaveEmptyIfUnlimited": "Dejar vacío si es ilimitado"
+        "leaveEmptyIfUnlimited": "Dejar vacío si es ilimitado",
+        "fieldRequired": "{{fieldName}} es obligatorio",
+        "minOne": "Debe ser al menos 1",
+        "itemsPerPurchaseRequired": "Artículos por compra es obligatorio"
     },
     "optimization": {
         "title": "Optimización",

@@ -1,9 +1,6 @@
-// DOM Elements
 const app = document.getElementById("app")
 
-// Initialize
 async function init() {
-  // Load dark mode preference and apply it
   browser.storage.local.get(["darkMode"]).then((settings) => {
     if (settings.darkMode) {
       document.documentElement.classList.add("dark")
@@ -12,10 +9,8 @@ async function init() {
     }
   })
 
-  // Initialize i18n system
   await initI18n()
 
-  // Load data from storage
   SidebarAPI.getSessions().then((response) => {
     sessions = response.sessions
     currentSession = response.currentSession
@@ -40,7 +35,6 @@ async function init() {
   })
 }
 
-// Render functions
 function renderApp() {
   switch (currentView) {
     case "sessions":
@@ -128,7 +122,6 @@ function renderSessionsView() {
     </div>
   `
 
-  // Add event listeners
   document.getElementById("import-session-button").addEventListener("click", () => {
     importSession()
   })
@@ -259,7 +252,7 @@ function renderProductsView() {
         </button>
       </div>
 
-      <div class="flex space-x-4 mt-4">
+      <div class="flex space-x-4 my-4">
         <button id="optimize-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -270,7 +263,6 @@ function renderProductsView() {
     </div>
   `
 
-  // Add event listeners
   document.getElementById("back-button").addEventListener("click", () => {
     currentView = "sessions"
     renderApp()
@@ -286,13 +278,11 @@ function renderProductsView() {
   })
 
   document.getElementById("optimize-button").addEventListener("click", () => {
-    // Trigger optimization directly
     SidebarAPI.optimizeSession(currentSession).then((result) => {
         if (result.success) {
-          // Open results page
           SidebarAPI.showOptimizationResults(result.result)
         } else {
-          alert(`Optimization failed: ${result.error}`)
+          alert(`${t("optimization.failed")}: ${result.error}`)
         }
       })
   })
@@ -488,7 +478,6 @@ function renderPagesView() {
     </div>
   `
 
-  // Add event listeners
   document.getElementById("back-button").addEventListener("click", () => {
     currentView = "products"
     renderApp()
@@ -536,7 +525,6 @@ function renderPagesView() {
     })
   })
 
-  // Open page in new tab buttons
   document.querySelectorAll('.open-page-button').forEach((button) => {
     button.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -606,7 +594,6 @@ function renderSettingsView() {
       </div>
     `
 
-    // Add event listeners
     document.getElementById("back-button").addEventListener("click", () => {
       currentView = "sessions"
       renderApp()
@@ -625,14 +612,12 @@ function renderSettingsView() {
           currency,
         })
         .then(async () => {
-          // Apply dark mode
           if (darkMode) {
             document.documentElement.classList.add("dark")
           } else {
             document.documentElement.classList.remove("dark")
           }
 
-          // Change language if different
           if (language !== getCurrentLanguage()) {
             await setLanguage(language)
           }
@@ -643,20 +628,22 @@ function renderSettingsView() {
     })
   })
 }
-// Modal functions
+
 function showNewSessionModal() {
   const modal = document.createElement("div")
     modal.innerHTML = `
       <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
         <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
           <h3 class="text-lg font-medium card-text mb-4">${t("sessions.newSession")}</h3>
-          <input 
-            type="text" 
-            id="session-name" 
-            placeholder="${t("sessions.enterSessionName")}" 
-            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          >
-          
+          <div class="mb-6">
+            <input 
+              type="text" 
+              id="session-name" 
+              placeholder="${t("sessions.enterSessionName")}" 
+              class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            >
+          </div>
+
           <div class="flex justify-end space-x-4">
             <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
             <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
@@ -677,15 +664,14 @@ function showNewSessionModal() {
   const saveSession = () => {
     clearAllErrors(modal)
     
-    // Validate
-    if (!validateRequiredField('session-name', 'Session name')) {
+    if (!validateRequiredField('session-name', t("sessions.sessionName"))) {
       return
     }
     
     const name = document.getElementById("session-name").value.trim()
     
     if (sessions.some(s => s.name === name)) {
-      showFieldError('session-name', 'A session with this name already exists')
+      showFieldError('session-name', t("sessions.sessionExists"))
       return
     }
 
@@ -702,12 +688,9 @@ function showNewSessionModal() {
       })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveSession)
-
-  // Close modal when clicking overlay (and prevent propagation when clicking content)
   const overlayEl = document.getElementById('modalOverlay')
   const contentEl = document.getElementById('modalContent')
   if (overlayEl) {
@@ -717,7 +700,6 @@ function showNewSessionModal() {
     contentEl.addEventListener('click', (ev) => ev.stopPropagation())
   }
 
-  // Close button (top-right X)
   const closeBtn = document.getElementById('close-optimization')
   if (closeBtn) {
     closeBtn.addEventListener('click', closeModal)
@@ -740,12 +722,14 @@ function showEditSessionModal(session) {
       <div id="modalOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
         <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
           <h3 class="text-lg font-medium card-text mb-4">${t("sessions.editSession")}</h3>
-          <input 
-            type="text" 
-            id="session-name" 
-            value="${session.name}"
-            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          >
+          <div class="mb-6">
+            <input 
+              type="text" 
+              id="session-name" 
+              value="${session.name}"
+              class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            >
+          </div>
           
           <div class="flex justify-end space-x-4">
             <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
@@ -767,8 +751,7 @@ function showEditSessionModal(session) {
   const saveSession = () => {
     clearAllErrors(modal)
     
-    // Validate
-    if (!validateRequiredField('session-name', 'Session name')) {
+    if (!validateRequiredField('session-name', t("sessions.sessionName"))) {
       return
     }
     
@@ -786,7 +769,6 @@ function showEditSessionModal(session) {
       })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveSession)
@@ -917,7 +899,6 @@ function showNewProductModal() {
 
   document.body.appendChild(modal)
 
-  // Toggle compatibility section
   const toggleBtn = document.getElementById('toggle-compatibility')
   const compatSection = document.getElementById('limited-compatibility-section')
   
@@ -938,7 +919,6 @@ function showNewProductModal() {
         </svg>
         ${t("modals.showCompatibility")}
       `
-      // Clear selections when hiding? Maybe not, user might just want to collapse it.
     }
   })
 
@@ -950,25 +930,21 @@ function showNewProductModal() {
   const saveProduct = () => {
     clearAllErrors(modal)
     
-    // Validate
-    if (!validateRequiredField('product-name', 'Product name')) {
+    if (!validateRequiredField('product-name', t("products.productName"))) {
       return
     }
     
     const name = document.getElementById("product-name").value.trim()
     const quantity = parseInt(document.getElementById("product-quantity").value) || 1
 
-    // collect compatible products
     const compatibleProducts = []
     document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => compatibleProducts.push(cb.value))
 
-    // Create product first to get an id, then update reciprocal alternatives
     SidebarAPI.createProduct(currentSession, {
       name,
       quantity,
       limitedCompatibilityWith: compatibleProducts,
     }).then((response) => {
-        // sessions returned with new product
         sessions = response.sessions
         const session = sessions.find(s => s.id === currentSession)
         const newProduct = session.products[session.products.length - 1]
@@ -997,12 +973,10 @@ function showNewProductModal() {
       })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveProduct)
 
-  // Close modal when clicking overlay (and prevent propagation when clicking content)
   const overlayEl = document.getElementById('modalOverlay')
   const contentEl = document.getElementById('modalContent')
   if (overlayEl) {
@@ -1012,7 +986,6 @@ function showNewProductModal() {
     contentEl.addEventListener('click', (ev) => ev.stopPropagation())
   }
 
-  // Close button (top-right X)
   const closeBtn = document.getElementById('close-optimization')
   if (closeBtn) {
     closeBtn.addEventListener('click', closeModal)
@@ -1108,11 +1081,9 @@ function showEditProductModal(product) {
 
   document.body.appendChild(modal)
 
-  // Toggle compatibility section
   const toggleBtn = document.getElementById('toggle-compatibility')
   const compatSection = document.getElementById('limited-compatibility-section')
   
-  // Initialize state based on whether there are existing selections
   const hasSelections = product.limitedCompatibilityWith && product.limitedCompatibilityWith.length > 0
   if (hasSelections) {
     compatSection.style.display = 'block'
@@ -1154,16 +1125,13 @@ function showEditProductModal(product) {
   const saveProduct = () => {
     clearAllErrors(modal)
     
-    // Validate
-    if (!validateRequiredField('product-name', 'Product name')) {
+    if (!validateRequiredField('product-name', t("products.productName"))) {
       return
     }
     
     const name = document.getElementById("product-name").value.trim()
     const quantity = parseInt(document.getElementById("product-quantity").value) || 1
     
-
-    // collect compatible products
     const compatibleProducts = []
     document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => {
       if (cb.disabled) return
@@ -1172,7 +1140,6 @@ function showEditProductModal(product) {
 
     const session = sessions.find(s => s.id === currentSession)
 
-    // update product fields
     const prod = session.products.find(p => p.id === product.id)
     if (!prod) return
     prod.name = name
@@ -1194,7 +1161,6 @@ function showEditProductModal(product) {
       }
     })
 
-    // Save entire session to persist reciprocal changes
     SidebarAPI.updateSession(currentSession, session).then((response) => {
       sessions = response.sessions
       closeModal()
@@ -1202,12 +1168,9 @@ function showEditProductModal(product) {
     })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveProduct)
-
-  // Close modal when clicking overlay
   document.querySelector("#modalOverlay")?.addEventListener("click", closeModal)
   document.querySelector("#modalContent")?.addEventListener("click", (event) => {
     event.stopPropagation()
@@ -1337,24 +1300,23 @@ function showEditPageModal(page) {
     const maxPerPurchaseValue = document.getElementById("max-per-purchase").value
     const maxPerPurchase = maxPerPurchaseValue ? parseInt(maxPerPurchaseValue) : null
 
-    // Validation
     let isValid = true
     if (currency !== 'FREE') {
-      if (!validateRequiredField('page-price', 'Price')) isValid = false
-      if (!validateRequiredField('page-shipping', 'Shipping price')) isValid = false
+      if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
+      if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
     }
-    if (!validateRequiredField('page-seller', 'Seller')) isValid = false
+    if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
     if (!itemsPerPurchaseValue) {
-      showFieldError('items-per-purchase', 'Items per purchase is required')
+      showFieldError('items-per-purchase', t("modals.itemsPerPurchaseRequired"))
       isValid = false
     } else if (itemsPerPurchase < 1) {
-      showFieldError('items-per-purchase', 'Must be at least 1')
+      showFieldError('items-per-purchase', t("modals.minOne"))
       isValid = false
     }
 
     if (maxPerPurchase !== null && maxPerPurchase < 1) {
-      showFieldError('max-per-purchase', 'Must be at least 1')
+      showFieldError('max-per-purchase', t("modals.minOne"))
       isValid = false
     }
     
@@ -1384,7 +1346,6 @@ function showEditPageModal(page) {
       })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, savePage)
@@ -1536,7 +1497,6 @@ function showEditBundleModal(bundle) {
 
   document.body.appendChild(modal)
 
-  // Toggle quantity input visibility when checkbox changes
   document.querySelectorAll('.bundle-edit-checkbox').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
       const productId = e.target.value
@@ -1564,24 +1524,23 @@ function showEditBundleModal(bundle) {
     const maxPerPurchaseValue = document.getElementById("max-per-purchase").value
     const maxPerPurchase = maxPerPurchaseValue ? parseInt(maxPerPurchaseValue) : null
     
-    // Validation
     let isValid = true
     if (currency !== 'FREE') {
-      if (!validateRequiredField('page-price', 'Price')) isValid = false
-      if (!validateRequiredField('page-shipping', 'Shipping price')) isValid = false
+      if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
+      if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
     }
-    if (!validateRequiredField('page-seller', 'Seller')) isValid = false
+    if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
     if (!itemsPerPurchaseValue) {
-      showFieldError('items-per-purchase', 'Items per purchase is required')
+      showFieldError('items-per-purchase', t("modals.itemsPerPurchaseRequired"))
       isValid = false
     } else if (itemsPerPurchase < 1) {
-      showFieldError('items-per-purchase', 'Must be at least 1')
+      showFieldError('items-per-purchase', t("modals.minOne"))
       isValid = false
     }
 
     if (maxPerPurchase !== null && maxPerPurchase < 1) {
-      showFieldError('max-per-purchase', 'Must be at least 1')
+      showFieldError('max-per-purchase', t("modals.minOne"))
       isValid = false
     }
     
@@ -1619,7 +1578,6 @@ function showEditBundleModal(bundle) {
       })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveBundle)
@@ -2039,7 +1997,6 @@ function showScrapedDataModal() {
 
   document.body.appendChild(modal)
 
-  // Toggle bundle product selection
   document.getElementById("is-bundle").addEventListener("change", (e) => {
     const productSelection = document.getElementById("product-selection")
     if (e.target.checked) {
@@ -2080,24 +2037,23 @@ function showScrapedDataModal() {
     const maxPerPurchaseValue = document.getElementById("max-per-purchase").value
     const maxPerPurchase = maxPerPurchaseValue ? parseInt(maxPerPurchaseValue) : null
 
-    // Validation
     let isValid = true
     if (currency !== 'FREE') {
-      if (!validateRequiredField('page-price', 'Price')) isValid = false
-      if (!validateRequiredField('page-shipping', 'Shipping price')) isValid = false
+      if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
+      if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
     }
-    if (!validateRequiredField('page-seller', 'Seller')) isValid = false
+    if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
     if (!itemsPerPurchaseValue) {
-      showFieldError('items-per-purchase', 'Items per purchase is required')
+      showFieldError('items-per-purchase', t("modals.itemsPerPurchaseRequired"))
       isValid = false
     } else if (itemsPerPurchase < 1) {
-      showFieldError('items-per-purchase', 'Must be at least 1')
+      showFieldError('items-per-purchase', t("modals.minOne"))
       isValid = false
     }
 
     if (maxPerPurchase !== null && maxPerPurchase < 1) {
-      showFieldError('max-per-purchase', 'Must be at least 1')
+      showFieldError('max-per-purchase', t("modals.minOne"))
       isValid = false
     }
     
@@ -2132,8 +2088,6 @@ function showScrapedDataModal() {
         .then((response) => {
           sessions = response.sessions
           closeModal()
-
-          // Show product details again
           currentView = "pages"
           renderApp()
         })
@@ -2159,23 +2113,19 @@ function showScrapedDataModal() {
         .then((response) => {
           sessions = response.sessions
           closeModal()
-
-          // Show product details again
           currentView = "pages"
           renderApp()
         })
     }
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveScrapedData)
 
   document.getElementById("cancel-button").addEventListener("click", closeModal)
   document.getElementById("save-button").addEventListener("click", saveScrapedData)
-  
-  // Close modal when clicking overlay
+
   document.querySelector("#modalOverlay")?.addEventListener("click", closeModal)
   document.querySelector("#modalContent")?.addEventListener("click", (event) => {
     event.stopPropagation()
@@ -2190,7 +2140,6 @@ function renderDeliveryRulesView() {
     return
   }
 
-  // Helper to safely get nested properties
   const getRule = (seller) => (session.deliveryRules || []).find(r => r.seller === seller) || {}
 
   app.innerHTML = `
@@ -2280,13 +2229,10 @@ function renderDeliveryRulesView() {
     </div>
   `
 
-  // Add event listeners
   document.getElementById("back-button").addEventListener("click", () => {
     currentView = "products"
     renderApp()
   })
-
-  // Wire same-seller select and free delivery toggles
   document.querySelectorAll('.same-seller-select').forEach((sel) => {
     sel.addEventListener('change', (e) => {
       const seller = e.target.dataset.seller
@@ -2327,19 +2273,9 @@ function renderDeliveryRulesView() {
       if (!optionsContainer || !deliveryRow) return
 
       if (checked) {
-        // If delivery is free (always), hide delivery type selector and all option fields
-        // But show threshold field if it was free-threshold? No, "Free delivery" toggle usually means ALWAYS free (threshold 0) or just free. 
-        // Based on previous logic: "Free delivery" toggle seemed to imply simple free delivery.
-        // Actually, let's look at previous logic:
-        // if (isFree) { rule.type = 'free'; rule.threshold = ... }
-        // Wait, if "Free delivery" toggle is ON, it showed nothing in previous code?
-        // Previous code: if (checked) { hide deliveryRow; hide optionsContainer }
-        // So it means unconditionally free.
-        
         if (deliveryRow) deliveryRow.parentElement.style.display = 'none'
         if (optionsContainer) optionsContainer.style.display = 'none'
       } else {
-        // show delivery type selector
         if (deliveryRow) deliveryRow.parentElement.style.display = 'block'
         if (optionsContainer) {
           optionsContainer.style.display = 'block'
@@ -2351,7 +2287,6 @@ function renderDeliveryRulesView() {
     })
   })
 
-  // Add event listeners for delivery type changes
   document.querySelectorAll(".delivery-type").forEach((select) => {
     select.addEventListener("change", (e) => {
       const seller = e.target.dataset.seller
@@ -2377,45 +2312,16 @@ function renderDeliveryRulesView() {
   })
 
   document.getElementById("save-rules-button").addEventListener("click", () => {
-    // Collect delivery rules
     const deliveryRules = []
 
     getUniqueSellers(session).forEach((seller) => {
       const sameSelect = document.querySelector(`.same-seller-select[data-seller="${seller}"]`)
       const copiedFrom = sameSelect && sameSelect.value && sameSelect.value !== 'None' ? sameSelect.value : null
-
-      // If copied, we just record the source. The backend/optimizer will handle resolving the values.
-      // But for UI consistency if we re-open, we might want to know it's copied.
-      
-      // We need to resolve values to save them? Or just save "copiedFrom"?
-      // Previous implementation:
-      // if (sameSelect && ... !== 'None') rule.copiedFrom = sameSelect.value
-      // And it also tried to resolve effectiveSeller to get values.
-      // Let's stick to saving the configuration.
       
       const rule = { seller }
       if (copiedFrom) {
         rule.copiedFrom = copiedFrom
-        // We can optionally copy the values from the source seller right now for the rule object, 
-        // but strictly speaking 'copiedFrom' is enough if the consumer logic handles it.
-        // However, to be safe and consistent with previous logic, let's grab values from the UI 
-        // (which might be hidden/disabled) or just rely on the fact that we will look up the source.
-        // The previous logic did: const effectiveSeller = ...
-        // Let's do that.
       }
-
-      // We always save the values present in the inputs, even if hidden, 
-      // OR we look at the effective seller's inputs.
-      // Since we didn't implement the "copy values to disabled inputs" logic in this new view 
-      // (I removed the complex copy logic to simplify, assuming 'copiedFrom' is the source of truth),
-      // we should rely on 'copiedFrom'. 
-      // BUT, `optimizeSession` in background.js expects `deliveryRules` array. 
-      // Does `optimizeSession` handle `copiedFrom`? 
-      // Checking background.js... `optimizeSession` just passes `deliveryRules` to the backend.
-      // So the backend must handle it, OR we must resolve it here.
-      // The previous `showOptimizationModal` logic DID resolve it before creating the JSON.
-      // It did: `const effectiveSeller = ...` and read inputs from that seller.
-      // So I should do the same here to ensure the saved rules are complete.
 
       const effectiveSeller = copiedFrom || seller
       
@@ -2424,17 +2330,6 @@ function renderDeliveryRulesView() {
 
       if (isFree) {
         rule.type = 'free'
-        // For free type, we might still want a threshold if it was "free-threshold" but the toggle overrides it?
-        // In previous logic: if (isFree) { rule.type = 'free'; rule.threshold = ... }
-        // Wait, if isFree (the toggle) is true, it means ALWAYS free. 
-        // But the previous code read `.free-threshold-value`. 
-        // Let's check the previous code again.
-        // `const thresholdInput = document.querySelector('.free-threshold-value[data-seller="${effectiveSeller}"]')`
-        // `rule.threshold = ...`
-        // This implies even if "Free delivery" toggle is ON, it looks for a threshold?
-        // But the UI hid the options. So the threshold would be whatever was there or empty.
-        // If the toggle means "Always Free", threshold should probably be 0.
-        // Let's assume 0 if hidden.
         rule.threshold = 0 
       } else {
         const typeSelect = document.querySelector(`.delivery-type[data-seller="${effectiveSeller}"]`)
@@ -2461,7 +2356,6 @@ function renderDeliveryRulesView() {
       deliveryRules.push(rule)
     })
 
-    // Update session
     session.deliveryRules = deliveryRules
 
     browser.runtime
@@ -2472,14 +2366,12 @@ function renderDeliveryRulesView() {
       })
       .then((response) => {
         sessions = response.sessions
-        // Go back to product list
         currentView = "products"
         renderApp()
       })
   })
 }
 
-// Helper functions
 function getUniqueSellers(session) {
   const sellers = new Set()
 
@@ -2526,9 +2418,8 @@ function importSession() {
           const content = readerEvent.target.result;
           const sessionData = JSON.parse(content);
           
-          // Basic validation
           if (!sessionData.name || !Array.isArray(sessionData.products)) {
-            alert("Invalid session file format");
+            alert(t("sessions.invalidFormat"));
             return;
           }
 
@@ -2542,12 +2433,8 @@ function importSession() {
           }
           sessionData.name = name
 
-          // Create new session with checked name
           SidebarAPI.createSession(name).then(response => {
              const newSessionId = response.currentSession;
-             
-             // Update the new session with imported data
-             // We need to preserve the new ID but overwrite other fields
              const updatedSession = {
                ...sessionData,
                id: newSessionId,
@@ -2664,7 +2551,6 @@ function renderAlternativesView() {
   })
 }
 
-// Alternative Group Modals
 function showNewAlternativeGroupModal() {
   const session = sessions.find((s) => s.id === currentSession)
   const products = session.products
@@ -2764,7 +2650,6 @@ function showNewAlternativeGroupModal() {
 
   document.getElementById('add-option-button').addEventListener('click', () => addOption())
 
-  // Modal closing logic
   const closeModal = () => {
     clearAllErrors(modal)
     document.body.removeChild(modal)
@@ -2773,8 +2658,7 @@ function showNewAlternativeGroupModal() {
   const saveGroup = () => {
     clearAllErrors(modal)
 
-    // Validate Group Name
-    if (!validateRequiredField('group-name', 'Group Name')) {
+    if (!validateRequiredField('group-name', t("alternatives.groupName"))) {
       return
     }
 
@@ -2794,20 +2678,12 @@ function showNewAlternativeGroupModal() {
       if (products.length > 0) {
         options.push({ products })
       } else {
-        // Mark empty options visually? Or just ignore them but warn if total valid options < 2
-        // Let's mark them as invalid if we need to enforce "at least 1 product per option" for *existing* option blocks
-        // But maybe user added an option block and didn't select anything yet.
-        // The requirement is "dont au moins 1 par option et au moins 2 options"
-        // So every visible option block MUST have at least 1 product? Or we just filter out empty ones?
-        // "dont au moins 1 par option" suggests every defined option must be valid.
         optDiv.classList.add('error-border')
         hasEmptyOption = true
       }
     })
 
     if (hasEmptyOption) {
-      // Show a general error or alert?
-      // Let's add a message at the bottom
       const container = document.getElementById('options-container')
       let errorMsg = container.nextElementSibling
       if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
@@ -2815,10 +2691,9 @@ function showNewAlternativeGroupModal() {
         errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
-      errorMsg.textContent = 'Each option must have at least one product selected.'
+      errorMsg.textContent = t("alternatives.errorOptionEmpty")
       return
     } else {
-      // Clear error
       const container = document.getElementById('options-container')
       const errorMsg = container.nextElementSibling
       if (errorMsg && errorMsg.classList.contains('field-error-message')) {
@@ -2835,7 +2710,7 @@ function showNewAlternativeGroupModal() {
         errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
-      errorMsg.textContent = 'Please add at least two options with selected products.'
+      errorMsg.textContent = t("alternatives.errorMinOptions")
       return
     }
 
@@ -2846,7 +2721,6 @@ function showNewAlternativeGroupModal() {
     })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveGroup)
@@ -2936,7 +2810,6 @@ function showEditAlternativeGroupModal(group) {
       div.remove()
     })
 
-    // Toggle quantity input visibility when checkbox changes
     div.querySelectorAll('.product-checkbox').forEach(cb => {
       cb.addEventListener('change', (e) => {
         const prodId = e.target.value
@@ -2951,7 +2824,6 @@ function showEditAlternativeGroupModal(group) {
     document.getElementById('options-container').appendChild(div)
   }
 
-  // Load existing options
   if (group.options && group.options.length > 0) {
     group.options.forEach(opt => addOption(opt.products))
   } else {
@@ -2960,7 +2832,6 @@ function showEditAlternativeGroupModal(group) {
 
   document.getElementById('add-option-button').addEventListener('click', () => addOption())
 
-  // Modal closing logic
   const closeModal = () => {
     clearAllErrors(modal)
     document.body.removeChild(modal)
@@ -2969,8 +2840,7 @@ function showEditAlternativeGroupModal(group) {
   const saveGroup = () => {
     clearAllErrors(modal)
 
-    // Validate Group Name
-    if (!validateRequiredField('group-name', 'Group Name')) {
+    if (!validateRequiredField('group-name', t("alternatives.groupName"))) {
       return
     }
 
@@ -3003,7 +2873,7 @@ function showEditAlternativeGroupModal(group) {
         errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
-      errorMsg.textContent = 'Each option must have at least one product selected.'
+      errorMsg.textContent = t("alternatives.errorOptionEmpty")
       return
     } else {
       // Clear error
@@ -3023,7 +2893,7 @@ function showEditAlternativeGroupModal(group) {
         errorMsg.className = 'field-error-message text-sm error-text mt-1'
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
-      errorMsg.textContent = 'Please add at least two options with selected products.'
+      errorMsg.textContent = t("alternatives.errorMinOptions")
       return
     }
 
@@ -3034,7 +2904,6 @@ function showEditAlternativeGroupModal(group) {
     })
   }
 
-  // Setup UX improvements
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
   setupEnterKey(modal, saveGroup)

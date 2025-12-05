@@ -24,7 +24,8 @@
         "exportSession": "Export Session",
         "sessionExists": "A session with this name already exists",
         "confirmDelete": "Are you sure you want to delete this session? This action cannot be undone.",
-        "deleteButton": "Delete Session"
+        "deleteButton": "Delete Session",
+        "invalidFormat": "Invalid session file format"
     },
     "products": {
         "newProduct": "New Product",
@@ -98,7 +99,9 @@
         "noGroups": "No alternative groups created yet",
         "confirmDelete": "Are you sure you want to delete this group?",
         "deleteButton": "Delete Group",
-        "overrideNotice": "Quantities specified here will override the product quantities during optimization."
+        "overrideNotice": "Quantities specified here will override the product quantities during optimization.",
+        "errorOptionEmpty": "Each option must have at least one product selected.",
+        "errorMinOptions": "Please add at least two options with selected products."
     },
     "deliveryRules": {
         "title": "Delivery Rules",
@@ -168,7 +171,10 @@
         "selectProductsInBundle": "Select products in this bundle:",
         "itemsPerPurchaseHelp": "How many items are included in one purchase (e.g., 2 for a pack of 2)",
         "maxPerPurchaseHelp": "Maximum number of times you can purchase from this page",
-        "leaveEmptyIfUnlimited": "Leave empty if unlimited"
+        "leaveEmptyIfUnlimited": "Leave empty if unlimited",
+        "fieldRequired": "{{fieldName}} is required",
+        "minOne": "Must be at least 1",
+        "itemsPerPurchaseRequired": "Items per purchase is required"
     },
     "optimization": {
         "title": "Optimization",
