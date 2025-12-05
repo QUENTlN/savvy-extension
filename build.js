@@ -73,6 +73,19 @@ async function copyManifest() {
   }
 }
 
+// Step 1c: Copy locales directory
+async function copyLocalesFolder() {
+  try {
+    const localesSource = path.join(srcDir, 'locales');
+    const localesDest = path.join(buildDir, 'locales');
+    
+    await fs.copy(localesSource, localesDest);
+    console.log('Locales folder copied to build.');
+  } catch (err) {
+    console.error('Error copying locales folder:', err);
+  }
+}
+
 // Step 2: Copy all HTML files from 'src' to 'build' recursively
 async function copyHtmlFiles() {
     try {
@@ -246,6 +259,7 @@ async function build() {
     console.log(`Build directory cleaned. Building for ${targetBrowser}...`);
     await copyPublicFolder();
     await copyManifest();
+    await copyLocalesFolder();
     await copyHtmlFiles();
     await processCssFiles();
     await minifyJsFiles();

@@ -2,7 +2,7 @@
 const app = document.getElementById("app")
 
 // Initialize
-function init() {
+async function init() {
   // Load dark mode preference and apply it
   browser.storage.local.get(["darkMode"]).then((settings) => {
     if (settings.darkMode) {
@@ -11,6 +11,9 @@ function init() {
       document.documentElement.classList.remove("dark")
     }
   })
+
+  // Initialize i18n system
+  await initI18n()
 
   // Load data from storage
   SidebarAPI.getSessions().then((response) => {
@@ -68,14 +71,14 @@ function renderSessionsView() {
     <div class="mx-4">
       <!-- Header -->
       <div class="flex justify-between items-center mb-3">
-        <h1 class="text-2xl font-semibold card-text">Sessions list</h1>
+        <h1 class="text-2xl font-semibold card-text">${t("sessions.title")}</h1>
         <div class="flex space-x-2">
-          <button class="muted-text p-2 cursor-pointer" id="import-session-button" title="Import Session">
+          <button class="muted-text p-2 cursor-pointer" id="import-session-button" title="${t("sessions.importSession")}">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
           </button>
-          <button class="muted-text p-2 cursor-pointer" id="settings-button" title="Settings">
+          <button class="muted-text p-2 cursor-pointer" id="settings-button" title="${t("common.settings")}">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -91,20 +94,20 @@ function renderSessionsView() {
             <div class="flex justify-between items-center">
               <div class="flex-1 min-w-0 mr-4 cursor-pointer">
                 <h2 class="text-xl font-medium card-text truncate">${session.name}</h2>
-                <p class="muted-text text-md truncate">${session.products.length} Products</p>
+                <p class="muted-text text-md truncate">${session.products.length} ${t("sessions.products")}</p>
               </div>
               <div class="flex space-x-2 flex-shrink-0">
-                <button class="muted-text p-1 cursor-pointer export-button" data-id="${session.id}" title="Export Session">
+                <button class="muted-text p-1 cursor-pointer export-button" data-id="${session.id}" title="${t("sessions.exportSession")}">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </button>
-                <button class="muted-text p-1 cursor-pointer edit-button" data-id="${session.id}" title="Edit Session">
+                <button class="muted-text p-1 cursor-pointer edit-button" data-id="${session.id}" title="${t("sessions.editSession")}">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </button>
-                <button class="muted-text p-1 cursor-pointer delete-button" data-id="${session.id}" title="Delete Session">
+                <button class="muted-text p-1 cursor-pointer delete-button" data-id="${session.id}" title="${t("sessions.deleteSession")}">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -120,7 +123,7 @@ function renderSessionsView() {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-        <span class="text-lg font-medium">Create New Session</span>
+        <span class="text-lg font-medium">${t("sessions.createNew")}</span>
       </button>
     </div>
   `
@@ -208,9 +211,9 @@ function renderProductsView() {
               <div class="flex-1 min-w-0 mr-4 cursor-pointer">
                 <h2 class="text-xl font-medium card-text truncate">${product.name}${product.quantity && product.quantity > 1 ? ` (×${product.quantity})` : ''}</h2>
                 <p class="muted-text text-md truncate">
-                  ${product.pages.length} Pages
+                  ${product.pages.length} ${t("products.pages")}
                   ${session.bundles && session.bundles.some(b => b.products && b.products.some(bp => bp.productId === product.id)) 
-                    ? ` • ${session.bundles.filter(b => b.products && b.products.some(bp => bp.productId === product.id)).length} Bundles` 
+                    ? ` • ${session.bundles.filter(b => b.products && b.products.some(bp => bp.productId === product.id)).length} ${t("products.bundles")}` 
                     : ''}
                 </p>
               </div>
@@ -237,7 +240,7 @@ function renderProductsView() {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span class="text-lg font-medium">New Product</span>
+          <span class="text-lg font-medium">${t("products.newProduct")}</span>
         </button>
       </div>
       
@@ -246,13 +249,13 @@ function renderProductsView() {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-          <span class="text-lg font-medium">Delivery Rules</span>
+          <span class="text-lg font-medium">${t("products.deliveryRules")}</span>
         </button>
         <button id="manage-alternatives-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
-          <span class="text-lg font-medium">Manage Alternatives</span>
+          <span class="text-lg font-medium">${t("products.manageAlternatives")}</span>
         </button>
       </div>
 
@@ -261,7 +264,7 @@ function renderProductsView() {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          <span class="text-lg font-medium">Optimize</span>
+          <span class="text-lg font-medium">${t("products.optimize")}</span>
         </button>
       </div>
     </div>
@@ -365,40 +368,40 @@ function renderPagesView() {
                 <div class="flex-1 min-w-0 mr-4">
                   <p class="text-lg font-medium text-[hsl(var(--foreground))] truncate">${page.seller || page.url}</p>
                   <div class="mt-1 space-y-1">
-                    <p class="muted-text">Price: ${(() => {
+                    <p class="muted-text">${t("pages.price")}: ${(() => {
                       const p = page.price
-                      if (p === undefined || p === null || p === "") return "N/A"
+                      if (p === undefined || p === null || p === "") return t("pages.na")
                       try {
-                        return Number(p) === 0 ? "Free" : `${p} ${page.currency || ""}`
+                        return Number(p) === 0 ? t("pages.free") : `${p} ${page.currency || ""}`
                       } catch (e) {
                         return `${p} ${page.currency || ""}`
                       }
                     })()}</p>
-                    <p class="muted-text">Shipping: ${(() => {
+                    <p class="muted-text">${t("pages.shipping")}: ${(() => {
                       const s = page.shippingPrice
-                      if (s === undefined || s === null || s === "") return "N/A"
+                      if (s === undefined || s === null || s === "") return t("pages.na")
                       try {
-                        return Number(s) === 0 ? "Free" : `${s} ${page.currency || ""}`
+                        return Number(s) === 0 ? t("pages.free") : `${s} ${page.currency || ""}`
                       } catch (e) {
                         return `${s} ${page.currency || ""}`
                       }
                     })()}</p>
-                    ${page.itemsPerPurchase && page.itemsPerPurchase > 1 ? `<p class="muted-text">Qty per purchase: ${page.itemsPerPurchase}</p>` : ''}
-                    ${page.maxPerPurchase ? `<p class="muted-text">Max purchases: ${page.maxPerPurchase}</p>` : ''}
+                    ${page.itemsPerPurchase && page.itemsPerPurchase > 1 ? `<p class="muted-text">${t("pages.qtyPerPurchase")}: ${page.itemsPerPurchase}</p>` : ''}
+                    ${page.maxPerPurchase ? `<p class="muted-text">${t("pages.maxPurchases")}: ${page.maxPerPurchase}</p>` : ''}
                   </div>
                 </div>
                 <div class="flex items-start space-x-2">
-                  <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${page.url}" title="Open in new tab">
+                  <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${page.url}" title="${t("pages.openInNewTab")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
                       <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
                     </svg>
                   </button>
-                  <button class="muted-text p-1 cursor-pointer edit-page-button" data-id="${page.id}" title="Edit page">
+                  <button class="muted-text p-1 cursor-pointer edit-page-button" data-id="${page.id}" title="${t("pages.editPageTitle")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                   </button>
-                  <button class="muted-text p-1 cursor-pointer delete-page-button" data-id="${page.id}" title="Delete page">
+                  <button class="muted-text p-1 cursor-pointer delete-page-button" data-id="${page.id}" title="${t("pages.deletePageTitle")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -412,56 +415,56 @@ function renderPagesView() {
               <div class="flex justify-between items-start">
                 <div class="flex-1 min-w-0 mr-4">
                   <div class="flex items-center space-x-2">
-                    <span class="bg-blue-100 muted-text text-xs font-semibold px-2.5 py-0.5 rounded">BUNDLE</span>
+                    <span class="bg-blue-100 muted-text text-xs font-semibold px-2.5 py-0.5 rounded">${t("products.bundle").toUpperCase()}</span>
                     <p class="text-lg font-medium text-[hsl(var(--foreground))] truncate">${bundle.seller || bundle.url}</p>
                   </div>
                   <div class="mt-1 space-y-1">
-                    <p class="muted-text">Price: ${(() => {
+                    <p class="muted-text">${t("pages.price")}: ${(() => {
                       const p = bundle.price
-                      if (p === undefined || p === null || p === "") return "N/A"
+                      if (p === undefined || p === null || p === "") return t("pages.na")
                       try {
-                        return Number(p) === 0 ? "Free" : `${p} ${bundle.currency || ""}`
+                        return Number(p) === 0 ? t("pages.free") : `${p} ${bundle.currency || ""}`
                       } catch (e) {
                         return `${p} ${bundle.currency || ""}`
                       }
                     })()}</p>
-                    <p class="muted-text">Shipping: ${(() => {
+                    <p class="muted-text">${t("pages.shipping")}: ${(() => {
                       const s = bundle.shippingPrice
-                      if (s === undefined || s === null || s === "") return "N/A"
+                      if (s === undefined || s === null || s === "") return t("pages.na")
                       try {
-                        return Number(s) === 0 ? "Free" : `${s} ${bundle.currency || ""}`
+                        return Number(s) === 0 ? t("pages.free") : `${s} ${bundle.currency || ""}`
                       } catch (e) {
                         return `${s} ${bundle.currency || ""}`
                       }
                     })()}</p>
-                    ${bundle.itemsPerPurchase && bundle.itemsPerPurchase > 1 ? `<p class="muted-text">Qty per purchase: ${bundle.itemsPerPurchase}</p>` : ''}
-                    ${bundle.maxPerPurchase ? `<p class="muted-text">Max purchases: ${bundle.maxPerPurchase}</p>` : ''}
+                    ${bundle.itemsPerPurchase && bundle.itemsPerPurchase > 1 ? `<p class="muted-text">${t("pages.qtyPerPurchase")}: ${bundle.itemsPerPurchase}</p>` : ''}
+                    ${bundle.maxPerPurchase ? `<p class="muted-text">${t("pages.maxPurchases")}: ${bundle.maxPerPurchase}</p>` : ''}
                     <div class="mt-2">
-                      <p class="text-sm font-medium secondary-text">Products in bundle:</p>
+                      <p class="text-sm font-medium secondary-text">${t("pages.productsInBundle")}:</p>
                       <ul class="mt-1 space-y-1">
                         ${bundle.products && bundle.products.length > 0 
                           ? bundle.products.map(bp => {
                               const prod = session.products.find(p => p.id === bp.productId)
                               return prod ? `<li class="text-sm muted-text">• ${prod.name} ${bp.quantity > 1 ? `(x${bp.quantity})` : ''}</li>` : ''
                             }).join('')
-                          : '<li class="text-sm muted-text">No products</li>'
+                          : `<li class="text-sm muted-text">${t("pages.noProducts")}</li>`
                         }
                       </ul>
                     </div>
                   </div>
                 </div>
                 <div class="flex items-start space-x-2">
-                  <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${bundle.url}" title="Open in new tab">
+                  <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${bundle.url}" title="${t("pages.openInNewTab")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 48 48" stroke="currentColor">
                       <path d="M 41.470703 4.9863281 A 1.50015 1.50015 0 0 0 41.308594 5 L 27.5 5 A 1.50015 1.50015 0 1 0 27.5 8 L 37.878906 8 L 22.439453 23.439453 A 1.50015 1.50015 0 1 0 24.560547 25.560547 L 40 10.121094 L 40 20.5 A 1.50015 1.50015 0 1 0 43 20.5 L 43 6.6894531 A 1.50015 1.50015 0 0 0 41.470703 4.9863281 z M 12.5 8 C 8.3754991 8 5 11.375499 5 15.5 L 5 35.5 C 5 39.624501 8.3754991 43 12.5 43 L 32.5 43 C 36.624501 43 40 39.624501 40 35.5 L 40 25.5 A 1.50015 1.50015 0 1 0 37 25.5 L 37 35.5 C 37 38.003499 35.003499 40 32.5 40 L 12.5 40 C 9.9965009 40 8 38.003499 8 35.5 L 8 15.5 C 8 12.996501 9.9965009 11 12.5 11 L 22.5 11 A 1.50015 1.50015 0 1 0 22.5 8 L 12.5 8 z"></path>
                     </svg>
                   </button>
-                  <button class="muted-text p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="Edit bundle">
+                  <button class="muted-text p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="${t("bundles.editBundle")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                   </button>
-                  <button class="muted-text p-1 cursor-pointer delete-bundle-button" data-id="${bundle.id}" title="Delete bundle">
+                  <button class="muted-text p-1 cursor-pointer delete-bundle-button" data-id="${bundle.id}" title="${t("bundles.deleteBundle")}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -471,7 +474,7 @@ function renderPagesView() {
             </div>
             `).join('')}
             `
-          : '<div class="card-bg rounded-xl shadow-md p-6 muted-text text-center">No pages added yet</div>'
+          : `<div class="card-bg rounded-xl shadow-md p-6 muted-text text-center">${t("pages.noPages")}</div>`
         }
       </div>
 
@@ -480,7 +483,7 @@ function renderPagesView() {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-        <span class="text-lg font-medium">Add Page</span>
+        <span class="text-lg font-medium">${t("pages.addPage")}</span>
       </button>
     </div>
   `
@@ -563,30 +566,28 @@ function renderSettingsView() {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </button>
-        <h1 class="text-2xl pl-4 font-semibold card-text">Settings</h1>
+        <h1 class="text-2xl pl-4 font-semibold card-text">${t("settings.title")}</h1>
         </div>
       </div>
 
       <!-- Settings Form -->
       <div class="space-y-6">
         <div class="card-bg rounded-xl shadow-md p-4">
-        <label class="block text-sm font-medium secondary-text mb-1">Language</label>
+        <label class="block text-sm font-medium secondary-text mb-1">${t("settings.language")}</label>
         <select id="language" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
-          <option value="en" ${settings.language === "en" ? "selected" : ""}>English</option>
-          <option value="fr" ${settings.language === "fr" ? "selected" : ""}>Français</option>
-          <option value="es" ${settings.language === "es" ? "selected" : ""}>Español</option>
+          ${LANGUAGES.map(lang => `<option value="${lang.code}" ${(settings.language || getCurrentLanguage()) === lang.code ? "selected" : ""}>${lang.nativeName}</option>`).join('')}
         </select>
         </div>
 
         <div class="card-bg rounded-xl shadow-md p-4">
-        <label class="block text-sm font-medium secondary-text mb-1">Default currency</label>
+        <label class="block text-sm font-medium secondary-text mb-1">${t("settings.defaultCurrency")}</label>
         <select id="currency" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
           ${CURRENCIES.map(c => `<option value="${c.code}" ${(settings.currency || DEFAULT_CURRENCY) === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
         </select>
         </div>
 
         <div class="card-bg rounded-xl shadow-md p-4">
-        <label class="block text-sm font-medium secondary-text mb-1">Dark mode</label>
+        <label class="block text-sm font-medium secondary-text mb-1">${t("settings.darkMode")}</label>
         <div class="flex items-center">
           <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" id="dark-mode" class="sr-only peer" ${settings.darkMode ? "checked" : ""}>
@@ -600,7 +601,7 @@ function renderSettingsView() {
 
       <!-- Save Button -->
       <button id="save-settings-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
-        <span class="text-lg font-medium">Save Settings</span>
+        <span class="text-lg font-medium">${t("settings.saveSettings")}</span>
       </button>
       </div>
     `
@@ -611,7 +612,7 @@ function renderSettingsView() {
       renderApp()
     })
 
-    document.getElementById("save-settings-button").addEventListener("click", () => {
+    document.getElementById("save-settings-button").addEventListener("click", async () => {
       const darkMode = document.getElementById("dark-mode").checked
       const language = document.getElementById("language").value
       const currency = document.getElementById("currency").value
@@ -623,12 +624,17 @@ function renderSettingsView() {
           language,
           currency,
         })
-        .then(() => {
-          // Apply settings
+        .then(async () => {
+          // Apply dark mode
           if (darkMode) {
             document.documentElement.classList.add("dark")
           } else {
             document.documentElement.classList.remove("dark")
+          }
+
+          // Change language if different
+          if (language !== getCurrentLanguage()) {
+            await setLanguage(language)
           }
 
           currentView = "sessions"
@@ -643,18 +649,18 @@ function showNewSessionModal() {
     modal.innerHTML = `
       <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
         <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-          <h3 class="text-lg font-medium card-text mb-4">New Session</h3>
+          <h3 class="text-lg font-medium card-text mb-4">${t("sessions.newSession")}</h3>
           <input 
             type="text" 
             id="session-name" 
-            placeholder="Enter session name" 
+            placeholder="${t("sessions.enterSessionName")}" 
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
           
           <div class="flex justify-end space-x-4">
-            <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+            <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
             <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-              Save
+              ${t("common.save")}
             </button>
           </div>
         </div>
@@ -733,7 +739,7 @@ function showEditSessionModal(session) {
   modal.innerHTML = `
       <div id="modalOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
         <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-          <h3 class="text-lg font-medium card-text mb-4">Edit Session</h3>
+          <h3 class="text-lg font-medium card-text mb-4">${t("sessions.editSession")}</h3>
           <input 
             type="text" 
             id="session-name" 
@@ -742,9 +748,9 @@ function showEditSessionModal(session) {
           >
           
           <div class="flex justify-end space-x-4">
-            <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+            <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
             <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-              Save
+              ${t("common.save")}
             </button>
           </div>
         </div>
@@ -802,12 +808,12 @@ function showDeleteSessionModal(sessionId) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Are you sure you want to delete?</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("sessions.confirmDelete")}</h3>
         
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="delete-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Delete
+            ${t("common.delete")}
           </button>
         </div>
       </div>
@@ -849,20 +855,20 @@ function showNewProductModal() {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">New Product</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("products.newProduct")}</h3>
         
         <div class="mb-6">
-          <label for="product-name" class="block text-sm font-medium secondary-text mb-1">Product Name</label>
+          <label for="product-name" class="block text-sm font-medium secondary-text mb-1">${t("modals.productName")}</label>
           <input 
             type="text" 
             id="product-name" 
-            placeholder="Enter product name"
+            placeholder="${t("modals.enterProductName")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="product-quantity" class="block text-sm font-medium secondary-text mb-1">Quantity Needed</label>
+          <label for="product-quantity" class="block text-sm font-medium secondary-text mb-1">${t("modals.quantityNeeded")}</label>
           <input 
             type="number" 
             id="product-quantity" 
@@ -871,7 +877,7 @@ function showNewProductModal() {
             step="1"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">How many times this product is needed</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.howManyNeeded")}</p>
         </div>
 
         <div class="mb-6">
@@ -879,15 +885,15 @@ function showNewProductModal() {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-            Show Limited Compatibility
+            ${t("modals.showCompatibility")}
           </button>
         </div>
 
 
 
         <div class="mb-6" id="limited-compatibility-section" style="display:none;">
-          <label class="block text-sm font-medium secondary-text mb-1">Limited Compatibility</label>
-          <p class="mt-1 text-sm muted-text">If this product is not compatible with all the others, select which ones.</p>
+          <label class="block text-sm font-medium secondary-text mb-1">${t("modals.limitedCompatibility")}</label>
+          <p class="mt-1 text-sm muted-text">${t("modals.compatibilityHelp")}</p>
 
           <div id="compatible-products-list" class="mt-3 space-y-2" style="display:block; max-height:220px; overflow:auto;">
             ${sessions.find(s => s.id === currentSession).products.map(p => `
@@ -900,9 +906,9 @@ function showNewProductModal() {
         </div>
         
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Save
+            ${t("common.save")}
           </button>
         </div>
       </div>
@@ -922,7 +928,7 @@ function showNewProductModal() {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
         </svg>
-        Hide Limited Compatibility
+        ${t("modals.hideCompatibility")}
       `
     } else {
       compatSection.style.display = 'none'
@@ -930,7 +936,7 @@ function showNewProductModal() {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
-        Show Limited Compatibility
+        ${t("modals.showCompatibility")}
       `
       // Clear selections when hiding? Maybe not, user might just want to collapse it.
     }
@@ -1029,10 +1035,10 @@ function showEditProductModal(product) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Edit Product</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("products.editProduct")}</h3>
         
         <div class="mb-6">
-          <label for="product-name" class="block text-sm font-medium secondary-text mb-1">Product Name</label>
+          <label for="product-name" class="block text-sm font-medium secondary-text mb-1">${t("modals.productName")}</label>
           <input 
             type="text" 
             id="product-name" 
@@ -1042,7 +1048,7 @@ function showEditProductModal(product) {
         </div>
 
         <div class="mb-6">
-          <label for="product-quantity" class="block text-sm font-medium secondary-text mb-1">Quantity Needed</label>
+          <label for="product-quantity" class="block text-sm font-medium secondary-text mb-1">${t("modals.quantityNeeded")}</label>
           <input 
             type="number" 
             id="product-quantity" 
@@ -1051,7 +1057,7 @@ function showEditProductModal(product) {
             step="1"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">How many times this product is needed</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.howManyNeeded")}</p>
         </div>
 
         ${sessions.find(s => s.id === currentSession).alternativeGroups && sessions.find(s => s.id === currentSession).alternativeGroups.some(g => g.options.some(opt => opt.productIds.includes(product.id))) ? `
@@ -1060,7 +1066,7 @@ function showEditProductModal(product) {
               <svg class="h-5 w-5 text-amber-400 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
-              <p class="text-sm text-amber-800">This product is part of alternative groups. The group quantity may override this value during optimization.</p>
+              <p class="text-sm text-amber-800">${t("modals.alternativeGroupWarning")}</p>
             </div>
           </div>
         ` : ''}
@@ -1070,15 +1076,15 @@ function showEditProductModal(product) {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-            Show Limited Compatibility
+            ${t("modals.showCompatibility")}
           </button>
         </div>
 
 
 
         <div class="mb-6" id="limited-compatibility-section" style="display:none;">
-          <label class="block text-sm font-medium secondary-text mb-1">Limited Compatibility</label>
-          <p class="mt-1 text-sm muted-text">If this product is not compatible with all the others, you will need to select which ones.</p>
+          <label class="block text-sm font-medium secondary-text mb-1">${t("modals.limitedCompatibility")}</label>
+          <p class="mt-1 text-sm muted-text">${t("modals.compatibilityHelpEdit")}</p>
 
           <div id="compatible-products-list" class="mt-3 space-y-2" style="max-height:220px; overflow:auto;">
             ${sessions.find(s => s.id === currentSession).products.filter(p => p.id !== product.id).map(p => `
@@ -1091,9 +1097,9 @@ function showEditProductModal(product) {
         </div>
         
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Save
+            ${t("common.save")}
           </button>
         </div>
       </div>
@@ -1114,7 +1120,7 @@ function showEditProductModal(product) {
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
       </svg>
-      Hide Limited Compatibility
+      ${t("modals.hideCompatibility")}
     `
   }
 
@@ -1125,7 +1131,7 @@ function showEditProductModal(product) {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
         </svg>
-        Hide Limited Compatibility
+        ${t("modals.hideCompatibility")}
       `
     } else {
       compatSection.style.display = 'none'
@@ -1133,7 +1139,7 @@ function showEditProductModal(product) {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
-        Show Limited Compatibility
+        ${t("modals.showCompatibility")}
       `
     }
   })
@@ -1218,10 +1224,10 @@ function showEditPageModal(page) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Edit Page</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("pages.editPage")}</h3>
         
         <div class="mb-6">
-          <label for="page-url" class="block text-sm font-medium secondary-text mb-1">URL</label>
+          <label for="page-url" class="block text-sm font-medium secondary-text mb-1">${t("modals.url")}</label>
           <input 
             type="text" 
             id="page-url" 
@@ -1232,51 +1238,51 @@ function showEditPageModal(page) {
         </div>
 
         <div class="mb-6">
-          <label for="page-price" class="block text-sm font-medium secondary-text mb-1">Price</label>
+          <label for="page-price" class="block text-sm font-medium secondary-text mb-1">${t("modals.price")}</label>
           <input 
             type="text" 
             id="page-price" 
             value="${page.price || ""}"
-            placeholder="Enter price"
+            placeholder="${t("modals.enterPrice")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">Currency</label>
+          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
           <select 
             id="page-currency" 
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-            <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>Free</option>
+            <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
             ${CURRENCIES.map(c => `<option value="${c.code}" ${page.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
           </select>
         </div>
 
         <div class="mb-6">
-          <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">Shipping Price</label>
+          <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">${t("modals.shippingPrice")}</label>
           <input 
             type="text" 
             id="page-shipping" 
             value="${page.shippingPrice || ""}"
-            placeholder="Enter shipping price"
+            placeholder="${t("modals.enterShipping")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="page-seller" class="block text-sm font-medium secondary-text mb-1">Seller</label>
+          <label for="page-seller" class="block text-sm font-medium secondary-text mb-1">${t("modals.seller")}</label>
           <input 
             type="text" 
             id="page-seller" 
             value="${page.seller || ""}"
-            placeholder="Enter seller name"
+            placeholder="${t("modals.enterSeller")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="items-per-purchase" class="block text-sm font-medium secondary-text mb-1">Items per Purchase</label>
+          <label for="items-per-purchase" class="block text-sm font-medium secondary-text mb-1">${t("modals.itemsPerPurchase")}</label>
           <input 
             type="number" 
             id="items-per-purchase" 
@@ -1285,27 +1291,27 @@ function showEditPageModal(page) {
             step="1"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">How many items are included in one purchase (e.g., 2 for a pack of 2)</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.itemsPerPurchaseHelp")}</p>
         </div>
 
         <div class="mb-6">
-          <label for="max-per-purchase" class="block text-sm font-medium secondary-text mb-1">Max per Purchase (Optional)</label>
+          <label for="max-per-purchase" class="block text-sm font-medium secondary-text mb-1">${t("modals.maxPerPurchase")} (${t("modals.optional")})</label>
           <input 
             type="number" 
             id="max-per-purchase" 
             value="${page.maxPerPurchase || ""}"
             min="1"
             step="1"
-            placeholder="Leave empty if unlimited"
+            placeholder="${t("modals.leaveEmptyIfUnlimited")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">Maximum number of times you can purchase from this page</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.maxPerPurchaseHelp")}</p>
         </div>
 
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Save
+            ${t("common.save")}
           </button>
         </div>
       </div>
@@ -1729,13 +1735,13 @@ function showDeletePageModal(pageId) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Delete Page</h3>
-        <p class="muted-text mb-6">Are you sure you want to delete this page?</p>
+        <h3 class="text-lg font-medium card-text mb-4">${t("pages.deletePage")}</h3>
+        <p class="muted-text mb-6">${t("pages.confirmDelete")}</p>
         
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="delete-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Delete
+            ${t("pages.deleteButton")}
           </button>
         </div>
       </div>
@@ -1785,26 +1791,26 @@ function showScrapedDataModal() {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Add Page for ${product.name}</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("modals.addPageFor")} ${product.name}</h3>
         
         ${!hasKnownParser ? 
-          `<p class="text-sm muted-text mb-4">This website doesn't have a known parser. Please enter the details manually.</p>` 
+          `<p class="text-sm muted-text mb-4">${t("modals.noKnownParser")}</p>` 
           : ''
         }
 
         <div class="mb-6">
-          <label class="block text-sm font-medium secondary-text mb-1">Is this a bundle?</label>
+          <label class="block text-sm font-medium secondary-text mb-1">${t("modals.isBundle")}</label>
           <div class="flex items-center">
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="is-bundle" class="sr-only peer">
               <div class="w-11 h-6 secondary-bg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-100 after:border after:border-gray-300 dark:after:border-gray-600 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[hsl(var(--primary))] dark:peer-checked:after:bg-[hsl(var(--primary-foreground))]"></div>
             </label>
           </div>
-          <p class="mt-1 text-sm muted-text">A bundle contains multiple products with a single price and shipping cost.</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.bundleExplanation")}</p>
         </div>
 
         <div id="product-selection" class="mb-6" style="display: none;">
-          <label class="block text-sm font-medium secondary-text mb-2">Select products in this bundle:</label>
+          <label class="block text-sm font-medium secondary-text mb-2">${t("modals.selectProductsInBundle")}</label>
           <div class="space-y-2">
             ${session.products
               .map(
@@ -1833,7 +1839,7 @@ function showScrapedDataModal() {
         </div>
 
         <div class="mb-6">
-          <label for="page-url" class="block text-sm font-medium secondary-text mb-1">URL</label>
+          <label for="page-url" class="block text-sm font-medium secondary-text mb-1">${t("modals.url")}</label>
           <input 
             type="text" 
             id="page-url" 
@@ -1844,23 +1850,23 @@ function showScrapedDataModal() {
         </div>
 
         <div class="mb-6">
-          <label for="page-price" class="block text-sm font-medium secondary-text mb-1">Price</label>
+          <label for="page-price" class="block text-sm font-medium secondary-text mb-1">${t("modals.price")}</label>
           <input 
             type="text" 
             id="page-price" 
             value="${scrapedData.hasKnownParser ? (scrapedData.price || "") : ""}"
-            placeholder="Enter price"
+            placeholder="${t("modals.enterPrice")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">Currency</label>
+          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
           <select 
             id="page-currency" 
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-            <option value="FREE" ${scrapedData.priceCurrency === "FREE" ? "selected" : ""}>Free</option>
+            <option value="FREE" ${scrapedData.priceCurrency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
             <option value="ALL" ${scrapedData.priceCurrency === "ALL" ? "selected" : ""}>Albania Lek - Lek</option>
             <option value="AFN" ${scrapedData.priceCurrency === "AFN" ? "selected" : ""}>Afghanistan Afghani - ؋</option>
             <option value="ARS" ${scrapedData.priceCurrency === "ARS" ? "selected" : ""}>Argentina Peso - $</option>
@@ -1973,29 +1979,29 @@ function showScrapedDataModal() {
         </div>
 
         <div class="mb-6">
-          <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">Shipping Price</label>
+          <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">${t("modals.shippingPrice")}</label>
           <input 
             type="text" 
             id="page-shipping" 
             value="${scrapedData.hasKnownParser ? (scrapedData.shippingPrice || "") : ""}"
-            placeholder="Enter shipping price"
+            placeholder="${t("modals.enterShipping")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="page-seller" class="block text-sm font-medium secondary-text mb-1">Seller</label>
+          <label for="page-seller" class="block text-sm font-medium secondary-text mb-1">${t("modals.seller")}</label>
           <input 
             type="text" 
             id="page-seller" 
             value="${scrapedData.hasKnownParser ? (scrapedData.seller || "") : ""}"
-            placeholder="Enter seller name"
+            placeholder="${t("modals.enterSeller")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
         </div>
 
         <div class="mb-6">
-          <label for="items-per-purchase" class="block text-sm font-medium secondary-text mb-1">Items per Purchase</label>
+          <label for="items-per-purchase" class="block text-sm font-medium secondary-text mb-1">${t("modals.itemsPerPurchase")}</label>
           <input 
             type="number" 
             id="items-per-purchase" 
@@ -2004,27 +2010,27 @@ function showScrapedDataModal() {
             step="1"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">How many items are included in one purchase (e.g., 2 for a pack of 2)</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.itemsPerPurchaseHelp")}</p>
         </div>
 
         <div class="mb-6">
-          <label for="max-per-purchase" class="block text-sm font-medium secondary-text mb-1">Max per Purchase (Optional)</label>
+          <label for="max-per-purchase" class="block text-sm font-medium secondary-text mb-1">${t("modals.maxPerPurchase")} (${t("modals.optional")})</label>
           <input 
             type="number" 
             id="max-per-purchase" 
             value=""
             min="1"
             step="1"
-            placeholder="Leave empty if unlimited"
+            placeholder="${t("modals.leaveEmptyIfUnlimited")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
-          <p class="mt-1 text-sm muted-text">Maximum number of times you can purchase from this page</p>
+          <p class="mt-1 text-sm muted-text">${t("modals.maxPerPurchaseHelp")}</p>
         </div>
 
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
-            Save
+            ${t("common.save")}
           </button>
         </div>
       </div>
@@ -2197,11 +2203,11 @@ function renderDeliveryRulesView() {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h1 class="text-2xl pl-4 font-semibold card-text">Delivery Rules</h1>
+          <h1 class="text-2xl pl-4 font-semibold card-text">${t("deliveryRules.title")}</h1>
         </div>
       </div>
 
-      <p class="text-sm muted-text mb-6">Configure delivery settings for each seller.</p>
+      <p class="text-sm muted-text mb-6">${t("deliveryRules.subtitle")}</p>
 
       <div class="space-y-4 seller-settings">
         ${getUniqueSellers(session)
@@ -2217,15 +2223,15 @@ function renderDeliveryRulesView() {
             <h4 class="text-lg font-medium card-text mb-3 truncate border-b pb-2">${seller}</h4>
 
             <div class="mb-4">
-              <label class="block text-sm font-medium secondary-text mb-1">Same seller as :</label>
+              <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.sameSellerAs")}</label>
               <select class="same-seller-select w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
-                <option value="None" ${copiedFrom === 'None' ? 'selected' : ''}>None</option>
+                <option value="None" ${copiedFrom === 'None' ? 'selected' : ''}>${t("deliveryRules.none")}</option>
                 ${getUniqueSellers(session).filter(s => s !== seller).map(s2 => `<option value="${s2}" ${copiedFrom === s2 ? 'selected' : ''}>${s2}</option>`).join('')}
               </select>
             </div>
 
             <div class="mb-4 flex items-center justify-between free-delivery-row" style="display: ${copiedFrom !== 'None' ? 'none' : 'flex'}">
-              <label class="text-sm font-medium secondary-text">Free delivery</label>
+              <label class="text-sm font-medium secondary-text">${t("deliveryRules.freeDelivery")}</label>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="free-delivery-toggle sr-only peer" data-seller="${seller}" ${isFree ? 'checked' : ''}>
                 <div class="w-11 h-6 secondary-bg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-100 after:border after:border-gray-300 dark:after:border-gray-600 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[hsl(var(--primary))] dark:peer-checked:after:bg-[hsl(var(--primary-foreground))]"></div>
@@ -2233,11 +2239,11 @@ function renderDeliveryRulesView() {
             </div>
 
             <div class="mb-4 delivery-type-row" style="display: ${copiedFrom !== 'None' || isFree ? 'none' : 'block'}">
-              <label class="block text-sm font-medium secondary-text mb-1">Delivery pricing type</label>
+              <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.pricingType")}</label>
               <select class="delivery-type w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}">
-                <option value="fixed" ${type === 'fixed' ? 'selected' : ''}>Addition of per-item delivery prices</option>
-                <option value="first-item" ${type === 'first-item' ? 'selected' : ''}>First item full price then discounted additional</option>
-                <option value="free-threshold" ${type === 'free-threshold' ? 'selected' : ''}>Free above threshold</option>
+                <option value="fixed" ${type === 'fixed' ? 'selected' : ''}>${t("deliveryRules.typeFixed")}</option>
+                <option value="first-item" ${type === 'first-item' ? 'selected' : ''}>${t("deliveryRules.typeFirstItem")}</option>
+                <option value="free-threshold" ${type === 'free-threshold' ? 'selected' : ''}>${t("deliveryRules.typeFreeThreshold")}</option>
               </select>
             </div>
 
@@ -2247,17 +2253,17 @@ function renderDeliveryRulesView() {
               </div>
 
               <div class="option-block option-first first-item mb-3" data-option="first-item" style="display: ${type === 'first-item' ? 'block' : 'none'};">
-                <label class="block text-sm font-medium secondary-text mb-1">First item price</label>
+                <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.firstItemPrice")}</label>
                 <input type="number" class="first-item-price w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.firstItemPrice || ''}">
               </div>
 
               <div class="option-block option-first-additional first-item mb-3" data-option="first-item-additional" style="display: ${type === 'first-item' ? 'block' : 'none'};">
-                <label class="block text-sm font-medium secondary-text mb-1">Delivery price for following product</label>
+                <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.followingItemsPrice")}</label>
                 <input type="number" class="following-items-price w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.additionalItemsPrice || ''}">
               </div>
 
               <div class="option-block option-free free-threshold mb-3" data-option="free-threshold" style="display: ${type === 'free-threshold' || isFree ? 'block' : 'none'};">
-                <label class="block text-sm font-medium secondary-text mb-1">Free delivery over :</label>
+                <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.freeDeliveryOver")}</label>
                 <input type="number" class="free-threshold-value w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent" data-seller="${seller}" step="0.01" min="0" value="${rule.threshold || ''}">
               </div>
             </div>
@@ -2269,7 +2275,7 @@ function renderDeliveryRulesView() {
       </div>
 
       <button id="save-rules-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
-        <span class="text-lg font-medium">Save Rules</span>
+        <span class="text-lg font-medium">${t("deliveryRules.saveRules")}</span>
       </button>
     </div>
   `
@@ -2584,7 +2590,7 @@ function renderAlternativesView() {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h1 class="text-2xl pl-4 font-semibold card-text">Alternative Groups</h1>
+          <h1 class="text-2xl pl-4 font-semibold card-text">${t("alternatives.title")}</h1>
         </div>
       </div>
 
@@ -2597,12 +2603,12 @@ function renderAlternativesView() {
                 <div class="mt-2 space-y-1">
                   ${group.options.map((opt, idx) => `
                     <div class="text-sm muted-text">
-                      <span class="font-medium">Option ${idx + 1}:</span> 
+                      <span class="font-medium">${t("alternatives.option")} ${idx + 1}:</span> 
                       ${opt.products ? opt.products.map(p => {
                         const prod = session.products.find(product => product.id === p.productId)
                         const qty = p.quantity > 1 ? ` (×${p.quantity})` : ''
-                        return prod ? `${prod.name}${qty}` : 'Unknown Product'
-                      }).join(' + ') : 'No products'}
+                        return prod ? `${prod.name}${qty}` : t("pages.noProducts")
+                      }).join(' + ') : t("pages.noProducts")}
                     </div>
                   `).join('')}
                 </div>
@@ -2621,14 +2627,14 @@ function renderAlternativesView() {
               </div>
             </div>
           </div>
-        `).join('') : '<div class="text-center muted-text py-8">No alternative groups created yet</div>'}
+        `).join('') : `<div class="text-center muted-text py-8">${t("alternatives.noGroups")}</div>`}
       </div>
 
       <button id="new-group-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-        <span class="text-lg font-medium">New Alternative Group</span>
+        <span class="text-lg font-medium">${t("alternatives.newGroup")}</span>
       </button>
     </div>
   `
@@ -2667,11 +2673,11 @@ function showNewAlternativeGroupModal() {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-2xl mx-4 p-6 flex flex-col max-h-[90vh]">
-        <h3 class="text-lg font-medium card-text mb-4">New Alternative Group</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("alternatives.newGroup")}</h3>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium secondary-text mb-1">Group Name</label>
-          <input type="text" id="group-name" placeholder="e.g., Gaming Setup" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("alternatives.groupName")}</label>
+          <input type="text" id="group-name" placeholder="${t("alternatives.groupNamePlaceholder")}" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
         </div>
 
         <div class="mb-4 card-bg border border-default rounded-lg p-3">
@@ -2679,12 +2685,12 @@ function showNewAlternativeGroupModal() {
             <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
-            <p class="text-sm muted-text">Each product in an option can have its own quantity. This will override the product's default quantity.</p>
+            <p class="text-sm muted-text">${t("alternatives.quantityInfo")}</p>
           </div>
         </div>
 
         <div class="flex-1 overflow-y-auto mb-4">
-          <label class="block text-sm font-medium secondary-text mb-2">Options</label>
+          <label class="block text-sm font-medium secondary-text mb-2">${t("alternatives.options")}</label>
           <div id="options-container" class="space-y-4">
             <!-- Options will be added here -->
           </div>
@@ -2692,13 +2698,13 @@ function showNewAlternativeGroupModal() {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add Option
+            ${t("alternatives.addOption")}
           </button>
         </div>
 
         <div class="flex justify-end space-x-4 pt-4 border-t">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
-          <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">Save</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
+          <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">${t("common.save")}</button>
         </div>
       </div>
     </div>
@@ -2859,10 +2865,10 @@ function showEditAlternativeGroupModal(group) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-2xl mx-4 p-6 flex flex-col max-h-[90vh]">
-        <h3 class="text-lg font-medium card-text mb-4">Edit Alternative Group</h3>
+        <h3 class="text-lg font-medium card-text mb-4">${t("alternatives.editGroup")}</h3>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium secondary-text mb-1">Group Name</label>
+          <label class="block text-sm font-medium secondary-text mb-1">${t("alternatives.groupName")}</label>
           <input type="text" id="group-name" value="${group.name}" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
         </div>
 
@@ -2871,12 +2877,12 @@ function showEditAlternativeGroupModal(group) {
             <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
-            <p class="text-sm muted-text">Each product in an option can have its own quantity. This will override the product's default quantity.</p>
+            <p class="text-sm muted-text">${t("alternatives.quantityInfo")}</p>
           </div>
         </div>
 
         <div class="flex-1 overflow-y-auto mb-4">
-          <label class="block text-sm font-medium secondary-text mb-2">Options</label>
+          <label class="block text-sm font-medium secondary-text mb-2">${t("alternatives.options")}</label>
           <div id="options-container" class="space-y-4">
             <!-- Options will be added here -->
           </div>
@@ -2884,13 +2890,13 @@ function showEditAlternativeGroupModal(group) {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add Option
+            ${t("alternatives.addOption")}
           </button>
         </div>
 
         <div class="flex justify-end space-x-4 pt-4 border-t">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
-          <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">Save</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
+          <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">${t("common.save")}</button>
         </div>
       </div>
     </div>
@@ -3043,12 +3049,12 @@ function showDeleteAlternativeGroupModal(groupId) {
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-medium card-text mb-4">Delete Alternative Group</h3>
-        <p class="muted-text mb-6">Are you sure you want to delete this group?</p>
+        <h3 class="text-lg font-medium card-text mb-4">${t("alternatives.deleteGroup")}</h3>
+        <p class="muted-text mb-6">${t("alternatives.confirmDelete")}</p>
         
         <div class="flex justify-end space-x-4">
-          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">Cancel</button>
-          <button id="delete-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">Delete</button>
+          <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
+          <button id="delete-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">${t("alternatives.deleteButton")}</button>
         </div>
       </div>
     </div>

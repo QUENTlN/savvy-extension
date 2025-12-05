@@ -7,8 +7,15 @@
     "48": "icons/icon-48.png",
     "96": "icons/icon-96.png"
   },
-  "permissions": ["activeTab", "storage", "tabs", "sidePanel"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "action": {
     "default_icon": {
       "19": "icons/icon-19.png",
@@ -23,11 +30,24 @@
   "background": {
     "service_worker": "background.service-worker.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "locales/*.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-scripts/scraper.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-scripts/scraper.js"
+      ]
     }
   ]
 }
-
