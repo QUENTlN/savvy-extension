@@ -68,15 +68,10 @@ function renderSessionsView() {
         <h1 class="text-2xl font-semibold card-text">${t("sessions.title")}</h1>
         <div class="flex space-x-2">
           <button class="muted-text p-2 cursor-pointer" id="import-session-button" title="${t("sessions.importSession")}">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+            <span class="icon icon-import h-8 w-8"></span>
           </button>
           <button class="muted-text p-2 cursor-pointer" id="settings-button" title="${t("common.settings")}">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <span class="icon icon-settings h-8 w-8"></span>
           </button>
         </div>
       </div>
@@ -92,19 +87,13 @@ function renderSessionsView() {
               </div>
               <div class="flex space-x-2 flex-shrink-0">
                 <button class="muted-text p-1 cursor-pointer export-button" data-id="${session.id}" title="${t("sessions.exportSession")}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
+                  <span class="icon icon-export h-6 w-6"></span>
                 </button>
                 <button class="muted-text p-1 cursor-pointer edit-button" data-id="${session.id}" title="${t("sessions.editSession")}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
+                  <span class="icon icon-edit h-6 w-6"></span>
                 </button>
                 <button class="muted-text p-1 cursor-pointer delete-button" data-id="${session.id}" title="${t("sessions.deleteSession")}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <span class="icon icon-delete h-6 w-6"></span>
                 </button>
               </div>
             </div>
@@ -114,9 +103,7 @@ function renderSessionsView() {
 
       <!-- New Session Button -->
       <button id="new-session-button" class="cursor-pointer mt-6 w-full flex items-center justify-center space-x-2 secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-80 transition-colors duration-200 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+        <span class="icon icon-plus h-5 w-5"></span>
         <span class="text-lg font-medium">${t("sessions.createNew")}</span>
       </button>
     </div>
@@ -188,9 +175,7 @@ function renderProductsView() {
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-3">
           <button class="muted-text p-2 cursor-pointer" id="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <span class="icon icon-back h-8 w-8"></span>
           </button>
           <h1 class="text-2xl pl-4 font-semibold card-text">${session.name}</h1>
         </div>
@@ -212,14 +197,10 @@ function renderProductsView() {
               </div>
               <div class="flex space-x-2 flex-shrink-0">
                 <button class="muted-text p-1 cursor-pointer edit-button" data-id="${product.id}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
+                  <span class="icon icon-edit h-6 w-6"></span>
                 </button>
                 <button class="muted-text p-1 cursor-pointer delete-button" data-id="${product.id}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <span class="icon icon-delete h-6 w-6"></span>
                 </button>
               </div>
             </div>
@@ -230,33 +211,25 @@ function renderProductsView() {
       <!-- Action Buttons -->
       <div class="flex space-x-4 mt-6">
         <button id="new-product-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-80 transition-colors duration-200 shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
+          <span class="icon icon-plus h-5 w-5"></span>
           <span class="text-lg font-medium">${t("products.newProduct")}</span>
         </button>
       </div>
       
       <div class="flex space-x-4 mt-4">
         <button id="edit-rules-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
+          <span class="icon icon-delivery_rules h-5 w-5"></span>
           <span class="text-lg font-medium">${t("products.deliveryRules")}</span>
         </button>
         <button id="manage-alternatives-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
+          <span class="icon icon-alternatives h-5 w-5"></span>
           <span class="text-lg font-medium">${t("products.manageAlternatives")}</span>
         </button>
       </div>
 
       <div class="flex space-x-4 my-4">
         <button id="optimize-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <span class="icon icon-optimize h-5 w-5"></span>
           <span class="text-lg font-medium">${t("products.optimize")}</span>
         </button>
       </div>
@@ -340,9 +313,7 @@ function renderPagesView() {
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-3">
           <button class="muted-text p-2 cursor-pointer" id="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <span class="icon icon-back h-8 w-8"></span>
           </button>
           <h1 class="text-2xl pl-4 font-semibold card-text">${product.name}</h1>
         </div>
@@ -382,19 +353,13 @@ function renderPagesView() {
                 </div>
                 <div class="flex items-start space-x-2">
                   <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${page.url}" title="${t("pages.openInNewTab")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
+                    <span class="icon icon-open_external h-6 w-6"></span>
                   </button>
                   <button class="muted-text p-1 cursor-pointer edit-page-button" data-id="${page.id}" title="${t("pages.editPageTitle")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
+                    <span class="icon icon-edit h-6 w-6"></span>
                   </button>
                   <button class="muted-text p-1 cursor-pointer delete-page-button" data-id="${page.id}" title="${t("pages.deletePageTitle")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <span class="icon icon-delete h-6 w-6"></span>
                   </button>
                 </div>
               </div>
@@ -445,19 +410,13 @@ function renderPagesView() {
                 </div>
                 <div class="flex items-start space-x-2">
                   <button class="muted-text p-1 cursor-pointer open-page-button" data-url="${bundle.url}" title="${t("pages.openInNewTab")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
+                    <span class="icon icon-open_external h-6 w-6"></span>
                   </button>
                   <button class="muted-text p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="${t("bundles.editBundle")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
+                    <span class="icon icon-edit h-6 w-6"></span>
                   </button>
                   <button class="muted-text p-1 cursor-pointer delete-bundle-button" data-id="${bundle.id}" title="${t("bundles.deleteBundle")}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <span class="icon icon-delete h-6 w-6"></span>
                   </button>
                 </div>
               </div>
@@ -470,9 +429,7 @@ function renderPagesView() {
 
       <!-- Add Page Button -->
       <button id="add-page-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+        <span class="icon icon-plus h-5 w-5"></span>
         <span class="text-lg font-medium">${t("pages.addPage")}</span>
       </button>
     </div>
@@ -550,9 +507,7 @@ function renderSettingsView() {
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-3">
         <button class="muted-text p-2 cursor-pointer" id="back-button">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <span class="icon icon-back h-8 w-8"></span>
         </button>
         <h1 class="text-2xl pl-4 font-semibold card-text">${t("settings.title")}</h1>
         </div>
@@ -864,9 +819,7 @@ function showNewProductModal() {
 
         <div class="mb-6">
           <button id="toggle-compatibility" class="text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <span class="icon icon-chevron_down h-4 w-4 mr-1"></span>
             ${t("modals.showCompatibility")}
           </button>
         </div>
@@ -906,17 +859,13 @@ function showNewProductModal() {
     if (compatSection.style.display === 'none') {
       compatSection.style.display = 'block'
       toggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-        </svg>
+        <span class="icon icon-chevron_up h-4 w-4 mr-1"></span>
         ${t("modals.hideCompatibility")}
       `
     } else {
       compatSection.style.display = 'none'
       toggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
+        <span class="icon icon-chevron_down h-4 w-4 mr-1"></span>
         ${t("modals.showCompatibility")}
       `
     }
@@ -1036,9 +985,7 @@ function showEditProductModal(product) {
         ${sessions.find(s => s.id === currentSession).alternativeGroups && sessions.find(s => s.id === currentSession).alternativeGroups.some(g => g.options.some(opt => opt.products?.some(p => p.productId === product.id))) ? `
           <div class="mb-6 secondary-bg border border-default rounded-lg p-3">
             <div class="flex">
-              <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
+              <span class="icon icon-warning h-5 w-5 muted-text mr-2 flex-shrink-0"></span>
               <p class="text-sm secondary-text">${t("modals.alternativeGroupWarning")}</p>
             </div>
           </div>
@@ -1046,9 +993,7 @@ function showEditProductModal(product) {
 
         <div class="mb-6">
           <button id="toggle-compatibility" class="text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <span class="icon icon-chevron_down h-4 w-4 mr-1"></span>
             ${t("modals.showCompatibility")}
           </button>
         </div>
@@ -1088,9 +1033,7 @@ function showEditProductModal(product) {
   if (hasSelections) {
     compatSection.style.display = 'block'
     toggleBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-      </svg>
+      <span class="icon icon-chevron_up h-4 w-4 mr-1"></span>
       ${t("modals.hideCompatibility")}
     `
   }
@@ -1099,17 +1042,13 @@ function showEditProductModal(product) {
     if (compatSection.style.display === 'none') {
       compatSection.style.display = 'block'
       toggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-        </svg>
+        <span class="icon icon-chevron_up h-4 w-4 mr-1"></span>
         ${t("modals.hideCompatibility")}
       `
     } else {
       compatSection.style.display = 'none'
       toggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
+        <span class="icon icon-chevron_down h-4 w-4 mr-1"></span>
         ${t("modals.showCompatibility")}
       `
     }
@@ -2148,9 +2087,7 @@ function renderDeliveryRulesView() {
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-3">
           <button class="muted-text p-2 cursor-pointer" id="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <span class="icon icon-back h-8 w-8"></span>
           </button>
           <h1 class="text-2xl pl-4 font-semibold card-text">${t("deliveryRules.title")}</h1>
         </div>
@@ -2473,9 +2410,7 @@ function renderAlternativesView() {
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-3">
           <button class="muted-text p-2 cursor-pointer" id="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <span class="icon icon-back h-8 w-8"></span>
           </button>
           <h1 class="text-2xl pl-4 font-semibold card-text">${t("alternatives.title")}</h1>
         </div>
@@ -2502,14 +2437,10 @@ function renderAlternativesView() {
               </div>
               <div class="flex space-x-2 flex-shrink-0">
                 <button class="muted-text p-1 cursor-pointer edit-group-button" data-id="${group.id}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
+                  <span class="icon icon-edit h-6 w-6"></span>
                 </button>
                 <button class="muted-text p-1 cursor-pointer delete-group-button" data-id="${group.id}">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <span class="icon icon-delete h-6 w-6"></span>
                 </button>
               </div>
             </div>
@@ -2518,9 +2449,7 @@ function renderAlternativesView() {
       </div>
 
       <button id="new-group-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+        <span class="icon icon-plus h-5 w-5"></span>
         <span class="text-lg font-medium">${t("alternatives.newGroup")}</span>
       </button>
     </div>
@@ -2568,9 +2497,7 @@ function showNewAlternativeGroupModal() {
 
         <div class="mb-4 card-bg border border-default rounded-lg p-3">
           <div class="flex">
-            <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
+            <span class="icon icon-warning h-5 w-5 muted-text mr-2 flex-shrink-0"></span>
             <p class="text-sm muted-text">${t("alternatives.quantityInfo")}</p>
           </div>
         </div>
@@ -2581,9 +2508,7 @@ function showNewAlternativeGroupModal() {
             <!-- Options will be added here -->
           </div>
           <button id="add-option-button" class="mt-2 text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+            <span class="icon icon-plus h-4 w-4 mr-1"></span>
             ${t("alternatives.addOption")}
           </button>
         </div>
@@ -2608,9 +2533,7 @@ function showNewAlternativeGroupModal() {
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-semibold secondary-text">Option ${optionCount}</span>
         <button class="muted-text hover:opacity-70 cursor-pointer remove-option-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <span class="icon icon-close h-5 w-5"></span>
         </button>
       </div>
       <div class="space-y-2 max-h-64 overflow-y-auto">
@@ -2748,9 +2671,7 @@ function showEditAlternativeGroupModal(group) {
 
         <div class="mb-4 card-bg border border-default rounded-lg p-3">
           <div class="flex">
-            <svg class="h-5 w-5 muted-text mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
+            <span class="icon icon-warning h-5 w-5 muted-text mr-2 flex-shrink-0"></span>
             <p class="text-sm muted-text">${t("alternatives.quantityInfo")}</p>
           </div>
         </div>
@@ -2761,9 +2682,7 @@ function showEditAlternativeGroupModal(group) {
             <!-- Options will be added here -->
           </div>
           <button id="add-option-button" class="mt-2 text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+            <span class="icon icon-plus h-4 w-4 mr-1"></span>
             ${t("alternatives.addOption")}
           </button>
         </div>
@@ -2788,9 +2707,7 @@ function showEditAlternativeGroupModal(group) {
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-semibold secondary-text">Option ${optionCount}</span>
         <button class="muted-text hover:opacity-70 cursor-pointer remove-option-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <span class="icon icon-close h-5 w-5"></span>
         </button>
       </div>
       <div class="space-y-2 max-h-64 overflow-y-auto">

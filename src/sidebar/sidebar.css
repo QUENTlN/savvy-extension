@@ -156,4 +156,32 @@ body {
   .error-ring {
     --tw-ring-color: hsl(var(--error));
   }
+
+  /* Icons */
+  .icon {
+    display: inline-block;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+  }
+  
+  .icon-import { mask-image: url('../icons/import.svg'); -webkit-mask-image: url('../icons/import.svg'); }
+  .icon-export { mask-image: url('../icons/export.svg'); -webkit-mask-image: url('../icons/export.svg'); }
+  .icon-settings { mask-image: url('../icons/settings.svg'); -webkit-mask-image: url('../icons/settings.svg'); }
+  .icon-plus { mask-image: url('../icons/plus.svg'); -webkit-mask-image: url('../icons/plus.svg'); }
+  .icon-edit { mask-image: url('../icons/edit.svg'); -webkit-mask-image: url('../icons/edit.svg'); }
+  .icon-delete { mask-image: url('../icons/delete.svg'); -webkit-mask-image: url('../icons/delete.svg'); }
+  .icon-back { mask-image: url('../icons/back.svg'); -webkit-mask-image: url('../icons/back.svg'); }
+  .icon-delivery_rules { mask-image: url('../icons/delivery_rules.svg'); -webkit-mask-image: url('../icons/delivery_rules.svg'); }
+  .icon-alternatives { mask-image: url('../icons/alternatives.svg'); -webkit-mask-image: url('../icons/alternatives.svg'); }
+  .icon-optimize { mask-image: url('../icons/optimize.svg'); -webkit-mask-image: url('../icons/optimize.svg'); }
+  .icon-open_external { mask-image: url('../icons/open_external.svg'); -webkit-mask-image: url('../icons/open_external.svg'); }
+  .icon-chevron_down { mask-image: url('../icons/chevron_down.svg'); -webkit-mask-image: url('../icons/chevron_down.svg'); }
+  .icon-chevron_up { mask-image: url('../icons/chevron_up.svg'); -webkit-mask-image: url('../icons/chevron_up.svg'); }
+  .icon-warning { mask-image: url('../icons/warning.svg'); -webkit-mask-image: url('../icons/warning.svg'); }
+  .icon-close { mask-image: url('../icons/close.svg'); -webkit-mask-image: url('../icons/close.svg'); }
 }

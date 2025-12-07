@@ -6,7 +6,7 @@ const tailwindcss = require('@tailwindcss/postcss');
 const UglifyJS = require('uglify-js');
 
 // Paths
-const publicDir = path.join(__dirname, 'public');
+
 const srcDir = path.join(__dirname, 'src');
 // Determine target browser from CLI argument or environment variable
 // Default to 'firefox' if not specified
@@ -35,29 +35,6 @@ const buildDir = path.join(__dirname, 'build', targetBrowser);
 
 // Check if in production mode
 const isProduction = process.env.NODE_ENV === 'production';
-
-
-// Step 1: Copy the 'public' folder to 'build' (excluding manifest.json)
-async function copyPublicFolder() {
-  try {
-    // Copy all files except manifest.json
-    const files = await fs.readdir(publicDir);
-    for (const file of files) {
-      const srcPath = path.join(publicDir, file);
-      const destPath = path.join(buildDir, file);
-      const stat = await fs.stat(srcPath);
-      
-      if (stat.isDirectory()) {
-        await fs.copy(srcPath, destPath);
-      } else if (!file.startsWith('manifest')) {
-        await fs.copy(srcPath, destPath);
-      }
-    }
-    console.log('Public folder copied to build (excluding manifest files).');
-  } catch (err) {
-    console.error('Error copying public folder:', err);
-  }
-}
 
 // Step 1b: Copy the appropriate manifest file
 async function copyManifest() {
@@ -251,15 +228,33 @@ async function minifyJsFiles() {
     }
 }
 
+// Step 5: Copy icons folder from src
+async function copyIconsFolder() {
+    try {
+        const iconsSource = path.join(srcDir, 'icons');
+        const iconsDest = path.join(buildDir, 'icons'); // Destination is still build/icons
+
+        // Check if source exists before copying
+        if (await fs.pathExists(iconsSource)) {
+             await fs.copy(iconsSource, iconsDest);
+             console.log('Icons folder copied to build.');
+        } else {
+            console.log('No icons folder found in src.');
+        }
+
+    } catch (err) {
+        console.error('Error copying icons folder:', err);
+    }
+}
+
 // Run all tasks
 async function build() {
   try {
-    // console.log('Tailwind plugin:', require('@tailwindcss/postcss') || require('tailwindcss'));
-    await fs.emptyDir(buildDir); // Clean the build directory
+    await fs.emptyDir(buildDir);
     console.log(`Build directory cleaned. Building for ${targetBrowser}...`);
-    await copyPublicFolder();
     await copyManifest();
     await copyLocalesFolder();
+    await copyIconsFolder(); 
     await copyHtmlFiles();
     await processCssFiles();
     await minifyJsFiles();
@@ -296,6 +291,10 @@ async function processFile(filePath) {
                 await fs.copy(filePath, destPath);
                 console.log(`JS file copied: ${relativePath}`);
             }
+        } else if (relativePath.startsWith('icons/')) {
+             await fs.ensureDir(path.dirname(destPath));
+             await fs.copy(filePath, destPath);
+             console.log(`Icon file processed: ${relativePath}`);
         } else {
             console.log(`Unsupported file type: ${relativePath}`);
         }
@@ -356,17 +355,7 @@ async function watchMode() {
                             await processCssFiles();
                         }
                     }
-                    else if (fullPath.startsWith(publicDir)) {
-                        // Handle public folder changes
-                        const relativePath = path.relative(publicDir, fullPath);
-                        const destPath = path.join(buildDir, relativePath);
-                        
-                        if (!filename.startsWith('manifest')) {
-                            await fs.ensureDir(path.dirname(destPath));
-                            await fs.copy(fullPath, destPath);
-                            console.log(`Public file copied: ${relativePath}`);
-                        }
-                    }
+
                 } else {
                     // If directory changed or complex change, do full rebuild
                     console.log('Performing full rebuild...');
@@ -388,10 +377,7 @@ async function watchMode() {
         handleFileChange(eventType, filename, srcDir);
     });
     
-    // Watch public directory
-    fs.watch(publicDir, { recursive: true }, (eventType, filename) => {
-        handleFileChange(eventType, filename, publicDir);
-    });
+
     
     console.log('👀 Watching for changes... (Press Ctrl+C to stop)\n');
 }
