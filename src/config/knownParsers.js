@@ -7,12 +7,15 @@ let knownParsers = {
       strategy: "extractPrice",
       selector: ".reinventPricePriceToPayMargin",
     },
+    shippingPrice: {
+      strategy: "none",
+    },
+    insurancePrice: {
+      strategy: "none",
+    },
     priceCurrency: {
       strategy: "extractCurrency",
       selector: ".reinventPricePriceToPayMargin",
-    },
-    shippingPrice: {
-      strategy: "none",
     },
     seller: {
       strategy: "domainName",
@@ -23,14 +26,17 @@ let knownParsers = {
       strategy: "extractPrice",
       selector: ".x-price-primary > span:nth-child(1)",
     },
-    priceCurrency: {
-      strategy: "extractCurrency",
-      selector: ".x-price-primary > span:nth-child(1)",
-    },
     shippingPrice: {
       strategy: "extractPrice",
       selector:
         "div.false > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)",
+    },
+    insurancePrice: {
+      strategy: "none",
+    },
+    priceCurrency: {
+      strategy: "extractCurrency",
+      selector: ".x-price-primary > span:nth-child(1)",
     },
     seller: {
       strategy: "domainNameAndSeller",
@@ -44,15 +50,18 @@ let knownParsers = {
       selector: ".product-price-converted",
       param: "price",
     },
-    priceCurrency: {
-      strategy: "splitPriceCurrency",
-      selector: ".product-price-converted",
-      param: "currency",
-    },
     shippingPrice: {
       strategy: "splitPriceCurrency",
       selector: "p.col-9:nth-child(12) > strong:nth-child(1)",
       param: "price",
+    },
+    insurancePrice: {
+      strategy: "none",
+    },
+    priceCurrency: {
+      strategy: "splitPriceCurrency",
+      selector: ".product-price-converted",
+      param: "currency",
     },
     seller: {
       strategy: "urlParameter",

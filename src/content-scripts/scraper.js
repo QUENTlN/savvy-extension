@@ -48,8 +48,9 @@ function scrapeCurrentPage() {
           url: window.location.href,
           title: document.title,
           price: getValue(parser.price),
-          priceCurrency: getValue(parser.priceCurrency),
           shippingPrice: getValue(parser.shippingPrice),
+          insurancePrice: getValue(parser.insurancePrice),
+          priceCurrency: getValue(parser.priceCurrency),
           seller: getValue(parser.seller),
           timestamp: new Date().toISOString(),
         }

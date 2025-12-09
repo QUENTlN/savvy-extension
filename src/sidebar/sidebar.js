@@ -341,6 +341,7 @@ function renderPagesView() {
                         return `${s} ${page.currency || ""}`
                       }
                     })()}</p>
+                    ${page.insurancePrice > 0 ? `<p class="muted-text">${t("pages.insurance")}: ${page.insurancePrice} ${page.currency || ""}</p>` : ''}
                     ${page.itemsPerPurchase && page.itemsPerPurchase > 1 ? `<p class="muted-text">${t("pages.qtyPerPurchase")}: ${page.itemsPerPurchase}</p>` : ''}
                     ${page.maxPerPurchase ? `<p class="muted-text">${t("pages.maxPurchases")}: ${page.maxPerPurchase}</p>` : ''}
                   </div>
@@ -1199,17 +1200,6 @@ function showEditPageModal(page) {
         </div>
 
         <div class="mb-6">
-          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
-          <select 
-            id="page-currency" 
-            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          >
-            <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
-            ${CURRENCIES.map(c => `<option value="${c.code}" ${page.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="mb-6">
           <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">${t("modals.shippingPrice")}</label>
           <input 
             type="text" 
@@ -1218,6 +1208,28 @@ function showEditPageModal(page) {
             placeholder="${t("modals.enterShipping")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-insurance" class="block text-sm font-medium secondary-text mb-1">${t("modals.insurancePrice")}</label>
+          <input 
+            type="text" 
+            id="page-insurance" 
+            value="${page.insurancePrice || ""}"
+            placeholder="${t("modals.enterInsurance")}"
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+            <option value="FREE" ${page.currency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
+            ${CURRENCIES.map(c => `<option value="${c.code}" ${page.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
+          </select>
         </div>
 
         <div class="mb-6">
@@ -1298,6 +1310,7 @@ function showEditPageModal(page) {
 
     const price = document.getElementById("page-price").value
     const shippingPrice = document.getElementById("page-shipping").value
+    const insurancePrice = document.getElementById("page-insurance").value
     const seller = document.getElementById("page-seller").value
     const currency = document.getElementById("page-currency").value
     const itemsPerPurchaseValue = document.getElementById("items-per-purchase")?.value
@@ -1311,6 +1324,7 @@ function showEditPageModal(page) {
     if (currency !== 'FREE') {
       if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
       if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
+      if (!validateRequiredField('page-insurance', t("modals.insurancePrice"))) isValid = false
     }
     if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
@@ -1334,6 +1348,7 @@ function showEditPageModal(page) {
     const updatedPage = {
       price,
       shippingPrice,
+      insurancePrice,
       seller,
       currency,
       itemsPerPurchase,
@@ -1438,17 +1453,6 @@ function showEditBundleModal(bundle) {
         </div>
 
         <div class="mb-6">
-          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("pages.currency")}</label>
-          <select 
-            id="page-currency" 
-            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          >
-            <option value="FREE" ${bundle.currency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
-            ${CURRENCIES.map(c => `<option value="${c.code}" ${bundle.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="mb-6">
           <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">${t("modals.shippingPrice")}</label>
           <input 
             type="text" 
@@ -1457,6 +1461,28 @@ function showEditBundleModal(bundle) {
             placeholder="${t("modals.enterShipping")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-insurance" class="block text-sm font-medium secondary-text mb-1">${t("modals.insurancePrice")}</label>
+          <input 
+            type="text" 
+            id="page-insurance" 
+            value="${bundle.insurancePrice || ""}"
+            placeholder="${t("modals.enterInsurance")}"
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("pages.currency")}</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+            <option value="FREE" ${bundle.currency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
+            ${CURRENCIES.map(c => `<option value="${c.code}" ${bundle.currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
+          </select>
         </div>
 
         <div class="mb-6">
@@ -1547,6 +1573,7 @@ function showEditBundleModal(bundle) {
 
     const price = document.getElementById("page-price").value
     const shippingPrice = document.getElementById("page-shipping").value
+    const insurancePrice = document.getElementById("page-insurance").value
     const seller = document.getElementById("page-seller").value
     const currency = document.getElementById("page-currency").value
     const itemsPerPurchaseValue = document.getElementById("items-per-purchase")?.value
@@ -1560,6 +1587,7 @@ function showEditBundleModal(bundle) {
     if (currency !== 'FREE') {
       if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
       if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
+      if (!validateRequiredField('page-insurance', t("modals.insurancePrice"))) isValid = false
     }
     if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
@@ -1591,6 +1619,7 @@ function showEditBundleModal(bundle) {
     const updatedBundle = {
       price,
       shippingPrice,
+      insurancePrice,
       seller,
       currency,
       products,
@@ -1856,124 +1885,6 @@ function showScrapedDataModal() {
         </div>
 
         <div class="mb-6">
-          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
-          <select 
-            id="page-currency" 
-            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          >
-            <option value="FREE" ${scrapedData.priceCurrency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
-            <option value="ALL" ${scrapedData.priceCurrency === "ALL" ? "selected" : ""}>Albania Lek - Lek</option>
-            <option value="AFN" ${scrapedData.priceCurrency === "AFN" ? "selected" : ""}>Afghanistan Afghani - ؋</option>
-            <option value="ARS" ${scrapedData.priceCurrency === "ARS" ? "selected" : ""}>Argentina Peso - $</option>
-            <option value="AWG" ${scrapedData.priceCurrency === "AWG" ? "selected" : ""}>Aruba Guilder - ƒ</option>
-            <option value="AUD" ${scrapedData.priceCurrency === "AUD" ? "selected" : ""}>Australia Dollar - $</option>
-            <option value="AZN" ${scrapedData.priceCurrency === "AZN" ? "selected" : ""}>Azerbaijan Manat - ₼</option>
-            <option value="BSD" ${scrapedData.priceCurrency === "BSD" ? "selected" : ""}>Bahamas Dollar - $</option>
-            <option value="BBD" ${scrapedData.priceCurrency === "BBD" ? "selected" : ""}>Barbados Dollar - $</option>
-            <option value="BYN" ${scrapedData.priceCurrency === "BYN" ? "selected" : ""}>Belarus Ruble - Br</option>
-            <option value="BZD" ${scrapedData.priceCurrency === "BZD" ? "selected" : ""}>Belize Dollar - BZ$</option>
-            <option value="BMD" ${scrapedData.priceCurrency === "BMD" ? "selected" : ""}>Bermuda Dollar - $</option>
-            <option value="BOB" ${scrapedData.priceCurrency === "BOB" ? "selected" : ""}>Bolivia Bolíviano - $b</option>
-            <option value="BAM" ${scrapedData.priceCurrency === "BAM" ? "selected" : ""}>Bosnia and Herzegovina Mark - KM</option>
-            <option value="BWP" ${scrapedData.priceCurrency === "BWP" ? "selected" : ""}>Botswana Pula - P</option>
-            <option value="BGN" ${scrapedData.priceCurrency === "BGN" ? "selected" : ""}>Bulgaria Lev - лв</option>
-            <option value="BRL" ${scrapedData.priceCurrency === "BRL" ? "selected" : ""}>Brazil Real - R$</option>
-            <option value="BND" ${scrapedData.priceCurrency === "BND" ? "selected" : ""}>Brunei Dollar - $</option>
-            <option value="KHR" ${scrapedData.priceCurrency === "KHR" ? "selected" : ""}>Cambodia Riel - ៛</option>
-            <option value="CAD" ${scrapedData.priceCurrency === "CAD" ? "selected" : ""}>Canada Dollar - $</option>
-            <option value="KYD" ${scrapedData.priceCurrency === "KYD" ? "selected" : ""}>Cayman Islands Dollar - $</option>
-            <option value="CLP" ${scrapedData.priceCurrency === "CLP" ? "selected" : ""}>Chile Peso - $</option>
-            <option value="CNY" ${scrapedData.priceCurrency === "CNY" ? "selected" : ""}>China Yuan Renminbi - ¥</option>
-            <option value="COP" ${scrapedData.priceCurrency === "COP" ? "selected" : ""}>Colombia Peso - $</option>
-            <option value="CRC" ${scrapedData.priceCurrency === "CRC" ? "selected" : ""}>Costa Rica Colon - ₡</option>
-            <option value="HRK" ${scrapedData.priceCurrency === "HRK" ? "selected" : ""}>Croatia Kuna - kn</option>
-            <option value="CUP" ${scrapedData.priceCurrency === "CUP" ? "selected" : ""}>Cuba Peso - ₱</option>
-            <option value="CZK" ${scrapedData.priceCurrency === "CZK" ? "selected" : ""}>Czech Republic Koruna - Kč</option>
-            <option value="DKK" ${scrapedData.priceCurrency === "DKK" ? "selected" : ""}>Denmark Krone - kr</option>
-            <option value="DOP" ${scrapedData.priceCurrency === "DOP" ? "selected" : ""}>Dominican Republic Peso - RD$</option>
-            <option value="XCD" ${scrapedData.priceCurrency === "XCD" ? "selected" : ""}>East Caribbean Dollar - $</option>
-            <option value="EGP" ${scrapedData.priceCurrency === "EGP" ? "selected" : ""}>Egypt Pound - £</option>
-            <option value="EUR" ${scrapedData.priceCurrency === "EUR" ? "selected" : ""}>Euro - €</option>
-            <option value="FKP" ${scrapedData.priceCurrency === "FKP" ? "selected" : ""}>Falkland Islands Pound - £</option>
-            <option value="FJD" ${scrapedData.priceCurrency === "FJD" ? "selected" : ""}>Fiji Dollar - $</option>
-            <option value="GHS" ${scrapedData.priceCurrency === "GHS" ? "selected" : ""}>Ghana Cedi - ¢</option>
-            <option value="GIP" ${scrapedData.priceCurrency === "GIP" ? "selected" : ""}>Gibraltar Pound - £</option>
-            <option value="GTQ" ${scrapedData.priceCurrency === "GTQ" ? "selected" : ""}>Guatemala Quetzal - Q</option>
-            <option value="GGP" ${scrapedData.priceCurrency === "GGP" ? "selected" : ""}>Guernsey Pound - £</option>
-            <option value="GYD" ${scrapedData.priceCurrency === "GYD" ? "selected" : ""}>Guyana Dollar - $</option>
-            <option value="HNL" ${scrapedData.priceCurrency === "HNL" ? "selected" : ""}>Honduras Lempira - L</option>
-            <option value="HKD" ${scrapedData.priceCurrency === "HKD" ? "selected" : ""}>Hong Kong Dollar - $</option>
-            <option value="HUF" ${scrapedData.priceCurrency === "HUF" ? "selected" : ""}>Hungary Forint - Ft</option>
-            <option value="ISK" ${scrapedData.priceCurrency === "ISK" ? "selected" : ""}>Iceland Krona - kr</option>
-            <option value="INR" ${scrapedData.priceCurrency === "INR" ? "selected" : ""}>India Rupee - ₹</option>
-            <option value="IDR" ${scrapedData.priceCurrency === "IDR" ? "selected" : ""}>Indonesia Rupiah - Rp</option>
-            <option value="IRR" ${scrapedData.priceCurrency === "IRR" ? "selected" : ""}>Iran Rial - ﷼</option>
-            <option value="IMP" ${scrapedData.priceCurrency === "IMP" ? "selected" : ""}>Isle of Man Pound - £</option>
-            <option value="ILS" ${scrapedData.priceCurrency === "ILS" ? "selected" : ""}>Israel Shekel - ₪</option>
-            <option value="JMD" ${scrapedData.priceCurrency === "JMD" ? "selected" : ""}>Jamaica Dollar - J$</option>
-            <option value="JPY" ${scrapedData.priceCurrency === "JPY" ? "selected" : ""}>Japan Yen - ¥</option>
-            <option value="JEP" ${scrapedData.priceCurrency === "JEP" ? "selected" : ""}>Jersey Pound - £</option>
-            <option value="KZT" ${scrapedData.priceCurrency === "KZT" ? "selected" : ""}>Kazakhstan Tenge - лв</option>
-            <option value="KPW" ${scrapedData.priceCurrency === "KPW" ? "selected" : ""}>Korea (North) Won - ₩</option>
-            <option value="KRW" ${scrapedData.priceCurrency === "KRW" ? "selected" : ""}>Korea (South) Won - ₩</option>
-            <option value="KGS" ${scrapedData.priceCurrency === "KGS" ? "selected" : ""}>Kyrgyzstan Som - лв</option>
-            <option value="LAK" ${scrapedData.priceCurrency === "LAK" ? "selected" : ""}>Laos Kip - ₭</option>
-            <option value="LBP" ${scrapedData.priceCurrency === "LBP" ? "selected" : ""}>Lebanon Pound - £</option>
-            <option value="LRD" ${scrapedData.priceCurrency === "LRD" ? "selected" : ""}>Liberia Dollar - $</option>
-            <option value="MKD" ${scrapedData.priceCurrency === "MKD" ? "selected" : ""}>Macedonia Denar - ден</option>
-            <option value="MYR" ${scrapedData.priceCurrency === "MYR" ? "selected" : ""}>Malaysia Ringgit - RM</option>
-            <option value="MUR" ${scrapedData.priceCurrency === "MUR" ? "selected" : ""}>Mauritius Rupee - ₨</option>
-            <option value="MXN" ${scrapedData.priceCurrency === "MXN" ? "selected" : ""}>Mexico Peso - $</option>
-            <option value="MNT" ${scrapedData.priceCurrency === "MNT" ? "selected" : ""}>Mongolia Tughrik - ₮</option>
-            <option value="MZN" ${scrapedData.priceCurrency === "MZN" ? "selected" : ""}>Mozambique Metical - MT</option>
-            <option value="NAD" ${scrapedData.priceCurrency === "NAD" ? "selected" : ""}>Namibia Dollar - $</option>
-            <option value="NPR" ${scrapedData.priceCurrency === "NPR" ? "selected" : ""}>Nepal Rupee - ₨</option>
-            <option value="ANG" ${scrapedData.priceCurrency === "ANG" ? "selected" : ""}>Netherlands Antilles Guilder - ƒ</option>
-            <option value="NZD" ${scrapedData.priceCurrency === "NZD" ? "selected" : ""}>New Zealand Dollar - $</option>
-            <option value="NIO" ${scrapedData.priceCurrency === "NIO" ? "selected" : ""}>Nicaragua Cordoba - C$</option>
-            <option value="NGN" ${scrapedData.priceCurrency === "NGN" ? "selected" : ""}>Nigeria Naira - ₦</option>
-            <option value="NOK" ${scrapedData.priceCurrency === "NOK" ? "selected" : ""}>Norway Krone - kr</option>
-            <option value="OMR" ${scrapedData.priceCurrency === "OMR" ? "selected" : ""}>Oman Rial - ﷼</option>
-            <option value="PKR" ${scrapedData.priceCurrency === "PKR" ? "selected" : ""}>Pakistan Rupee - ₨</option>
-            <option value="PAB" ${scrapedData.priceCurrency === "PAB" ? "selected" : ""}>Panama Balboa - B/.</option>
-            <option value="PYG" ${scrapedData.priceCurrency === "PYG" ? "selected" : ""}>Paraguay Guarani - Gs</option>
-            <option value="PEN" ${scrapedData.priceCurrency === "PEN" ? "selected" : ""}>Peru Sol - S/.</option>
-            <option value="PHP" ${scrapedData.priceCurrency === "PHP" ? "selected" : ""}>Philippines Peso - ₱</option>
-            <option value="PLN" ${scrapedData.priceCurrency === "PLN" ? "selected" : ""}>Poland Zloty - zł</option>
-            <option value="QAR" ${scrapedData.priceCurrency === "QAR" ? "selected" : ""}>Qatar Riyal - ﷼</option>
-            <option value="RON" ${scrapedData.priceCurrency === "RON" ? "selected" : ""}>Romania Leu - lei</option>
-            <option value="RUB" ${scrapedData.priceCurrency === "RUB" ? "selected" : ""}>Russia Ruble - ₽</option>
-            <option value="SHP" ${scrapedData.priceCurrency === "SHP" ? "selected" : ""}>Saint Helena Pound - £</option>
-            <option value="SAR" ${scrapedData.priceCurrency === "SAR" ? "selected" : ""}>Saudi Arabia Riyal - ﷼</option>
-            <option value="RSD" ${scrapedData.priceCurrency === "RSD" ? "selected" : ""}>Serbia Dinar - Дин.</option>
-            <option value="SCR" ${scrapedData.priceCurrency === "SCR" ? "selected" : ""}>Seychelles Rupee - ₨</option>
-            <option value="SGD" ${scrapedData.priceCurrency === "SGD" ? "selected" : ""}>Singapore Dollar - $</option>
-            <option value="SBD" ${scrapedData.priceCurrency === "SBD" ? "selected" : ""}>Solomon Islands Dollar - $</option>
-            <option value="SOS" ${scrapedData.priceCurrency === "SOS" ? "selected" : ""}>Somalia Shilling - S</option>
-            <option value="ZAR" ${scrapedData.priceCurrency === "ZAR" ? "selected" : ""}>South Africa Rand - R</option>
-            <option value="LKR" ${scrapedData.priceCurrency === "LKR" ? "selected" : ""}>Sri Lanka Rupee - ₨</option>
-            <option value="SEK" ${scrapedData.priceCurrency === "SEK" ? "selected" : ""}>Sweden Krona - kr</option>
-            <option value="CHF" ${scrapedData.priceCurrency === "CHF" ? "selected" : ""}>Switzerland Franc - CHF</option>
-            <option value="SRD" ${scrapedData.priceCurrency === "SRD" ? "selected" : ""}>Suriname Dollar - $</option>
-            <option value="SYP" ${scrapedData.priceCurrency === "SYP" ? "selected" : ""}>Syria Pound - £</option>
-            <option value="TWD" ${scrapedData.priceCurrency === "TWD" ? "selected" : ""}>Taiwan New Dollar - NT$</option>
-            <option value="THB" ${scrapedData.priceCurrency === "THB" ? "selected" : ""}>Thailand Baht - ฿</option>
-            <option value="TTD" ${scrapedData.priceCurrency === "TTD" ? "selected" : ""}>Trinidad and Tobago Dollar - TT$</option>
-            <option value="TRY" ${scrapedData.priceCurrency === "TRY" ? "selected" : ""}>Turkey Lira - ₺</option>
-            <option value="TVD" ${scrapedData.priceCurrency === "TVD" ? "selected" : ""}>Tuvalu Dollar - $</option>
-            <option value="UAH" ${scrapedData.priceCurrency === "UAH" ? "selected" : ""}>Ukraine Hryvnia - ₴</option>
-            <option value="GBP" ${scrapedData.priceCurrency === "GBP" ? "selected" : ""}>United Kingdom Pound - £</option>
-            <option value="USD" ${scrapedData.priceCurrency === "USD" ? "selected" : ""}>United States Dollar - $</option>
-            <option value="UYU" ${scrapedData.priceCurrency === "UYU" ? "selected" : ""}>Uruguay Peso - $U</option>
-            <option value="UZS" ${scrapedData.priceCurrency === "UZS" ? "selected" : ""}>Uzbekistan Som - лв</option>
-            <option value="VEF" ${scrapedData.priceCurrency === "VEF" ? "selected" : ""}>Venezuela Bolívar - Bs</option>
-            <option value="VND" ${scrapedData.priceCurrency === "VND" ? "selected" : ""}>Viet Nam Dong - ₫</option>
-            <option value="YER" ${scrapedData.priceCurrency === "YER" ? "selected" : ""}>Yemen Rial - ﷼</option>
-            <option value="ZWD" ${scrapedData.priceCurrency === "ZWD" ? "selected" : ""}>Zimbabwe Dollar - Z$</option>
-          </select>
-        </div>
-
-        <div class="mb-6">
           <label for="page-shipping" class="block text-sm font-medium secondary-text mb-1">${t("modals.shippingPrice")}</label>
           <input 
             type="text" 
@@ -1982,6 +1893,28 @@ function showScrapedDataModal() {
             placeholder="${t("modals.enterShipping")}"
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-insurance" class="block text-sm font-medium secondary-text mb-1">${t("modals.insurancePrice")}</label>
+          <input 
+            type="text" 
+            id="page-insurance" 
+            value="${scrapedData.hasKnownParser ? (scrapedData.insurancePrice || "") : ""}"
+            placeholder="${t("modals.enterInsurance")}"
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+        </div>
+
+        <div class="mb-6">
+          <label for="page-currency" class="block text-sm font-medium secondary-text mb-1">${t("modals.currency")}</label>
+          <select 
+            id="page-currency" 
+            class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+          >
+            <option value="FREE" ${scrapedData.priceCurrency === "FREE" ? "selected" : ""}>${t("pages.free")}</option>
+            ${CURRENCIES.map(c => `<option value="${c.code}" ${scrapedData.priceCurrency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
+          </select>
         </div>
 
         <div class="mb-6">
@@ -2085,6 +2018,7 @@ function showScrapedDataModal() {
     const url = document.getElementById("page-url").value
     const price = document.getElementById("page-price").value
     const shippingPrice = document.getElementById("page-shipping").value
+    const insurancePrice = document.getElementById("page-insurance").value
     const seller = document.getElementById("page-seller").value
     const currency = document.getElementById("page-currency").value
     const itemsPerPurchaseValue = document.getElementById("items-per-purchase")?.value
@@ -2098,6 +2032,7 @@ function showScrapedDataModal() {
     if (currency !== 'FREE') {
       if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
       if (!validateRequiredField('page-shipping', t("modals.shippingPrice"))) isValid = false
+      if (!validateRequiredField('page-insurance', t("modals.insurancePrice"))) isValid = false
     }
     if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
     
@@ -2123,6 +2058,7 @@ function showScrapedDataModal() {
         url,
         price,
         shippingPrice,
+        insurancePrice,
         seller,
         currency,
         itemsPerPurchase,
@@ -2156,6 +2092,7 @@ function showScrapedDataModal() {
         url,
         price,
         shippingPrice,
+        insurancePrice,
         seller,
         currency,
         itemsPerPurchase,
