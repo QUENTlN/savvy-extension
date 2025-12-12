@@ -3034,6 +3034,25 @@ function showNewAlternativeGroupModal() {
       return
     }
 
+    // Check for duplicate options
+    const signatures = options.map(opt => {
+      const sorted = [...opt.products].sort((a, b) => a.productId.localeCompare(b.productId))
+      return sorted.map(p => `${p.productId}:${p.quantity}`).join('|')
+    })
+    
+    const uniqueSignatures = new Set(signatures)
+    if (uniqueSignatures.size !== options.length) {
+      const container = document.getElementById('options-container')
+      let errorMsg = container.nextElementSibling
+      if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
+        errorMsg = document.createElement('p')
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
+        container.parentNode.insertBefore(errorMsg, container.nextSibling)
+      }
+      errorMsg.textContent = t("alternatives.errorDuplicateOptions")
+      return
+    }
+
     SidebarAPI.createAlternativeGroup(currentSession, { name, options }).then(response => {
       sessions = response.sessions
       closeModal()
@@ -3212,6 +3231,25 @@ function showEditAlternativeGroupModal(group) {
         container.parentNode.insertBefore(errorMsg, container.nextSibling)
       }
       errorMsg.textContent = t("alternatives.errorMinOptions")
+      return
+    }
+
+    // Check for duplicate options
+    const signatures = options.map(opt => {
+      const sorted = [...opt.products].sort((a, b) => a.productId.localeCompare(b.productId))
+      return sorted.map(p => `${p.productId}:${p.quantity}`).join('|')
+    })
+    
+    const uniqueSignatures = new Set(signatures)
+    if (uniqueSignatures.size !== options.length) {
+      const container = document.getElementById('options-container')
+      let errorMsg = container.nextElementSibling
+      if (!errorMsg || !errorMsg.classList.contains('field-error-message')) {
+        errorMsg = document.createElement('p')
+        errorMsg.className = 'field-error-message text-sm error-text mt-1'
+        container.parentNode.insertBefore(errorMsg, container.nextSibling)
+      }
+      errorMsg.textContent = t("alternatives.errorDuplicateOptions")
       return
     }
 

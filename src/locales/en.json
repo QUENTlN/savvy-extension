@@ -105,7 +105,8 @@
         "deleteButton": "Delete Group",
         "overrideNotice": "Quantities specified here will override the product quantities during optimization.",
         "errorOptionEmpty": "Each option must have at least one product selected.",
-        "errorMinOptions": "Please add at least two options with selected products."
+        "errorMinOptions": "Please add at least two options with selected products.",
+        "errorDuplicateOptions": "Two options cannot be identical."
     },
     "deliveryRules": {
         "title": "Delivery Rules",
