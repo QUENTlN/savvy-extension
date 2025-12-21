@@ -4,7 +4,10 @@
 let sessions = []
 let currentSession = null
 let currentView = "sessions" // 'sessions', 'products', 'pages', 'settings', 'deliveryRules', 'alternatives'
+let currentRulesView = "list" // 'list', 'edit'
+let currentSellerEditing = null
 let currentProduct = null
 let scrapedData = null
+let currentCurrencySymbol = '€'
 
 

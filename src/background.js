@@ -181,6 +181,8 @@ function createSession(data) {
     name: data.name,
     manageQuantity: data.manageQuantity,
     importFeesEnabled: data.importFeesEnabled,
+    manageWeight: data.manageWeight,
+    manageVolume: data.manageVolume,
     customsCategories: [],
     products: [],
     bundles: [],
