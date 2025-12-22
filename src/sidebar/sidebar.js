@@ -3059,14 +3059,15 @@ function renderRangeRow(type, prefix, idx, range = {}, tierValueType = 'fixed', 
         `;
     } else {
         const isQuantity = type === 'quantity';
+        const stepValue = isQuantity ? '1' : '0.01';
         inputs = `
             <div class="flex-[2] relative">
                <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.startingFrom')}</span>
-               <input type="number" step="0.01" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none" placeholder="0" value="${range.min || 0}" name="${prefix}_range_${idx}_min">
+               <input type="number" step="${stepValue}" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none" placeholder="0" value="${range.min || 0}" name="${prefix}_range_${idx}_min">
             </div>
             <div class="flex-[2] relative">
-               <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${isQuantity ? t('deliveryRules.max') : t('deliveryRules.upTo')}</span>
-               <input type="number" step="0.01" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none text-center" placeholder="∞" value="${range.max || ''}" name="${prefix}_range_${idx}_max">
+               <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.upTo')}</span>
+               <input type="number" step="${stepValue}" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none text-center" placeholder="∞" value="${range.max || ''}" name="${prefix}_range_${idx}_max">
             </div>
             <div class="flex-[2] relative">
                <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.value')} (${valueLabel})</span>
@@ -3708,6 +3709,617 @@ function extractCalculationRule(prefix, container) {
     return rule;
 }
 
+// ============================================================================
+// TIER VALIDATION MODULE
+// ============================================================================
+
+/**
+ * Get the type of a calculation rule container
+ */
+function getTierType(container) {
+    const prefix = container.dataset.prefix;
+    const typeRadio = container.querySelector(`input[name="${prefix}_type"]:checked`);
+    return typeRadio ? typeRadio.value : 'quantity';
+}
+
+/**
+ * Check if a type requires integer values (quantity only)
+ */
+function requiresInteger(type) {
+    return type === 'quantity';
+}
+
+/**
+ * Get minimum value for first tier based on type
+ */
+function getMinValueForFirstTier(type) {
+    return requiresInteger(type) ? 1 : 0;
+}
+
+/**
+ * Parse a tier range from DOM inputs
+ */
+function parseTierRange(row, type) {
+    const minInput = row.querySelector('input[name$="_min"]');
+    const maxInput = row.querySelector('input[name$="_max"]');
+    const valueInput = row.querySelector('input[name$="_value"]');
+
+    // Parse max value - if it's an invalid number (NaN), treat it as null but keep the input for validation
+    let maxValue = null;
+    if (maxInput && maxInput.value !== '') {
+        const parsed = parseFloat(maxInput.value);
+        maxValue = !isNaN(parsed) ? parsed : null;
+    }
+
+    return {
+        row: row,
+        index: parseInt(row.dataset.index),
+        min: minInput ? parseFloat(minInput.value) || 0 : 0,
+        max: maxValue,
+        value: valueInput ? parseFloat(valueInput.value) || 0 : 0,
+        minInput: minInput,
+        maxInput: maxInput,
+        valueInput: valueInput
+    };
+}
+
+/**
+ * Get all tier ranges from a container
+ */
+function getAllTierRanges(container, type) {
+    const rangesContainer = container.querySelector('.ranges-container');
+    if (!rangesContainer) return [];
+
+    const rows = Array.from(rangesContainer.querySelectorAll('.range-row'));
+    return rows.map(row => parseTierRange(row, type));
+}
+
+/**
+ * Show validation error on an input field
+ * @param {HTMLElement} input - The input element
+ * @param {string} message - Error message
+ * @param {string} severity - 'warning' (orange) or 'error' (red)
+ */
+function showTierInputError(input, message, severity = 'warning') {
+    if (!input) return;
+
+    // Remove existing error state
+    clearTierInputError(input);
+
+    // Add appropriate border color
+    if (severity === 'error') {
+        input.classList.add('!border-red-500', 'focus:!ring-red-500');
+        input.dataset.errorSeverity = 'error';
+    } else {
+        input.classList.add('!border-orange-500', 'focus:!ring-orange-500');
+        input.dataset.errorSeverity = 'warning';
+    }
+
+    // Add error message below the row (after it, not inside it)
+    const row = input.closest('.range-row');
+    if (row) {
+        // Check if there's already an error div after this row
+        let errorDiv = row.nextElementSibling;
+        if (!errorDiv || !errorDiv.classList.contains('tier-error-message')) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'tier-error-message text-xs mt-1 px-2 mb-2';
+            // Insert after the row, not inside it
+            row.parentNode.insertBefore(errorDiv, row.nextSibling);
+        }
+
+        if (severity === 'error') {
+            errorDiv.className = 'tier-error-message text-xs text-red-500 mt-1 px-2 mb-2';
+        } else {
+            errorDiv.className = 'tier-error-message text-xs text-orange-500 mt-1 px-2 mb-2';
+        }
+
+        errorDiv.textContent = message;
+    }
+}
+
+/**
+ * Clear validation error from an input field
+ */
+function clearTierInputError(input) {
+    if (!input) return;
+
+    input.classList.remove('!border-red-500', 'focus:!ring-red-500', '!border-orange-500', 'focus:!ring-orange-500');
+    delete input.dataset.errorSeverity;
+
+    const row = input.closest('.range-row');
+    if (row) {
+        // Check if next sibling is an error message
+        const errorDiv = row.nextElementSibling;
+        if (errorDiv && errorDiv.classList.contains('tier-error-message')) {
+            errorDiv.remove();
+        }
+    }
+}
+
+/**
+ * Clear all validation errors in a container
+ */
+function clearAllTierErrors(container) {
+    const inputs = container.querySelectorAll('input[data-error-severity]');
+    inputs.forEach(input => clearTierInputError(input));
+
+    const errorDivs = container.querySelectorAll('.tier-error-message');
+    errorDivs.forEach(div => div.remove());
+
+    // Clear container-level errors
+    const rangesContainer = container.querySelector('.ranges-container');
+    if (rangesContainer) {
+        const containerError = rangesContainer.querySelector('.tier-container-error');
+        if (containerError) containerError.remove();
+    }
+}
+
+/**
+ * Validate that min is >= 0 (or >= 1 for first quantity tier)
+ */
+function validateMinValue(range, type, isFirstTier, severity = 'warning') {
+    const minRequired = isFirstTier ? getMinValueForFirstTier(type) : 0;
+
+    if (range.min < minRequired) {
+        const message = isFirstTier && requiresInteger(type)
+            ? t('validation.tier.minMustBeOne')
+            : t('validation.tier.minMustBeZeroOrMore');
+        showTierInputError(range.minInput, message, severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate that max > min (when max is not empty)
+ */
+function validateMaxGreaterThanMin(range, type, severity = 'warning') {
+    if (range.max !== null && range.max <= range.min) {
+        showTierInputError(range.maxInput, t('validation.tier.maxMustBeGreaterThanMin'), severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate that field values are valid numbers
+ */
+function validateNumericFields(range, type, severity = 'warning', isLastTier = false) {
+    let valid = true;
+
+    // Check min is a valid number
+    if (range.minInput) {
+        const minValue = range.minInput.value.trim();
+        if (minValue === '' || isNaN(parseFloat(minValue))) {
+            showTierInputError(range.minInput, t('validation.tier.mustBeNumber'), severity);
+            valid = false;
+        }
+    }
+
+    // Check max is a valid number
+    // Empty max is only allowed for the last tier (means infinity)
+    if (range.maxInput) {
+        const maxValue = range.maxInput.value.trim();
+
+        if (maxValue === '') {
+            // Empty max is only valid for the last tier
+            if (!isLastTier) {
+                showTierInputError(range.maxInput, t('validation.tier.mustBeNumber'), severity);
+                valid = false;
+            }
+        } else if (isNaN(parseFloat(maxValue))) {
+            // Non-empty but invalid number
+            showTierInputError(range.maxInput, t('validation.tier.mustBeNumber'), severity);
+            valid = false;
+        }
+    }
+
+    // Check value is a valid number (always for submission, only if filled for live)
+    if (range.valueInput) {
+        const valueStr = range.valueInput.value.trim();
+        if (severity === 'error') {
+            // Submission: value must be filled and valid
+            if (valueStr === '' || isNaN(parseFloat(valueStr))) {
+                showTierInputError(range.valueInput, t('validation.tier.mustBeNumber'), severity);
+                valid = false;
+            }
+        } else {
+            // Live validation: only validate if something is entered
+            if (valueStr !== '' && isNaN(parseFloat(valueStr))) {
+                showTierInputError(range.valueInput, t('validation.tier.mustBeNumber'), severity);
+                valid = false;
+            }
+        }
+    }
+
+    return valid;
+}
+
+/**
+ * Validate integer constraint for quantity types
+ */
+function validateIntegerConstraint(range, type, severity = 'warning') {
+    if (!requiresInteger(type)) return true;
+
+    let valid = true;
+
+    // Check min is integer
+    if (!isNaN(range.min) && range.min !== Math.floor(range.min)) {
+        showTierInputError(range.minInput, t('validation.tier.mustBeInteger'), severity);
+        valid = false;
+    }
+
+    // Check max is integer (if not null)
+    if (range.max !== null && !isNaN(range.max) && range.max !== Math.floor(range.max)) {
+        showTierInputError(range.maxInput, t('validation.tier.mustBeInteger'), severity);
+        valid = false;
+    }
+
+    return valid;
+}
+
+/**
+ * Validate value is filled and >= 0
+ */
+function validateValueField(range, severity = 'warning') {
+    if (!range.valueInput) return true;
+
+    const valueStr = range.valueInput.value.trim();
+
+    // Check if empty (only for submission validation)
+    if (severity === 'error' && valueStr === '') {
+        showTierInputError(range.valueInput, t('validation.tier.valueRequired'), severity);
+        return false;
+    }
+
+    // Check if negative
+    if (range.value < 0) {
+        showTierInputError(range.valueInput, t('validation.tier.valueMustBePositive'), severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate continuity between consecutive tiers (no gaps)
+ */
+function validateContinuity(currentRange, previousRange, type, severity = 'warning') {
+    if (!previousRange) return true;
+
+    // Previous tier must have a max
+    if (previousRange.max === null) {
+        // This is handled by validateLastTierInfinity
+        return true;
+    }
+
+    const expectedMin = requiresInteger(type) ? previousRange.max + 1 : previousRange.max;
+
+    if (currentRange.min !== expectedMin) {
+        const message = t('validation.tier.gapBetweenTiers');
+        showTierInputError(currentRange.minInput, message, severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate no overlaps between tiers
+ */
+function validateNoOverlap(currentRange, previousRange, type, severity = 'warning') {
+    if (!previousRange || previousRange.max === null) return true;
+
+    const minRequired = requiresInteger(type) ? previousRange.max + 1 : previousRange.max;
+
+    if (currentRange.min < minRequired) {
+        showTierInputError(currentRange.minInput, t('validation.tier.overlapDetected'), severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate that last tier has empty max (infinity)
+ */
+function validateLastTierInfinity(ranges, severity = 'error') {
+    if (ranges.length === 0) return true;
+
+    const lastRange = ranges[ranges.length - 1];
+    if (lastRange.max !== null) {
+        showTierInputError(lastRange.maxInput, t('validation.tier.lastTierMustBeInfinity'), severity);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate at least one tier exists
+ */
+function validateAtLeastOneTier(ranges, container, severity = 'error') {
+    if (ranges.length === 0) {
+        // Show error message in the ranges container
+        const rangesContainer = container.querySelector('.ranges-container');
+        if (rangesContainer) {
+            let errorDiv = rangesContainer.querySelector('.tier-container-error');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'tier-container-error text-sm text-red-500 text-center py-2 px-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-300 dark:border-red-700';
+                rangesContainer.insertBefore(errorDiv, rangesContainer.firstChild);
+            }
+            errorDiv.textContent = t('validation.tier.atLeastOneTierRequired');
+        }
+        return false;
+    }
+
+    // Remove container error if exists
+    const rangesContainer = container.querySelector('.ranges-container');
+    if (rangesContainer) {
+        const errorDiv = rangesContainer.querySelector('.tier-container-error');
+        if (errorDiv) errorDiv.remove();
+    }
+
+    return true;
+}
+
+/**
+ * Validate no duplicate ranges
+ */
+function validateNoDuplicates(ranges, severity = 'error') {
+    const seen = new Set();
+    let valid = true;
+
+    ranges.forEach(range => {
+        const key = `${range.min}-${range.max}`;
+        if (seen.has(key)) {
+            showTierInputError(range.minInput, t('validation.tier.duplicateRange'), severity);
+            showTierInputError(range.maxInput, t('validation.tier.duplicateRange'), severity);
+            valid = false;
+        }
+        seen.add(key);
+    });
+
+    return valid;
+}
+
+/**
+ * Perform live validation on a single input field
+ */
+function performLiveValidation(input, container) {
+    const type = getTierType(container);
+    const ranges = getAllTierRanges(container, type);
+    const row = input.closest('.range-row');
+
+    if (!row) return;
+
+    const currentRange = parseTierRange(row, type);
+    const currentIndex = ranges.findIndex(r => r.row === row);
+    const isFirstTier = currentIndex === 0;
+    const isLastTier = currentIndex === ranges.length - 1;
+    const previousRange = currentIndex > 0 ? ranges[currentIndex - 1] : null;
+
+    // Clear existing error on this input
+    clearTierInputError(input);
+
+    // Determine which field was blurred
+    const fieldName = input.name.split('_').pop();
+
+    if (fieldName === 'min') {
+        // First validate it's a number
+        if (!validateNumericFields(currentRange, type, 'warning', isLastTier)) return;
+
+        validateMinValue(currentRange, type, isFirstTier, 'warning');
+        validateIntegerConstraint(currentRange, type, 'warning');
+        validateContinuity(currentRange, previousRange, type, 'warning');
+        validateNoOverlap(currentRange, previousRange, type, 'warning');
+    } else if (fieldName === 'max') {
+        // First validate it's a number
+        if (!validateNumericFields(currentRange, type, 'warning', isLastTier)) return;
+
+        validateMaxGreaterThanMin(currentRange, type, 'warning');
+        validateIntegerConstraint(currentRange, type, 'warning');
+
+        // Check continuity of NEXT tier if it exists
+        if (currentIndex < ranges.length - 1) {
+            const nextRange = ranges[currentIndex + 1];
+            const nextMinInput = nextRange.minInput;
+            clearTierInputError(nextMinInput);
+
+            // Re-parse next range as auto-continuity may have updated it
+            const updatedNextRange = parseTierRange(nextRange.row, type);
+            validateContinuity(updatedNextRange, currentRange, type, 'warning');
+        }
+    } else if (fieldName === 'value') {
+        // Validate it's a valid number and positive
+        validateNumericFields(currentRange, type, 'warning', isLastTier);
+        if (currentRange.value < 0) {
+            validateValueField(currentRange, 'warning');
+        }
+    }
+}
+
+/**
+ * Perform complete validation before submission
+ * Returns true if all validations pass, false otherwise
+ */
+function performSubmissionValidation(container) {
+    const type = getTierType(container);
+    const ranges = getAllTierRanges(container, type);
+
+    // Clear all existing errors
+    clearAllTierErrors(container);
+
+    let valid = true;
+
+    // Rule 1: At least one tier must exist
+    if (!validateAtLeastOneTier(ranges, container, 'error')) {
+        valid = false;
+    }
+
+    if (ranges.length === 0) {
+        return false; // Can't proceed with other validations
+    }
+
+    // Rule 2: Last tier must have empty max (infinity)
+    if (!validateLastTierInfinity(ranges, 'error')) {
+        valid = false;
+    }
+
+    // Rule 3: No duplicate ranges
+    if (!validateNoDuplicates(ranges, 'error')) {
+        valid = false;
+    }
+
+    // Rule 4-10: Validate each tier
+    ranges.forEach((range, index) => {
+        const isFirstTier = index === 0;
+        const isLastTier = index === ranges.length - 1;
+        const previousRange = index > 0 ? ranges[index - 1] : null;
+
+        // FIRST: Validate all fields are valid numbers
+        if (!validateNumericFields(range, type, 'error', isLastTier)) {
+            valid = false;
+            return; // Skip other validations if fields aren't valid numbers
+        }
+
+        // Min >= 0 (or >= 1 for first quantity tier)
+        if (!validateMinValue(range, type, isFirstTier, 'error')) {
+            valid = false;
+        }
+
+        // Max > Min (when max is not empty)
+        if (!validateMaxGreaterThanMin(range, type, 'error')) {
+            valid = false;
+        }
+
+        // Integer constraint for quantity
+        if (!validateIntegerConstraint(range, type, 'error')) {
+            valid = false;
+        }
+
+        // No gaps between consecutive tiers
+        if (!validateContinuity(range, previousRange, type, 'error')) {
+            valid = false;
+        }
+
+        // No overlaps
+        if (!validateNoOverlap(range, previousRange, type, 'error')) {
+            valid = false;
+        }
+
+        // Value must be filled and >= 0
+        if (!validateValueField(range, 'error')) {
+            valid = false;
+        }
+    });
+
+    return valid;
+}
+
+/**
+ * Validate numeric fields for non-tiered calculation types (Fixed, Percentage)
+ */
+function validateNonTieredFields(container) {
+    const prefix = container.dataset.prefix;
+    const type = getTierType(container);
+    let valid = true;
+
+    // Validate Fixed amount
+    if (type === 'fixed') {
+        const amountInput = container.querySelector(`input[name="${prefix}_amount"]`);
+        if (amountInput) {
+            const value = parseFloat(amountInput.value);
+            if (isNaN(value) || amountInput.value.trim() === '') {
+                amountInput.classList.add('!border-red-500', 'focus:!ring-red-500');
+
+                // Add error message after the input
+                let errorDiv = amountInput.parentElement.querySelector('.field-error-message');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'field-error-message text-xs text-red-500 mt-1';
+                    amountInput.parentElement.appendChild(errorDiv);
+                }
+                errorDiv.textContent = t('validation.tier.mustBeNumber');
+                valid = false;
+            } else {
+                amountInput.classList.remove('!border-red-500', 'focus:!ring-red-500');
+                const errorDiv = amountInput.parentElement.querySelector('.field-error-message');
+                if (errorDiv) errorDiv.remove();
+            }
+        }
+    }
+
+    // Validate Percentage rate
+    if (type === 'percentage') {
+        const rateInput = container.querySelector(`input[name="${prefix}_rate"]`);
+        if (rateInput) {
+            const value = parseFloat(rateInput.value);
+            if (isNaN(value) || rateInput.value.trim() === '') {
+                rateInput.classList.add('!border-red-500', 'focus:!ring-red-500');
+
+                // Add error message after the input
+                let errorDiv = rateInput.parentElement.querySelector('.field-error-message');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'field-error-message text-xs text-red-500 mt-1';
+                    rateInput.parentElement.appendChild(errorDiv);
+                }
+                errorDiv.textContent = t('validation.tier.mustBeNumber');
+                valid = false;
+            } else {
+                rateInput.classList.remove('!border-red-500', 'focus:!ring-red-500');
+                const errorDiv = rateInput.parentElement.querySelector('.field-error-message');
+                if (errorDiv) errorDiv.remove();
+            }
+        }
+    }
+
+    return valid;
+}
+
+/**
+ * Validate all tier-based forms in the current view
+ * Used before saving
+ */
+function validateAllTierForms() {
+    let allValid = true;
+
+    // Find all calculation rule containers
+    const containers = document.querySelectorAll('.calculation-rules-container');
+
+    containers.forEach(container => {
+        const prefix = container.dataset.prefix;
+        const type = getTierType(container);
+        const isTieredCb = container.querySelector(`input[name="${prefix}_isTiered"]`);
+
+        // Validate non-tiered modes (Fixed, Percentage)
+        if (!isTieredCb || !isTieredCb.checked) {
+            if (!validateNonTieredFields(container)) {
+                allValid = false;
+            }
+        }
+        // Validate tiered modes
+        else {
+            // Only validate types that use min/max/value structure
+            if (['quantity', 'distance', 'weight', 'volume'].includes(type)) {
+                if (!performSubmissionValidation(container)) {
+                    allValid = false;
+                }
+            }
+        }
+    });
+
+    return allValid;
+}
+
+// ============================================================================
+// END TIER VALIDATION MODULE
+// ============================================================================
+
 function getRule(session, seller) {
   const rule = (session.deliveryRules || []).find(r => r.seller === seller) || {}
   // Migration/Default logic
@@ -3999,7 +4611,10 @@ function renderSellerDeliveryRulesView(seller) {
         const prefix = container.dataset.prefix
         const newType = e.target.value
         const inputsContainer = container.querySelector('.calculation-inputs')
-        
+
+        // Clear all tier errors when changing calculation type
+        clearAllTierErrors(container);
+
         let newHtml = ''
         if (newType === 'fixed') newHtml = renderFixedInputs(prefix, { type: 'fixed' })
         else if (newType === 'percentage') newHtml = renderPercentageInputs(prefix, { type: 'percentage' })
@@ -4007,7 +4622,7 @@ function renderSellerDeliveryRulesView(seller) {
         else if (newType === 'dimension') newHtml = renderDimensionInputs(prefix, { type: newType })
         else if (['weight_volume', 'weight_dimension'].includes(newType)) newHtml = renderCombinedInputs(prefix, { type: newType }, newType)
         else if (newType === 'item') newHtml = `<p class="text-sm secondary-text italic">${t('deliveryRules.typeItem')}</p>`
-        
+
         inputsContainer.innerHTML = newHtml
     }
 
@@ -4015,16 +4630,19 @@ function renderSellerDeliveryRulesView(seller) {
         const element = e.target
         const container = element.closest('.calculation-rules-container')
         const prefix = container.dataset.prefix
-        
+
+        // Clear any existing validation errors when switching modes
+        clearAllTierErrors(container);
+
         // Extract current data to preserve values
         const data = extractCalculationRule(prefix, container)
-        
+
         // Update isTiered based on the toggle that just changed
         data.isTiered = element.classList.contains('is-tiered-toggle') ? (element.value === 'tiered') : element.checked
-        
+
         const type = data.type
         const inputsContainer = container.querySelector('.calculation-inputs')
-        
+
         if (type === 'dimension') {
             inputsContainer.innerHTML = renderDimensionInputs(prefix, data)
         } else if (['weight_volume', 'weight_dimension'].includes(type)) {
@@ -4124,6 +4742,73 @@ function renderSellerDeliveryRulesView(seller) {
     }
   })
 
+  // ============================================================================
+  // TIER VALIDATION: Live validation on blur
+  // ============================================================================
+  sellerCard.addEventListener('blur', (e) => {
+    const input = e.target;
+
+    if (input.tagName !== 'INPUT') return;
+
+    const container = input.closest('.calculation-rules-container');
+    if (!container) return;
+
+    const prefix = container.dataset.prefix;
+
+    // Check if this is a tier input field
+    if (input.name && input.name.includes('_range_')) {
+      const isTieredCb = container.querySelector(`input[name="${prefix}_isTiered"]`);
+
+      // Only validate if tiered mode is enabled
+      if (isTieredCb && isTieredCb.checked) {
+        const type = getTierType(container);
+
+        // Only validate types that use min/max/value structure
+        if (['quantity', 'distance', 'weight', 'volume'].includes(type)) {
+          performLiveValidation(input, container);
+        }
+      }
+    }
+    // Validate Fixed amount field
+    else if (input.name === `${prefix}_amount`) {
+      const value = parseFloat(input.value);
+      if (isNaN(value) || input.value.trim() === '') {
+        input.classList.add('!border-orange-500', 'focus:!ring-orange-500');
+
+        let errorDiv = input.parentElement.querySelector('.field-error-message');
+        if (!errorDiv) {
+          errorDiv = document.createElement('div');
+          errorDiv.className = 'field-error-message text-xs text-orange-500 mt-1';
+          input.parentElement.appendChild(errorDiv);
+        }
+        errorDiv.textContent = t('validation.tier.mustBeNumber');
+      } else {
+        input.classList.remove('!border-orange-500', 'focus:!ring-orange-500');
+        const errorDiv = input.parentElement.querySelector('.field-error-message');
+        if (errorDiv) errorDiv.remove();
+      }
+    }
+    // Validate Percentage rate field
+    else if (input.name === `${prefix}_rate`) {
+      const value = parseFloat(input.value);
+      if (isNaN(value) || input.value.trim() === '') {
+        input.classList.add('!border-orange-500', 'focus:!ring-orange-500');
+
+        let errorDiv = input.parentElement.querySelector('.field-error-message');
+        if (!errorDiv) {
+          errorDiv = document.createElement('div');
+          errorDiv.className = 'field-error-message text-xs text-orange-500 mt-1';
+          input.parentElement.appendChild(errorDiv);
+        }
+        errorDiv.textContent = t('validation.tier.mustBeNumber');
+      } else {
+        input.classList.remove('!border-orange-500', 'focus:!ring-orange-500');
+        const errorDiv = input.parentElement.querySelector('.field-error-message');
+        if (errorDiv) errorDiv.remove();
+      }
+    }
+  }, true); // Use capture phase to ensure we catch blur events
+
   sellerCard.addEventListener('click', (e) => {
     if (e.target.closest('.add-range-btn')) {
         const btn = e.target.closest('.add-range-btn')
@@ -4180,8 +4865,29 @@ function renderSellerDeliveryRulesView(seller) {
     if (e.target.closest('.remove-range-btn')) {
         const row = e.target.closest('.range-row')
         const container = row.closest('.ranges-container')
+        const calcContainer = row.closest('.calculation-rules-container');
+
+        // Clear errors on all remaining rows after removal
+        if (calcContainer) {
+            clearAllTierErrors(calcContainer);
+        }
+
         row.remove()
-        
+
+        // Re-validate after removal (live validation)
+        if (calcContainer) {
+            const type = getTierType(calcContainer);
+            const ranges = getAllTierRanges(calcContainer, type);
+
+            // Validate continuity between remaining tiers
+            ranges.forEach((range, index) => {
+                if (index > 0) {
+                    const previousRange = ranges[index - 1];
+                    validateContinuity(range, previousRange, type, 'warning');
+                }
+            });
+        }
+
         // If empty, add back placeholder
         if (container.querySelectorAll('.range-row').length === 0) {
             container.innerHTML = `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>`
@@ -4190,6 +4896,21 @@ function renderSellerDeliveryRulesView(seller) {
   })
 
   document.getElementById("save-seller-rules").addEventListener("click", () => {
+    // TIER VALIDATION: Validate all tier-based forms before saving
+    if (!validateAllTierForms()) {
+      // Show error toast
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+      errorMessage.textContent = t('validation.tier.fixErrorsBeforeSaving');
+      document.body.appendChild(errorMessage);
+
+      setTimeout(() => {
+        errorMessage.remove();
+      }, 5000);
+
+      return; // Stop save operation
+    }
+
     // Save logic for ONE seller
     const currentRule = { seller }
     const sameSelect = document.querySelector('.same-seller-select')

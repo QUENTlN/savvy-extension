@@ -178,4 +178,29 @@ body {
   .icon-close { mask-image: url('../icons/close.svg'); -webkit-mask-image: url('../icons/close.svg'); }
   .icon-help { mask-image: url('../icons/help.svg'); -webkit-mask-image: url('../icons/help.svg'); }
   .icon-info { mask-image: url('../icons/info.svg'); -webkit-mask-image: url('../icons/info.svg'); }
+
+  /* Tier validation styles */
+  input.\!border-orange-500 {
+    border-color: #f97316 !important;
+  }
+
+  input.focus\:\!ring-orange-500:focus {
+    --tw-ring-color: #f97316 !important;
+  }
+
+  /* Animation for error toast */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
 }

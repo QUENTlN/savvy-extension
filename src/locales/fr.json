@@ -313,5 +313,22 @@
             "gal": "gallon",
             "pt": "pinte"
         }
+    },
+    "validation": {
+        "tier": {
+            "minMustBeOne": "Le premier palier doit commencer à 1",
+            "minMustBeZeroOrMore": "Le minimum doit être 0 ou plus",
+            "maxMustBeGreaterThanMin": "Le maximum doit être supérieur au minimum",
+            "mustBeInteger": "Doit être un nombre entier",
+            "mustBeNumber": "Doit être un nombre valide",
+            "valueRequired": "La valeur est requise",
+            "valueMustBePositive": "La valeur doit être 0 ou plus",
+            "gapBetweenTiers": "Écart détecté - doit continuer du palier précédent",
+            "overlapDetected": "Chevauchement détecté avec le palier précédent",
+            "lastTierMustBeInfinity": "Le dernier palier doit avoir un maximum vide (∞)",
+            "atLeastOneTierRequired": "Au moins un palier est requis",
+            "duplicateRange": "Plage en double détectée",
+            "fixErrorsBeforeSaving": "Veuillez corriger toutes les erreurs de validation avant d'enregistrer"
+        }
     }
 }

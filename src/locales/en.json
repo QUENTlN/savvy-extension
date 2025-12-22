@@ -313,5 +313,22 @@
             "gal": "gallon",
             "pt": "pint"
         }
+    },
+    "validation": {
+        "tier": {
+            "minMustBeOne": "First tier must start at 1",
+            "minMustBeZeroOrMore": "Minimum must be 0 or greater",
+            "maxMustBeGreaterThanMin": "Maximum must be greater than minimum",
+            "mustBeInteger": "Must be a whole number",
+            "mustBeNumber": "Must be a valid number",
+            "valueRequired": "Value is required",
+            "valueMustBePositive": "Value must be 0 or greater",
+            "gapBetweenTiers": "Gap detected - must continue from previous tier",
+            "overlapDetected": "Overlap detected with previous tier",
+            "lastTierMustBeInfinity": "Last tier must have no maximum (∞)",
+            "atLeastOneTierRequired": "At least one tier is required",
+            "duplicateRange": "Duplicate range detected",
+            "fixErrorsBeforeSaving": "Please fix all validation errors before saving"
+        }
     }
 }

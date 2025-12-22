@@ -324,5 +324,22 @@
             "gal": "galón",
             "pt": "pinta"
         }
+    },
+    "validation": {
+        "tier": {
+            "minMustBeOne": "El primer nivel debe comenzar en 1",
+            "minMustBeZeroOrMore": "El mínimo debe ser 0 o más",
+            "maxMustBeGreaterThanMin": "El máximo debe ser mayor que el mínimo",
+            "mustBeInteger": "Debe ser un número entero",
+            "mustBeNumber": "Debe ser un número válido",
+            "valueRequired": "El valor es obligatorio",
+            "valueMustBePositive": "El valor debe ser 0 o más",
+            "gapBetweenTiers": "Brecha detectada - debe continuar desde el nivel anterior",
+            "overlapDetected": "Superposición detectada con el nivel anterior",
+            "lastTierMustBeInfinity": "El último nivel debe tener máximo vacío (∞)",
+            "atLeastOneTierRequired": "Se requiere al menos un nivel",
+            "duplicateRange": "Rango duplicado detectado",
+            "fixErrorsBeforeSaving": "Por favor corrija todos los errores de validación antes de guardar"
+        }
     }
 }
