@@ -3006,8 +3006,11 @@ function renderPercentageInputs(prefix, data) {
     `;
 }
 
-function renderRangeRow(type, prefix, idx, range = {}) {
+function renderRangeRow(type, prefix, idx, range = {}, tierValueType = 'fixed', tierValueMode = 'perUnit', unit = '', unit2 = '') {
     let inputs = '';
+    
+    // Générer le label de valeur dynamique
+    const valueLabel = getValueLabel(type, tierValueType, tierValueMode, unit, unit2);
     
     if (type === 'dimension') {
         inputs = `
@@ -3058,15 +3061,15 @@ function renderRangeRow(type, prefix, idx, range = {}) {
         const isQuantity = type === 'quantity';
         inputs = `
             <div class="flex-[2] relative">
-               <span class="absolute -top-3 left-1 text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.startingFrom')}</span>
+               <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.startingFrom')}</span>
                <input type="number" step="0.01" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none" placeholder="0" value="${range.min || 0}" name="${prefix}_range_${idx}_min">
             </div>
             <div class="flex-[2] relative">
-               <span class="absolute -top-3 left-1 text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${isQuantity ? t('deliveryRules.max') : t('deliveryRules.strictlyLessThan')}</span>
+               <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${isQuantity ? t('deliveryRules.max') : t('deliveryRules.upTo')}</span>
                <input type="number" step="0.01" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none text-center" placeholder="∞" value="${range.max || ''}" name="${prefix}_range_${idx}_max">
             </div>
             <div class="flex-[2] relative">
-               <span class="absolute -top-3 left-1 text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.value')}</span>
+               <span class="absolute -top-3 left-0 w-full truncate text-[8px] secondary-text font-bold uppercase transition-opacity group-hover/row:opacity-100 opacity-60">${t('deliveryRules.value')} (${valueLabel})</span>
                <input type="number" step="0.01" class="w-full bg-[hsl(var(--card))] border border-default rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none font-medium text-center" placeholder="0.00" value="${range.value || ''}" name="${prefix}_range_${idx}_value">
             </div>
         `;
@@ -3090,6 +3093,65 @@ function getUnitOptions(type) {
     if (type === 'distance') return DISTANCE_UNITS;
     if (type === 'dimension') return DIMENSION_UNITS;
     return [];
+}
+
+function getValueLabel(type, tierValueType, tierValueMode, unit = '', unit2 = '') {
+    const isPerUnit = tierValueMode === 'perUnit';
+    
+    // Déterminer le préfixe selon tierValueType
+    let prefix = '';
+    if (tierValueType === 'fixed') {
+        prefix = currentCurrencySymbol;
+    } else if (tierValueType === 'pctOrder') {
+        prefix = '%commande';
+    } else if (tierValueType === 'pctDelivery') {
+        prefix = '%livraison';
+    }
+    
+    if (!isPerUnit) {
+        // Montant total : juste le préfixe
+        return prefix;
+    }
+    
+    // Par unité : préfixe + unité
+    let unitLabel = '';
+    if (type === 'quantity') {
+        unitLabel = '/article';
+    } else if (type === 'distance') {
+        unitLabel = `/${unit || 'km'}`;
+    } else if (type === 'weight') {
+        unitLabel = `/${unit || 'kg'}`;
+    } else if (type === 'volume') {
+        unitLabel = `/${unit || 'L'}`;
+    } else if (type === 'dimension') {
+        // Pour dimension, on utilise l'unité de dimension
+        unitLabel = `/${unit || 'cm'}`;
+    } else if (type === 'weight_dimension') {
+        // Pour weight_dimension, on utilise l'unité de dimension
+        unitLabel = `/${unit2 || 'cm'}`;
+    } else if (type === 'weight_volume') {
+        // Pour weight_volume, on utilise l'unité de volume
+        unitLabel = `/${unit2 || 'L'}`;
+    }
+    
+    return prefix + unitLabel;
+}
+
+function getHelpTextForMode(type, tierValueMode) {
+    if (tierValueMode === 'perUnit') {
+        if (type === 'quantity') {
+            return t('deliveryRules.tierValueModeQuantityPerUnitHelp') || 'La valeur est multipliée par le nombre d\'articles';
+        } else if (type === 'distance') {
+            return t('deliveryRules.tierValueModeDistancePerUnitHelp') || 'La valeur est multipliée par la distance';
+        } else if (type === 'weight') {
+            return t('deliveryRules.tierValueModeWeightPerUnitHelp') || 'La valeur est multipliée par le poids';
+        } else if (type === 'volume') {
+            return t('deliveryRules.tierValueModeVolumePerUnitHelp') || 'La valeur est multipliée par le volume';
+        }
+        return t('deliveryRules.tierValueModePerUnitHelp');
+    } else {
+        return t('deliveryRules.tierValueModeTotalHelp');
+    }
 }
 
 function renderTieredInputs(prefix, data, type) {
@@ -3149,18 +3211,33 @@ function renderTieredInputs(prefix, data, type) {
         // Tiered Options
         const tierType = data.tierType || 'global';
         const tierValueType = data.tierValueType || 'fixed';
+        const tierValueMode = data.tierValueMode || 'perUnit';
+        const unit = data.unit || (units[0] ? units[0].value : '');
+
+        // Segmented Control for Value Mode
+        html += `
+            <div class="mb-4">
+                <label class="block text-xs font-semibold secondary-text mb-2">${t('deliveryRules.tierValueMode')}</label>
+                <div class="bg-[hsl(var(--muted))] p-1 rounded-lg inline-flex">
+                    <label class="px-3 py-1 rounded-md text-sm cursor-pointer transition-all ${tierValueMode === 'perUnit' ? 'bg-[hsl(var(--card))] shadow-sm font-medium' : 'secondary-text'}">
+                        <input type="radio" name="${prefix}_tierValueMode" value="perUnit" class="hidden tier-value-mode-toggle" ${tierValueMode === 'perUnit' ? 'checked' : ''}>
+                        ${t('deliveryRules.tierValueModePerUnit')}
+                    </label>
+                    <label class="px-3 py-1 rounded-md text-sm cursor-pointer transition-all ${tierValueMode === 'total' ? 'bg-[hsl(var(--card))] shadow-sm font-medium' : 'secondary-text'}">
+                        <input type="radio" name="${prefix}_tierValueMode" value="total" class="hidden tier-value-mode-toggle" ${tierValueMode === 'total' ? 'checked' : ''}>
+                        ${t('deliveryRules.tierValueModeTotal')}
+                    </label>
+                </div>
+                <p class="text-[10px] secondary-text italic mt-2 px-1 tier-value-mode-help">
+                    ${getHelpTextForMode(type, tierValueMode)}
+                </p>
+            </div>
+        `;
 
         html += `
              <div class="mb-4">
-                <div class="flex gap-2 mb-2 text-xs font-semibold secondary-text uppercase tracking-wider pl-2 pr-2">
-                    <div class="flex-[2]"></div>
-                    <div class="flex-[2]"></div>
-                    <div class="flex-[2]"></div>
-                    <div class="w-8"></div>
-                </div>
-                
-                <div class="ranges-container space-y-2 mb-4">
-                    ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range)).join('')}
+                <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="${type}" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${unit}">
+                    ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, unit)).join('')}
                     ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
                 </div>
 
@@ -3295,6 +3372,10 @@ function renderDimensionInputs(prefix, data) {
         // Tiered Options
         const tierType = data.tierType || 'global';
         const tierValueType = data.tierValueType || 'fixed';
+        const tierValueMode = data.tierValueMode || 'perUnit';
+        const unit = data.unit || (units[0] ? units[0].value : '');
+
+        const valueLabel = getValueLabel('dimension', tierValueType, tierValueMode, unit);
 
         html += `
              <div class="mb-4">
@@ -3307,12 +3388,12 @@ function renderDimensionInputs(prefix, data) {
                     <div class="flex-1">Max ${t('deliveryRules.length')}</div>
                     <div class="flex-1">Max ${t('deliveryRules.width')}</div>
                     <div class="flex-1">Max ${t('deliveryRules.height')}</div>
-                    <div class="flex-[1.5]">${t('deliveryRules.value')}</div>
+                    <div class="flex-[1.5]">${t('deliveryRules.value')} (${valueLabel})</div>
                     <div class="w-8"></div>
                 </div>
 
-                <div class="ranges-container space-y-2 mb-4">
-                     ${(data.ranges || []).map((range, idx) => renderRangeRow('dimension', prefix, idx, range)).join('')}
+                <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="dimension" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${unit}">
+                     ${(data.ranges || []).map((range, idx) => renderRangeRow('dimension', prefix, idx, range, tierValueType, tierValueMode, unit)).join('')}
                     ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
                 </div>
 
@@ -3388,6 +3469,10 @@ function renderDimensionInputs(prefix, data) {
 function renderCombinedInputs(prefix, data, type) {
     const weightUnits = WEIGHT_UNITS;
     const volUnits = type === 'weight_dimension' ? DIMENSION_UNITS : VOLUME_UNITS;
+    const tierValueType = data.tierValueType || 'fixed';
+    const tierValueMode = data.tierValueMode || 'perUnit';
+    const weightUnit = data.weightUnit || (weightUnits[0] ? weightUnits[0].value : '');
+    const volUnit = data.volUnit || (volUnits[0] ? volUnits[0].value : '');
      
     let html = '';
      
@@ -3407,6 +3492,8 @@ function renderCombinedInputs(prefix, data, type) {
         </div>
     </div>`;
 
+    const valueLabel = getValueLabel(type, tierValueType, tierValueMode, weightUnit, volUnit);
+
     html += `
             <div class="mb-4">
                 <p class="text-[10px] secondary-text italic mb-3 px-1 flex items-center gap-1.5">
@@ -3419,16 +3506,16 @@ function renderCombinedInputs(prefix, data, type) {
                         <div class="flex-1">Max ${t('deliveryRules.length')}</div>
                         <div class="flex-1">Max ${t('deliveryRules.width')}</div>
                         <div class="flex-1">Max ${t('deliveryRules.height')}</div>
-                        <div class="flex-1">${t('deliveryRules.value')}</div>
+                        <div class="flex-1">${t('deliveryRules.value')} (${valueLabel})</div>
                     ` : `
                         <div class="flex-1">Max ${t('deliveryRules.volume')}</div>
-                        <div class="flex-[1.5]">${t('deliveryRules.value')}</div>
+                        <div class="flex-[1.5]">${t('deliveryRules.value')} (${valueLabel})</div>
                     `}
                     <div class="w-8"></div>
                 </div>
 
-                <div class="ranges-container space-y-2 mb-4">
-                    ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range)).join('')}
+                <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="${type}" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${weightUnit}" data-unit2="${volUnit}">
+                    ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, weightUnit, volUnit)).join('')}
                      ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
                 </div>
 
@@ -3440,6 +3527,66 @@ function renderCombinedInputs(prefix, data, type) {
     `;
 
     return html;
+}
+
+function updateValueLabels(container, prefix, type, data) {
+    // Get current values
+    const tierValueType = data.tierValueType || 'fixed';
+    const tierValueMode = data.tierValueMode || 'perUnit';
+    const unit = data.unit || '';
+    const weightUnit = data.weightUnit || '';
+    const volUnit = data.volUnit || '';
+
+    // Generate the label
+    let valueLabel = '';
+    if (['quantity', 'distance', 'weight', 'volume'].includes(type)) {
+        valueLabel = getValueLabel(type, tierValueType, tierValueMode, unit);
+    } else if (type === 'dimension') {
+        valueLabel = getValueLabel('dimension', tierValueType, tierValueMode, unit);
+    } else if (['weight_volume', 'weight_dimension'].includes(type)) {
+        valueLabel = getValueLabel(type, tierValueType, tierValueMode, weightUnit, volUnit);
+    }
+
+    // For dimension, weight_volume, weight_dimension: update header row only (no spans in range rows)
+    if (['dimension', 'weight_volume', 'weight_dimension'].includes(type)) {
+        const rangesContainer = container.querySelector('.ranges-container');
+        if (rangesContainer) {
+            // Find the header row (it's the previous sibling with class 'flex')
+            let headerRow = rangesContainer.previousElementSibling;
+            while (headerRow && !headerRow.classList.contains('flex')) {
+                headerRow = headerRow.previousElementSibling;
+            }
+
+            if (headerRow) {
+                // Find all divs in the header row
+                const headerDivs = Array.from(headerRow.querySelectorAll('div'));
+                // Find the div that contains the "Valeur" text
+                const valueHeaderDiv = headerDivs.find(div => {
+                    const text = div.textContent || '';
+                    return text.includes(t('deliveryRules.value'));
+                });
+
+                if (valueHeaderDiv) {
+                    // Update the text content directly
+                    valueHeaderDiv.textContent = `${t('deliveryRules.value')} (${valueLabel})`;
+                }
+            }
+        }
+    }
+    // For quantity, distance, weight, volume: update spans in range rows only (no header row)
+    else if (['quantity', 'distance', 'weight', 'volume'].includes(type)) {
+        const rangeRows = container.querySelectorAll('.range-row');
+        rangeRows.forEach(row => {
+            const valueInput = row.querySelector('input[name$="_value"]');
+            if (valueInput) {
+                const parent = valueInput.parentElement;
+                const existingSpan = parent.querySelector('span.absolute');
+                if (existingSpan) {
+                    existingSpan.textContent = `${t('deliveryRules.value')} (${valueLabel})`;
+                }
+            }
+        });
+    }
 }
 
 function extractCalculationRule(prefix, container) {
@@ -3472,6 +3619,9 @@ function extractCalculationRule(prefix, container) {
              
              const valTypeRadio = container.querySelector(`input[name="${prefix}_tierValueType"]:checked`);
              rule.tierValueType = valTypeRadio ? valTypeRadio.value : 'fixed';
+             
+             const valModeRadio = container.querySelector(`input[name="${prefix}_tierValueMode"]:checked`);
+             rule.tierValueMode = valModeRadio ? valModeRadio.value : 'perUnit';
              
              rule.ranges = [];
              // name="${prefix}_range_${idx}_min"
@@ -3509,6 +3659,9 @@ function extractCalculationRule(prefix, container) {
              rule.tierType = tierTypeRadio ? tierTypeRadio.value : 'global';
              const valTypeRadio = container.querySelector(`input[name="${prefix}_tierValueType"]:checked`);
              rule.tierValueType = valTypeRadio ? valTypeRadio.value : 'fixed';
+             
+             const valModeRadio = container.querySelector(`input[name="${prefix}_tierValueMode"]:checked`);
+             rule.tierValueMode = valModeRadio ? valModeRadio.value : 'perUnit';
 
              rule.ranges = [];
              const rangeInputs = Array.from(container.querySelectorAll(`input[name^="${prefix}_range_"]`));
@@ -3530,6 +3683,12 @@ function extractCalculationRule(prefix, container) {
          if (wUnit) rule.weightUnit = wUnit.value;
          const vUnit = container.querySelector(`select[name="${prefix}_volUnit"]`);
          if (vUnit) rule.volUnit = vUnit.value;
+         
+         const valTypeRadio = container.querySelector(`input[name="${prefix}_tierValueType"]:checked`);
+         if (valTypeRadio) rule.tierValueType = valTypeRadio.value;
+         
+         const valModeRadio = container.querySelector(`input[name="${prefix}_tierValueMode"]:checked`);
+         if (valModeRadio) rule.tierValueMode = valModeRadio.value;
          
          rule.ranges = [];
          const rangeInputs = Array.from(container.querySelectorAll(`input[name^="${prefix}_range_"]`));
@@ -3890,7 +4049,57 @@ function renderSellerDeliveryRulesView(seller) {
         if (!data.isTiered && ['distance', 'weight', 'volume'].includes(type)) {
             // Re-render only if simple mode and type is one of those to update the label
             inputsContainer.innerHTML = renderTieredInputs(prefix, data, type)
+        } else if (data.isTiered) {
+            // Update labels dynamically for tiered mode
+            updateValueLabels(container, prefix, type, data)
         }
+    }
+
+    // Update labels when tierValueMode changes
+    if (e.target.classList.contains('tier-value-mode-toggle')) {
+        const element = e.target
+        const container = element.closest('.calculation-rules-container')
+        const prefix = container.dataset.prefix
+        
+        // Extract current data to preserve values
+        const data = extractCalculationRule(prefix, container)
+        const type = data.type
+        
+        // Update the help text
+        const helpText = container.querySelector('.tier-value-mode-help')
+        if (helpText) {
+            helpText.textContent = getHelpTextForMode(type, element.value)
+        }
+        
+        // Update visual state of segmented control
+        const labels = container.querySelectorAll(`label:has(input[name="${prefix}_tierValueMode"])`)
+        labels.forEach(label => {
+            const radio = label.querySelector('input')
+            if (radio.value === element.value) {
+                label.classList.add('bg-[hsl(var(--card))]', 'shadow-sm', 'font-medium')
+                label.classList.remove('secondary-text')
+            } else {
+                label.classList.remove('bg-[hsl(var(--card))]', 'shadow-sm', 'font-medium')
+                label.classList.add('secondary-text')
+            }
+        })
+        
+        // Update labels dynamically
+        updateValueLabels(container, prefix, type, data)
+    }
+
+    // Update labels when tierValueType changes
+    if (e.target.name && e.target.name.endsWith('_tierValueType')) {
+        const element = e.target
+        const container = element.closest('.calculation-rules-container')
+        const prefix = container.dataset.prefix
+        
+        // Extract current data to preserve values
+        const data = extractCalculationRule(prefix, container)
+        const type = data.type
+        
+        // Update labels dynamically
+        updateValueLabels(container, prefix, type, data)
     }
 
     // Auto-continuity: When a MAX changes, update the NEXT row's MIN
@@ -3925,6 +4134,15 @@ function renderSellerDeliveryRulesView(seller) {
         
         const typeRadio = container.querySelector(`input[name="${prefix}_type"]:checked`)
         const type = typeRadio ? typeRadio.value : 'quantity'
+        
+        // Extract current data to get tierValueType, tierValueMode, and units
+        const data = extractCalculationRule(prefix, container)
+        const tierValueType = data.tierValueType || 'fixed'
+        const tierValueMode = data.tierValueMode || 'perUnit'
+        const unit = data.unit || ''
+        const weightUnit = data.weightUnit || ''
+        const volUnit = data.volUnit || ''
+        
         const existingRows = rangesContainer.querySelectorAll('.range-row')
         const newIndex = existingRows.length
         
@@ -3940,7 +4158,15 @@ function renderSellerDeliveryRulesView(seller) {
             newMin = 1
         }
         
-        const rowHtml = renderRangeRow(type, prefix, newIndex, { min: newMin });
+        // Determine which units to pass based on type
+        let unitParam = unit;
+        let unit2Param = '';
+        if (['weight_volume', 'weight_dimension'].includes(type)) {
+            unitParam = weightUnit;
+            unit2Param = volUnit;
+        }
+        
+        const rowHtml = renderRangeRow(type, prefix, newIndex, { min: newMin }, tierValueType, tierValueMode, unitParam, unit2Param);
         const temp = document.createElement('div')
         temp.innerHTML = rowHtml
         
