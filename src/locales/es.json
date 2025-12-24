@@ -20,6 +20,8 @@
         "ImportFeesManagement": "Administrar tasas de importación",
         "manageWeight": "Gestionar pesos",
         "manageVolume": "Gestionar volúmenes",
+        "manageDimension": "Gestionar dimensiones",
+        "manageDistance": "Gestionar distancias",
         "deleteAllSessions": "Eliminar todas las sesiones",
         "sessionName": "Nombre de la sesión",
         "enterSessionName": "Ingrese el nombre de la sesión",
@@ -88,6 +90,8 @@
         "darkMode": "Modo oscuro",
         "defaultWeightUnit": "Unidad de peso predeterminada",
         "defaultVolumeUnit": "Unidad de volumen predeterminada",
+        "defaultDimensionUnit": "Unidad de dimensión predeterminada",
+        "defaultDistanceUnit": "Unidad de distancia predeterminada",
         "saveSettings": "Guardar configuración"
     },
     "alternatives": {
@@ -208,7 +212,7 @@
         "length": "Longitud",
         "width": "Anchura",
         "height": "Altura",
-        "freeShippingThreshold": "Envío gratuito a partir de...",
+        "freeShippingThreshold": "Envío gratuito a partir de",
         "saveRules": "Guardar reglas de entrega",
         "globalRules": "Reglas globales",
         "sellerRules": "Reglas específicas del vendedor",
@@ -296,12 +300,15 @@
     "attributes": {
         "weight": "Peso",
         "volume": "Volumen",
+        "dimension": "Dimensión",
+        "distance": "Distancia",
         "length": "Longitud",
         "width": "Ancho",
         "height": "Altura",
         "weightUnit": "Unidad de peso",
         "volumeUnit": "Unidad de volumen",
         "dimensionUnit": "Unidad de dimensión",
+        "distanceUnit": "Unidad de distancia",
         "units": {
             "mg": "miligramo",
             "g": "gramo",
@@ -322,7 +329,9 @@
             "ft3": "pie cúbico",
             "qt": "cuarto",
             "gal": "galón",
-            "pt": "pinta"
+            "pt": "pinta",
+            "km": "kilómetro",
+            "mi": "milla"
         }
     },
     "validation": {

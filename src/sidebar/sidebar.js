@@ -499,7 +499,7 @@ function renderPagesView() {
 
 function renderSettingsView() {
   // Get settings from storage
-  browser.storage.local.get(["darkMode", "language", "currency"]).then((settings) => {
+  browser.storage.local.get(["darkMode", "language", "currency", "defaultWeightUnit", "defaultVolumeUnit", "defaultDimensionUnit", "defaultDistanceUnit"]).then((settings) => {
     app.innerHTML = `
       <div class="mx-4">
       <!-- Header -->
@@ -552,6 +552,19 @@ function renderSettingsView() {
         </select>
         </div>
 
+        <div class="card-bg rounded-xl shadow-md p-4">
+        <label class="block text-sm font-medium secondary-text mb-1">${t("settings.defaultDimensionUnit")}</label>
+        <select id="default-dimension-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${(settings.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)}</option>`).join('')}
+        </select>
+        </div>
+
+        <div class="card-bg rounded-xl shadow-md p-4">
+        <label class="block text-sm font-medium secondary-text mb-1">${t("settings.defaultDistanceUnit")}</label>
+        <select id="default-distance-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          ${DISTANCE_UNITS.map(u => `<option value="${u.value}" ${(settings.defaultDistanceUnit || DEFAULT_DISTANCE_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)}</option>`).join('')}
+        </select>
+        </div>
 
       </div>
 
@@ -573,7 +586,8 @@ function renderSettingsView() {
       const currency = document.getElementById("currency").value
       const defaultWeightUnit = document.getElementById("default-weight-unit").value
       const defaultVolumeUnit = document.getElementById("default-volume-unit").value
-
+      const defaultDimensionUnit = document.getElementById("default-dimension-unit").value
+      const defaultDistanceUnit = document.getElementById("default-distance-unit").value
 
       browser.storage.local
         .set({
@@ -581,7 +595,9 @@ function renderSettingsView() {
           language,
           currency,
           defaultWeightUnit,
-          defaultVolumeUnit
+          defaultVolumeUnit,
+          defaultDimensionUnit,
+          defaultDistanceUnit
         })
         .then(async () => {
           const c = CURRENCIES.find(curr => curr.code === currency)
@@ -653,6 +669,22 @@ function showNewSessionModal() {
           </label>
         </div>
 
+        <div class="mb-6 flex items-center justify-between">
+          <label for="manage-dimension" class="text-sm font-medium secondary-text">${t("sessions.manageDimension")}</label>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="manage-dimension" class="sr-only peer">
+            <div class="toggle-switch"></div>
+          </label>
+        </div>
+
+        <div class="mb-6 flex items-center justify-between">
+          <label for="manage-distance" class="text-sm font-medium secondary-text">${t("sessions.manageDistance")}</label>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="manage-distance" class="sr-only peer">
+            <div class="toggle-switch"></div>
+          </label>
+        </div>
+
         <div class="flex justify-end space-x-4">
           <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
           <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
@@ -672,16 +704,18 @@ function showNewSessionModal() {
 
   const saveSession = () => {
     clearAllErrors(modal)
-    
+
     if (!validateRequiredField('session-name', t("sessions.sessionName"))) {
       return
     }
-    
+
     const name = document.getElementById("session-name").value.trim()
     const manageQuantity = document.getElementById("manage-quantity").checked
     const importFeesEnabled = document.getElementById("import-fees-enabled").checked
     const manageWeight = document.getElementById("manage-weight").checked
     const manageVolume = document.getElementById("manage-volume").checked
+    const manageDimension = document.getElementById("manage-dimension").checked
+    const manageDistance = document.getElementById("manage-distance").checked
     
     if (sessions.some(s => s.name === name)) {
       showFieldError('session-name', t("sessions.sessionExists"))
@@ -694,6 +728,8 @@ function showNewSessionModal() {
       importFeesEnabled,
       manageWeight,
       manageVolume,
+      manageDimension,
+      manageDistance,
     }
 
     SidebarAPI.createSession(session).then((response) => {
@@ -782,7 +818,23 @@ function showEditSessionModal(session) {
               <div class="toggle-switch"></div>
             </label>
           </div>
-          
+
+          <div class="mb-6 flex items-center justify-between">
+            <label for="edit-manage-dimension" class="text-sm font-medium secondary-text">${t("sessions.manageDimension")}</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="edit-manage-dimension" class="sr-only peer" ${session.manageDimension ? "checked" : ""}>
+              <div class="toggle-switch"></div>
+            </label>
+          </div>
+
+          <div class="mb-6 flex items-center justify-between">
+            <label for="edit-manage-distance" class="text-sm font-medium secondary-text">${t("sessions.manageDistance")}</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="edit-manage-distance" class="sr-only peer" ${session.manageDistance ? "checked" : ""}>
+              <div class="toggle-switch"></div>
+            </label>
+          </div>
+
           <div class="flex justify-end space-x-4">
             <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
             <button id="save-button" class="px-4 py-2 primary-bg primary-text font-medium cursor-pointer rounded flex items-center">
@@ -802,24 +854,28 @@ function showEditSessionModal(session) {
 
   const saveSession = () => {
     clearAllErrors(modal)
-    
+
     if (!validateRequiredField('edit-session-name', t("sessions.sessionName"))) {
       return
     }
-    
+
     const name = document.getElementById("edit-session-name").value.trim()
     const manageQuantity = document.getElementById("edit-manage-quantity").checked
     const importFeesEnabled = document.getElementById("edit-import-fees-enabled").checked
     const manageWeight = document.getElementById("edit-manage-weight").checked
     const manageVolume = document.getElementById("edit-manage-volume").checked
-    
+    const manageDimension = document.getElementById("edit-manage-dimension").checked
+    const manageDistance = document.getElementById("edit-manage-distance").checked
+
     const updatedSession = { ...session }
-    
+
     updatedSession.name = name
     updatedSession.manageQuantity = manageQuantity
     updatedSession.importFeesEnabled = importFeesEnabled
     updatedSession.manageWeight = manageWeight
     updatedSession.manageVolume = manageVolume
+    updatedSession.manageDimension = manageDimension
+    updatedSession.manageDistance = manageDistance
 
     SidebarAPI.updateSession(session.id, updatedSession).then((response) => {
       sessions = response.sessions
@@ -940,17 +996,45 @@ function showNewProductModal() {
         ${session.manageVolume ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
-          <div class="mb-2">
-            <select id="product-volume-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          <div id="product-volume-input" class="flex space-x-2 hidden">
+            <input
+              type="number"
+              id="product-volume-single"
+              placeholder="${t("attributes.volume")}"
+              step="0.01"
+              min="0"
+              class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+            <select id="product-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
                ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
+          <div id="product-dimensions-inputs" class="space-y-2">
+            <select id="product-volume-unit-dim" class="w-full px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="product-length" placeholder="${t("attributes.length")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="product-width" placeholder="${t("attributes.width")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="product-height" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+          </div>
+        </div>
+        ` : ''}
 
-          <div id="product-dimensions-inputs" class="grid grid-cols-3 gap-2">
+        ${session.manageDimension ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
+          <div class="mb-2">
+            <select id="product-dimension-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${DIMENSION_UNITS.map(u => `<option value="${u.value}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
             <div>
-              <input 
-                type="number" 
-                id="product-length" 
+              <input
+                type="number"
+                id="product-dim-length"
                 placeholder="${t("attributes.length")}"
                 step="0.01"
                 min="0"
@@ -958,9 +1042,9 @@ function showNewProductModal() {
               >
             </div>
             <div>
-              <input 
-                type="number" 
-                id="product-width" 
+              <input
+                type="number"
+                id="product-dim-width"
                 placeholder="${t("attributes.width")}"
                 step="0.01"
                 min="0"
@@ -968,26 +1052,15 @@ function showNewProductModal() {
               >
             </div>
             <div>
-              <input 
-                type="number" 
-                id="product-height" 
+              <input
+                type="number"
+                id="product-dim-height"
                 placeholder="${t("attributes.height")}"
                 step="0.01"
                 min="0"
                 class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
             </div>
-          </div>
-          
-          <div id="product-volume-input" class="hidden">
-             <input 
-                type="number" 
-                id="product-volume-single" 
-                placeholder="${t("attributes.volume")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
           </div>
         </div>
         ` : ''}
@@ -1027,41 +1100,55 @@ function showNewProductModal() {
 
   document.body.appendChild(modal)
 
+  // Setup volume unit change handlers (must be before dispatching change events)
+  const volumeUnitSelect = document.getElementById("product-volume-unit")
+  const volumeUnitSelectDim = document.getElementById("product-volume-unit-dim")
+  const dimInputs = document.getElementById("product-dimensions-inputs")
+  const volInput = document.getElementById("product-volume-input")
+
+  const handleVolumeUnitChange = (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex]
+      const type = selectedOption.dataset.type
+      const value = e.target.value
+
+      // Sync both selects
+      if (volumeUnitSelect) volumeUnitSelect.value = value
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = value
+
+      if (type === "volumetric") {
+          dimInputs?.classList.add("hidden")
+          volInput?.classList.remove("hidden")
+          volInput?.classList.add("flex")
+      } else {
+          dimInputs?.classList.remove("hidden")
+          volInput?.classList.add("hidden")
+          volInput?.classList.remove("flex")
+      }
+  }
+
+  if (volumeUnitSelect) volumeUnitSelect.addEventListener("change", handleVolumeUnitChange)
+  if (volumeUnitSelectDim) volumeUnitSelectDim.addEventListener("change", handleVolumeUnitChange)
+
   // Initialize default units
-  browser.storage.local.get(["defaultWeightUnit", "defaultVolumeUnit"]).then((res) => {
+  browser.storage.local.get(["defaultWeightUnit", "defaultVolumeUnit", "defaultDimensionUnit"]).then((res) => {
       const weightUnitSelect = document.getElementById("product-weight-unit")
       if (weightUnitSelect) {
           weightUnitSelect.value = res.defaultWeightUnit || DEFAULT_WEIGHT_UNIT
       }
-      
-      const volumeUnitSelect = document.getElementById("product-volume-unit")
-      if (volumeUnitSelect) {
-          volumeUnitSelect.value = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
-           // Trigger change event to set correct visibility
-          volumeUnitSelect.dispatchEvent(new Event('change'))
+
+      const defaultVolUnit = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
+      if (volumeUnitSelect) volumeUnitSelect.value = defaultVolUnit
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = defaultVolUnit
+
+      // Trigger change event to set correct visibility
+      const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+      if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
+
+      const dimensionUnitSelect = document.getElementById("product-dimension-unit")
+      if (dimensionUnitSelect) {
+          dimensionUnitSelect.value = res.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT
       }
   })
-
-  const volumeUnitSelect = document.getElementById("product-volume-unit")
-  if (volumeUnitSelect) {
-      volumeUnitSelect.addEventListener("change", (e) => {
-          const selectedOption = e.target.options[e.target.selectedIndex]
-          const type = selectedOption.dataset.type
-          
-          const dimInputs = document.getElementById("product-dimensions-inputs")
-          const volInput = document.getElementById("product-volume-input")
-          
-          if (type === "dimensional") {
-              dimInputs.classList.remove("hidden")
-              dimInputs.classList.add("grid")
-              volInput.classList.add("hidden")
-          } else {
-              dimInputs.classList.add("hidden")
-              dimInputs.classList.remove("grid")
-              volInput.classList.remove("hidden")
-          }
-      })
-  }
 
   const toggleBtn = document.getElementById('toggle-compatibility')
   const compatSection = document.getElementById('limited-compatibility-section')
@@ -1087,22 +1174,22 @@ function showNewProductModal() {
     document.body.removeChild(modal)
   }
 
-  const saveProduct = () => {
+  const saveNewProduct = () => {
     clearAllErrors(modal)
-    
+
     if (!validateRequiredField('product-name', t("products.productName"))) {
       return
     }
-    
+
     const name = document.getElementById("product-name").value.trim()
     const quantityInput = document.getElementById("product-quantity")
     const quantity = quantityInput ? (parseInt(quantityInput.value) || 1) : 1
-    
+
     const weightInput = document.getElementById("product-weight")
     const weight = weightInput ? (parseFloat(weightInput.value) || null) : null
     const weightUnit = document.getElementById("product-weight-unit")?.value || null
 
-    const volumeUnitSelect = document.getElementById("product-volume-unit")
+    const volumeUnitSelect = document.getElementById("product-volume-unit") || document.getElementById("product-volume-unit-dim")
     const volumeUnit = volumeUnitSelect?.value || null
     const isVolumetric = volumeUnitSelect?.options[volumeUnitSelect.selectedIndex]?.dataset.type === "volumetric"
 
@@ -1127,6 +1214,24 @@ function showNewProductModal() {
         }
     }
 
+    // Collect dimension values (separate from volume)
+    const dimensionUnitSelect = document.getElementById("product-dimension-unit")
+    const dimensionUnit = dimensionUnitSelect?.value || null
+    let dimLength = null
+    let dimWidth = null
+    let dimHeight = null
+
+    if (dimensionUnit) {
+        const dimLengthInput = document.getElementById("product-dim-length")
+        dimLength = dimLengthInput ? (parseFloat(dimLengthInput.value) || null) : null
+
+        const dimWidthInput = document.getElementById("product-dim-width")
+        dimWidth = dimWidthInput ? (parseFloat(dimWidthInput.value) || null) : null
+
+        const dimHeightInput = document.getElementById("product-dim-height")
+        dimHeight = dimHeightInput ? (parseFloat(dimHeightInput.value) || null) : null
+    }
+
     const compatibleProducts = []
     document.querySelectorAll('#compatible-products-list input.compat-checkbox:checked').forEach(cb => compatibleProducts.push(cb.value))
 
@@ -1140,6 +1245,10 @@ function showNewProductModal() {
       height,
       volume,
       volumeUnit,
+      dimLength,
+      dimWidth,
+      dimHeight,
+      dimensionUnit,
       limitedCompatibilityWith: compatibleProducts,
     }).then((response) => {
         sessions = response.sessions
@@ -1172,7 +1281,7 @@ function showNewProductModal() {
 
   setupAutoFocus(modal)
   setupEscapeKey(modal, closeModal)
-  setupEnterKey(modal, saveProduct)
+  setupEnterKey(modal, saveNewProduct)
 
   const overlayEl = document.getElementById('modalOverlay')
   const contentEl = document.getElementById('modalContent')
@@ -1196,7 +1305,7 @@ function showNewProductModal() {
 
   document.getElementById("cancel-button").addEventListener("click", closeModal)
 
-  document.getElementById("save-button").addEventListener("click", saveProduct)
+  document.getElementById("save-button").addEventListener("click", saveNewProduct)
 }
 
 function showEditProductModal(product) {
@@ -1255,58 +1364,35 @@ function showEditProductModal(product) {
         ${session.manageVolume ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
-          <div class="mb-2">
-            <select id="product-volume-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          <div id="product-volume-input" class="flex space-x-2 hidden">
+            <input type="number" id="product-volume-single" value="${product.volume || ''}" placeholder="${t("attributes.volume")}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="product-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
                ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${product.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
-
-          <div id="product-dimensions-inputs" class="grid grid-cols-3 gap-2">
-            <div>
-              <input 
-                type="number" 
-                id="product-length" 
-                value="${product.length || ''}"
-                placeholder="${t("attributes.length")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="product-width" 
-                value="${product.width || ''}"
-                placeholder="${t("attributes.width")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="product-height" 
-                value="${product.height || ''}"
-                placeholder="${t("attributes.height")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+          <div id="product-dimensions-inputs" class="space-y-2">
+            <select id="product-volume-unit-dim" class="w-full px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${product.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="product-length" value="${product.length || ''}" placeholder="${t("attributes.length")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="product-width" value="${product.width || ''}" placeholder="${t("attributes.width")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="product-height" value="${product.height || ''}" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
           </div>
+        </div>
+        ` : ''}
 
-          <div id="product-volume-input" class="hidden">
-             <input 
-                type="number" 
-                id="product-volume-single" 
-                value="${product.volume || ''}"
-                placeholder="${t("attributes.volume")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+        ${session.manageDimension ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
+          <select id="product-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+             ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${product.dimensionUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          </select>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="number" id="product-dim-length" value="${product.dimLength || ''}" placeholder="${t("attributes.length")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="product-dim-width" value="${product.dimWidth || ''}" placeholder="${t("attributes.width")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="product-dim-height" value="${product.dimHeight || ''}" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
           </div>
         </div>
         ` : ''}
@@ -1355,6 +1441,35 @@ function showEditProductModal(product) {
 
   document.body.appendChild(modal)
 
+  // Setup volume unit change handlers (must be before dispatching change events)
+  const volumeUnitSelect = document.getElementById("product-volume-unit")
+  const volumeUnitSelectDim = document.getElementById("product-volume-unit-dim")
+  const dimInputs = document.getElementById("product-dimensions-inputs")
+  const volInput = document.getElementById("product-volume-input")
+
+  const handleVolumeUnitChange = (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex]
+      const type = selectedOption.dataset.type
+      const value = e.target.value
+
+      // Sync both selects
+      if (volumeUnitSelect) volumeUnitSelect.value = value
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = value
+
+      if (type === "volumetric") {
+          dimInputs?.classList.add("hidden")
+          volInput?.classList.remove("hidden")
+          volInput?.classList.add("flex")
+      } else {
+          dimInputs?.classList.remove("hidden")
+          volInput?.classList.add("hidden")
+          volInput?.classList.remove("flex")
+      }
+  }
+
+  if (volumeUnitSelect) volumeUnitSelect.addEventListener("change", handleVolumeUnitChange)
+  if (volumeUnitSelectDim) volumeUnitSelectDim.addEventListener("change", handleVolumeUnitChange)
+
   // Initialize defaults if not set
   if (!product.weightUnit) {
       browser.storage.local.get("defaultWeightUnit").then(res => {
@@ -1365,36 +1480,22 @@ function showEditProductModal(product) {
 
   if (!product.volumeUnit) {
       browser.storage.local.get("defaultVolumeUnit").then(res => {
-           const volumeUnitSelect = document.getElementById("product-volume-unit")
-           if (volumeUnitSelect) {
-               volumeUnitSelect.value = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
-               volumeUnitSelect.dispatchEvent(new Event('change'))
-           }
+           const defaultVolUnit = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
+           if (volumeUnitSelect) volumeUnitSelect.value = defaultVolUnit
+           if (volumeUnitSelectDim) volumeUnitSelectDim.value = defaultVolUnit
+           const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+           if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
       })
   } else {
        // Trigger change for initial visibility based on saved unit
-       const volumeUnitSelect = document.getElementById("product-volume-unit")
-       if (volumeUnitSelect) volumeUnitSelect.dispatchEvent(new Event('change'))
+       const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+       if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
   }
 
-  const volumeUnitSelect = document.getElementById("product-volume-unit")
-  if (volumeUnitSelect) {
-      volumeUnitSelect.addEventListener("change", (e) => {
-          const selectedOption = e.target.options[e.target.selectedIndex]
-          const type = selectedOption.dataset.type
-          
-          const dimInputs = document.getElementById("product-dimensions-inputs")
-          const volInput = document.getElementById("product-volume-input")
-          
-          if (type === "dimensional") {
-              dimInputs.classList.remove("hidden")
-              dimInputs.classList.add("grid")
-              volInput.classList.add("hidden")
-          } else {
-              dimInputs.classList.add("hidden")
-              dimInputs.classList.remove("grid")
-              volInput.classList.remove("hidden")
-          }
+  if (!product.dimensionUnit) {
+      browser.storage.local.get("defaultDimensionUnit").then(res => {
+           const dimensionUnitSelect = document.getElementById("product-dimension-unit")
+           if (dimensionUnitSelect) dimensionUnitSelect.value = res.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT
       })
   }
 
@@ -1456,7 +1557,7 @@ function showEditProductModal(product) {
     const weight = weightInput ? (parseFloat(weightInput.value) || null) : null
     const weightUnit = document.getElementById("product-weight-unit")?.value || null
 
-    const volumeUnitSelect = document.getElementById("product-volume-unit")
+    const volumeUnitSelect = document.getElementById("product-volume-unit") || document.getElementById("product-volume-unit-dim")
     const volumeUnit = volumeUnitSelect?.value || null
     const isVolumetric = volumeUnitSelect?.options[volumeUnitSelect.selectedIndex]?.dataset.type === "volumetric"
 
@@ -1481,6 +1582,24 @@ function showEditProductModal(product) {
         }
     }
 
+    // Collect dimension values (separate from volume)
+    const dimensionUnitSelect = document.getElementById("product-dimension-unit")
+    const dimensionUnit = dimensionUnitSelect?.value || null
+    let dimLength = null
+    let dimWidth = null
+    let dimHeight = null
+
+    if (dimensionUnit) {
+        const dimLengthInput = document.getElementById("product-dim-length")
+        dimLength = dimLengthInput ? (parseFloat(dimLengthInput.value) || null) : null
+
+        const dimWidthInput = document.getElementById("product-dim-width")
+        dimWidth = dimWidthInput ? (parseFloat(dimWidthInput.value) || null) : null
+
+        const dimHeightInput = document.getElementById("product-dim-height")
+        dimHeight = dimHeightInput ? (parseFloat(dimHeightInput.value) || null) : null
+    }
+
     const prod = session.products.find(p => p.id === product.id)
     if (!prod) return
     prod.name = name
@@ -1492,6 +1611,10 @@ function showEditProductModal(product) {
     prod.height = height
     prod.volume = volume
     prod.volumeUnit = volumeUnit
+    prod.dimLength = dimLength
+    prod.dimWidth = dimWidth
+    prod.dimHeight = dimHeight
+    prod.dimensionUnit = dimensionUnit
     prod.limitedCompatibilityWith = compatibleProducts
 
     // Ensure bidirectional links: for each product in session, add/remove reciprocal
@@ -1531,6 +1654,7 @@ function showEditProductModal(product) {
 
 function showEditPageModal(page) {
   const session = sessions.find(s => s.id === currentSession)
+  const product = session.products.find(p => p.id === currentProduct)
   const modal = document.createElement("div")
   modal.className = "modal"
   modal.innerHTML = `
@@ -1653,16 +1777,17 @@ function showEditPageModal(page) {
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.weight")}</label>
           <div class="flex space-x-2">
-            <input 
-              type="number" 
-              id="page-weight" 
+            <input
+              type="number"
+              id="page-weight"
               value="${page.weight || ''}"
+              placeholder="${product.weight ? product.weight + ' ' + (product.weightUnit || '') : ''}"
               step="0.01"
               min="0"
               class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
             <select id="page-weight-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-              ${WEIGHT_UNITS.map(u => `<option value="${u.value}" ${page.weightUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+              ${WEIGHT_UNITS.map(u => `<option value="${u.value}" ${(page.weightUnit || product.weightUnit) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
         </div>
@@ -1671,58 +1796,54 @@ function showEditPageModal(page) {
         ${session.manageVolume ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
-          <div class="mb-2">
-            <select id="page-volume-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${page.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          <div id="page-volume-input" class="flex space-x-2 hidden">
+            <input type="number" id="page-volume-single" value="${page.volume || ''}" placeholder="${product.volume ? product.volume + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="page-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${(page.volumeUnit || product.volumeUnit) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
-
-          <div id="page-dimensions-inputs" class="grid grid-cols-3 gap-2">
-            <div>
-              <input 
-                type="number" 
-                id="page-length" 
-                value="${page.length || ''}"
-                placeholder="${t("attributes.length")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-width" 
-                value="${page.width || ''}"
-                placeholder="${t("attributes.width")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-height" 
-                value="${page.height || ''}"
-                placeholder="${t("attributes.height")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+          <div id="page-dimensions-inputs" class="space-y-2">
+            <select id="page-volume-unit-dim" class="w-full px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${(page.volumeUnit || product.volumeUnit) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="page-length" value="${page.length || ''}" placeholder="${product.length ? product.length + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-width" value="${page.width || ''}" placeholder="${product.width ? product.width + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-height" value="${page.height || ''}" placeholder="${product.height ? product.height + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
           </div>
+        </div>
+        ` : ''}
 
-          <div id="page-volume-input" class="hidden">
-             <input 
-                type="number" 
-                id="page-volume-single" 
-                value="${page.volume || ''}"
-                placeholder="${t("attributes.volume")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+        ${session.manageDimension ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
+          <select id="page-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+             ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${(page.dimensionUnit || product.dimensionUnit) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          </select>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="number" id="page-dim-length" value="${page.dimLength || ''}" placeholder="${product.dimLength ? product.dimLength + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-width" value="${page.dimWidth || ''}" placeholder="${product.dimWidth ? product.dimWidth + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-height" value="${page.dimHeight || ''}" placeholder="${product.dimHeight ? product.dimHeight + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        ` : ''}
+
+        ${session.manageDistance ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.distance")}</label>
+          <div class="flex space-x-2">
+            <input
+              type="number"
+              id="page-distance"
+              value="${page.distance || ''}"
+              step="0.01"
+              min="0"
+              class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+            <select id="page-distance-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              ${DISTANCE_UNITS.map(u => `<option value="${u.value}" ${page.distanceUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
           </div>
         </div>
         ` : ''}
@@ -1739,6 +1860,35 @@ function showEditPageModal(page) {
 
   document.body.appendChild(modal)
 
+  // Setup volume unit change handlers (must be before dispatching change events)
+  const volumeUnitSelect = document.getElementById("page-volume-unit")
+  const volumeUnitSelectDim = document.getElementById("page-volume-unit-dim")
+  const dimInputs = document.getElementById("page-dimensions-inputs")
+  const volInput = document.getElementById("page-volume-input")
+
+  const handleVolumeUnitChange = (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex]
+      const type = selectedOption.dataset.type
+      const value = e.target.value
+
+      // Sync both selects
+      if (volumeUnitSelect) volumeUnitSelect.value = value
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = value
+
+      if (type === "volumetric") {
+          dimInputs?.classList.add("hidden")
+          volInput?.classList.remove("hidden")
+          volInput?.classList.add("flex")
+      } else {
+          dimInputs?.classList.remove("hidden")
+          volInput?.classList.add("hidden")
+          volInput?.classList.remove("flex")
+      }
+  }
+
+  if (volumeUnitSelect) volumeUnitSelect.addEventListener("change", handleVolumeUnitChange)
+  if (volumeUnitSelectDim) volumeUnitSelectDim.addEventListener("change", handleVolumeUnitChange)
+
   // Initialize defaults if not set
   if (!page.weightUnit) {
       browser.storage.local.get("defaultWeightUnit").then(res => {
@@ -1749,35 +1899,28 @@ function showEditPageModal(page) {
 
   if (!page.volumeUnit) {
       browser.storage.local.get("defaultVolumeUnit").then(res => {
-           const volumeUnitSelect = document.getElementById("page-volume-unit")
-           if (volumeUnitSelect) {
-               volumeUnitSelect.value = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
-               volumeUnitSelect.dispatchEvent(new Event('change'))
-           }
+           const defaultVolUnit = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
+           if (volumeUnitSelect) volumeUnitSelect.value = defaultVolUnit
+           if (volumeUnitSelectDim) volumeUnitSelectDim.value = defaultVolUnit
+           const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+           if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
       })
   } else {
-       const volumeUnitSelect = document.getElementById("page-volume-unit")
-       if (volumeUnitSelect) volumeUnitSelect.dispatchEvent(new Event('change'))
+       const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+       if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
   }
 
-  const volumeUnitSelect = document.getElementById("page-volume-unit")
-  if (volumeUnitSelect) {
-      volumeUnitSelect.addEventListener("change", (e) => {
-          const selectedOption = e.target.options[e.target.selectedIndex]
-          const type = selectedOption.dataset.type
-          
-          const dimInputs = document.getElementById("page-dimensions-inputs")
-          const volInput = document.getElementById("page-volume-input")
-          
-          if (type === "dimensional") {
-              dimInputs.classList.remove("hidden")
-              dimInputs.classList.add("grid")
-              volInput.classList.add("hidden")
-          } else {
-              dimInputs.classList.add("hidden")
-              dimInputs.classList.remove("grid")
-              volInput.classList.remove("hidden")
-          }
+  if (!page.dimensionUnit) {
+      browser.storage.local.get("defaultDimensionUnit").then(res => {
+           const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+           if (dimensionUnitSelect) dimensionUnitSelect.value = res.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT
+      })
+  }
+
+  if (!page.distanceUnit) {
+      browser.storage.local.get("defaultDistanceUnit").then(res => {
+           const distanceUnitSelect = document.getElementById("page-distance-unit")
+           if (distanceUnitSelect) distanceUnitSelect.value = res.defaultDistanceUnit || DEFAULT_DISTANCE_UNIT
       })
   }
 
@@ -1830,9 +1973,9 @@ function showEditPageModal(page) {
     const weight = weightInput ? (parseFloat(weightInput.value) || null) : null
     const weightUnit = document.getElementById("page-weight-unit")?.value || null
 
-    const volumeUnitSelect = document.getElementById("page-volume-unit")
-    const volumeUnit = volumeUnitSelect?.value || null
-    const isVolumetric = volumeUnitSelect?.options[volumeUnitSelect.selectedIndex]?.dataset.type === "volumetric"
+    const volumeUnitSelectSave = document.getElementById("page-volume-unit") || document.getElementById("page-volume-unit-dim")
+    const volumeUnit = volumeUnitSelectSave?.value || null
+    const isVolumetric = volumeUnitSelectSave?.options[volumeUnitSelectSave.selectedIndex]?.dataset.type === "volumetric"
 
     let length = null
     let width = null
@@ -1855,6 +1998,29 @@ function showEditPageModal(page) {
         }
     }
 
+    // Collect dimension values (separate from volume)
+    const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+    const dimensionUnit = dimensionUnitSelect?.value || null
+    let dimLength = null
+    let dimWidth = null
+    let dimHeight = null
+
+    if (dimensionUnit) {
+        const dimLengthInput = document.getElementById("page-dim-length")
+        dimLength = dimLengthInput ? (parseFloat(dimLengthInput.value) || null) : null
+
+        const dimWidthInput = document.getElementById("page-dim-width")
+        dimWidth = dimWidthInput ? (parseFloat(dimWidthInput.value) || null) : null
+
+        const dimHeightInput = document.getElementById("page-dim-height")
+        dimHeight = dimHeightInput ? (parseFloat(dimHeightInput.value) || null) : null
+    }
+
+    // Collect distance value
+    const distanceInput = document.getElementById("page-distance")
+    const distance = distanceInput ? (parseFloat(distanceInput.value) || null) : null
+    const distanceUnit = document.getElementById("page-distance-unit")?.value || null
+
     const updatedPage = {
       price,
       shippingPrice,
@@ -1871,6 +2037,12 @@ function showEditPageModal(page) {
       ...(height !== null && { height }),
       ...(volume !== null && { volume }),
       ...(volumeUnit && { volumeUnit }),
+      ...(dimLength !== null && { dimLength }),
+      ...(dimWidth !== null && { dimWidth }),
+      ...(dimHeight !== null && { dimHeight }),
+      ...(dimensionUnit && { dimensionUnit }),
+      ...(distance !== null && { distance }),
+      ...(distanceUnit && { distanceUnit }),
     }
 
     SidebarAPI.updatePage(currentSession, currentProduct, page.id, updatedPage).then((response) => {
@@ -2072,58 +2244,54 @@ function showEditBundleModal(bundle) {
         ${session.manageVolume ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
-          <div class="mb-2">
-            <select id="page-volume-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          <div id="page-volume-input" class="flex space-x-2 hidden">
+            <input type="number" id="page-volume-single" value="${bundle.volume || ''}" placeholder="${t("attributes.volume")}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="page-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
                ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${bundle.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
-
-          <div id="page-dimensions-inputs" class="grid grid-cols-3 gap-2">
-            <div>
-              <input 
-                type="number" 
-                id="page-length" 
-                value="${bundle.length || ''}"
-                placeholder="${t("attributes.length")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-width" 
-                value="${bundle.width || ''}"
-                placeholder="${t("attributes.width")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-height" 
-                value="${bundle.height || ''}"
-                placeholder="${t("attributes.height")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+          <div id="page-dimensions-inputs" class="space-y-2">
+            <select id="page-volume-unit-dim" class="w-full px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${bundle.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="page-length" value="${bundle.length || ''}" placeholder="${t("attributes.length")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-width" value="${bundle.width || ''}" placeholder="${t("attributes.width")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-height" value="${bundle.height || ''}" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
           </div>
+        </div>
+        ` : ''}
 
-          <div id="page-volume-input" class="hidden">
-             <input 
-                type="number" 
-                id="page-volume-single" 
-                value="${bundle.volume || ''}"
-                placeholder="${t("attributes.volume")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+        ${session.manageDimension ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
+          <select id="page-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+             ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${bundle.dimensionUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          </select>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="number" id="page-dim-length" value="${bundle.dimLength || ''}" placeholder="${t("attributes.length")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-width" value="${bundle.dimWidth || ''}" placeholder="${t("attributes.width")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-height" value="${bundle.dimHeight || ''}" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        ` : ''}
+
+        ${session.manageDistance ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.distance")}</label>
+          <div class="flex space-x-2">
+            <input
+              type="number"
+              id="page-distance"
+              value="${bundle.distance || ''}"
+              step="0.01"
+              min="0"
+              class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+            <select id="page-distance-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              ${DISTANCE_UNITS.map(u => `<option value="${u.value}" ${bundle.distanceUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
           </div>
         </div>
         ` : ''}
@@ -2140,6 +2308,35 @@ function showEditBundleModal(bundle) {
 
   document.body.appendChild(modal)
 
+  // Setup volume unit change handlers (must be before dispatching change events)
+  const volumeUnitSelect = document.getElementById("page-volume-unit")
+  const volumeUnitSelectDim = document.getElementById("page-volume-unit-dim")
+  const dimInputs = document.getElementById("page-dimensions-inputs")
+  const volInput = document.getElementById("page-volume-input")
+
+  const handleVolumeUnitChange = (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex]
+      const type = selectedOption.dataset.type
+      const value = e.target.value
+
+      // Sync both selects
+      if (volumeUnitSelect) volumeUnitSelect.value = value
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = value
+
+      if (type === "volumetric") {
+          dimInputs?.classList.add("hidden")
+          volInput?.classList.remove("hidden")
+          volInput?.classList.add("flex")
+      } else {
+          dimInputs?.classList.remove("hidden")
+          volInput?.classList.add("hidden")
+          volInput?.classList.remove("flex")
+      }
+  }
+
+  if (volumeUnitSelect) volumeUnitSelect.addEventListener("change", handleVolumeUnitChange)
+  if (volumeUnitSelectDim) volumeUnitSelectDim.addEventListener("change", handleVolumeUnitChange)
+
   // Initialize defaults if not set
   if (!bundle.weightUnit) {
       browser.storage.local.get("defaultWeightUnit").then(res => {
@@ -2150,35 +2347,28 @@ function showEditBundleModal(bundle) {
 
   if (!bundle.volumeUnit) {
       browser.storage.local.get("defaultVolumeUnit").then(res => {
-           const volumeUnitSelect = document.getElementById("page-volume-unit")
-           if (volumeUnitSelect) {
-               volumeUnitSelect.value = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
-               volumeUnitSelect.dispatchEvent(new Event('change'))
-           }
+           const defaultVolUnit = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
+           if (volumeUnitSelect) volumeUnitSelect.value = defaultVolUnit
+           if (volumeUnitSelectDim) volumeUnitSelectDim.value = defaultVolUnit
+           const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+           if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
       })
   } else {
-       const volumeUnitSelect = document.getElementById("page-volume-unit")
-       if (volumeUnitSelect) volumeUnitSelect.dispatchEvent(new Event('change'))
+       const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+       if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
   }
 
-  const volumeUnitSelect = document.getElementById("page-volume-unit")
-  if (volumeUnitSelect) {
-      volumeUnitSelect.addEventListener("change", (e) => {
-          const selectedOption = e.target.options[e.target.selectedIndex]
-          const type = selectedOption.dataset.type
-          
-          const dimInputs = document.getElementById("page-dimensions-inputs")
-          const volInput = document.getElementById("page-volume-input")
-          
-          if (type === "dimensional") {
-              dimInputs.classList.remove("hidden")
-              dimInputs.classList.add("grid")
-              volInput.classList.add("hidden")
-          } else {
-              dimInputs.classList.add("hidden")
-              dimInputs.classList.remove("grid")
-              volInput.classList.remove("hidden")
-          }
+  if (!bundle.dimensionUnit) {
+      browser.storage.local.get("defaultDimensionUnit").then(res => {
+           const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+           if (dimensionUnitSelect) dimensionUnitSelect.value = res.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT
+      })
+  }
+
+  if (!bundle.distanceUnit) {
+      browser.storage.local.get("defaultDistanceUnit").then(res => {
+           const distanceUnitSelect = document.getElementById("page-distance-unit")
+           if (distanceUnitSelect) distanceUnitSelect.value = res.defaultDistanceUnit || DEFAULT_DISTANCE_UNIT
       })
   }
 
@@ -2211,14 +2401,14 @@ function showEditBundleModal(bundle) {
     const maxPerPurchase = maxPerPurchaseValue ? parseInt(maxPerPurchaseValue) : null
     const customsCategoryElement = document.getElementById("customs-category")
     const customsCategoryId = customsCategoryElement ? (customsCategoryElement.value || null) : null
-    
+
     const weightInput = document.getElementById("page-weight")
     const weight = weightInput ? (parseFloat(weightInput.value) || null) : null
     const weightUnit = document.getElementById("page-weight-unit")?.value || null
 
-    const volumeUnitSelect = document.getElementById("page-volume-unit")
-    const volumeUnit = volumeUnitSelect?.value || null
-    const isVolumetric = volumeUnitSelect?.options[volumeUnitSelect.selectedIndex]?.dataset.type === "volumetric"
+    const volumeUnitSelectSave = document.getElementById("page-volume-unit") || document.getElementById("page-volume-unit-dim")
+    const volumeUnit = volumeUnitSelectSave?.value || null
+    const isVolumetric = volumeUnitSelectSave?.options[volumeUnitSelectSave.selectedIndex]?.dataset.type === "volumetric"
 
     let length = null
     let width = null
@@ -2241,7 +2431,29 @@ function showEditBundleModal(bundle) {
         }
     }
 
-    
+    // Collect dimension values (separate from volume)
+    const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+    const dimensionUnit = dimensionUnitSelect?.value || null
+    let dimLength = null
+    let dimWidth = null
+    let dimHeight = null
+
+    if (dimensionUnit) {
+        const dimLengthInput = document.getElementById("page-dim-length")
+        dimLength = dimLengthInput ? (parseFloat(dimLengthInput.value) || null) : null
+
+        const dimWidthInput = document.getElementById("page-dim-width")
+        dimWidth = dimWidthInput ? (parseFloat(dimWidthInput.value) || null) : null
+
+        const dimHeightInput = document.getElementById("page-dim-height")
+        dimHeight = dimHeightInput ? (parseFloat(dimHeightInput.value) || null) : null
+    }
+
+    // Collect distance value
+    const distanceInput = document.getElementById("page-distance")
+    const distance = distanceInput ? (parseFloat(distanceInput.value) || null) : null
+    const distanceUnit = document.getElementById("page-distance-unit")?.value || null
+
     let isValid = true
     if (currency !== 'FREE') {
       if (!validateRequiredField('page-price', t("pages.price"))) isValid = false
@@ -2249,7 +2461,7 @@ function showEditBundleModal(bundle) {
       if (!validateRequiredField('page-insurance', t("modals.insurancePrice"))) isValid = false
     }
     if (!validateRequiredField('page-seller', t("pages.seller"))) isValid = false
-    
+
     if (session.manageQuantity !== false) {
       if (!itemsPerPurchaseValue) {
         showFieldError('items-per-purchase', t("modals.itemsPerPurchaseRequired"))
@@ -2264,7 +2476,7 @@ function showEditBundleModal(bundle) {
         isValid = false
       }
     }
-    
+
     if (!isValid) return
 
     const products = []
@@ -2292,6 +2504,12 @@ function showEditBundleModal(bundle) {
       ...(height !== null && { height }),
       ...(volume !== null && { volume }),
       ...(volumeUnit && { volumeUnit }),
+      ...(dimLength !== null && { dimLength }),
+      ...(dimWidth !== null && { dimWidth }),
+      ...(dimHeight !== null && { dimHeight }),
+      ...(dimensionUnit && { dimensionUnit }),
+      ...(distance !== null && { distance }),
+      ...(distanceUnit && { distanceUnit }),
     }
 
     SidebarAPI.updateBundle(currentSession, bundle.id, updatedBundle).then((response) => {
@@ -2617,16 +2835,17 @@ function showScrapedDataModal() {
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.weight")}</label>
           <div class="flex space-x-2">
-            <input 
-              type="number" 
-              id="page-weight" 
+            <input
+              type="number"
+              id="page-weight"
               value=""
+              placeholder="${product.weight ? product.weight + ' ' + (product.weightUnit || '') : ''}"
               step="0.01"
               min="0"
               class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
             <select id="page-weight-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-              ${WEIGHT_UNITS.map(u => `<option value="${u.value}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+              ${WEIGHT_UNITS.map(u => `<option value="${u.value}" ${product.weightUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
         </div>
@@ -2635,58 +2854,47 @@ function showScrapedDataModal() {
         ${session.manageVolume ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
-          <div class="mb-2">
-            <select id="page-volume-unit" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          <div id="page-volume-input" class="flex space-x-2 hidden">
+            <input type="number" id="page-volume-single" value="" placeholder="${product.volume ? product.volume + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="page-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${product.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
             </select>
           </div>
-
-          <div id="page-dimensions-inputs" class="grid grid-cols-3 gap-2">
-            <div>
-              <input 
-                type="number" 
-                id="page-length" 
-                value=""
-                placeholder="${t("attributes.length")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-width" 
-                value=""
-                placeholder="${t("attributes.width")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-            </div>
-            <div>
-              <input 
-                type="number" 
-                id="page-height" 
-                value=""
-                placeholder="${t("attributes.height")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+          <div id="page-dimensions-inputs" class="space-y-2">
+            <select id="page-volume-unit-dim" class="w-full px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+               ${VOLUME_UNITS.map(u => `<option value="${u.value}" data-type="${u.type}" ${product.volumeUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="page-length" value="" placeholder="${product.length ? product.length + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-width" value="" placeholder="${product.width ? product.width + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <input type="number" id="page-height" value="" placeholder="${product.height ? product.height + ' ' + (product.volumeUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
           </div>
+        </div>
+        ` : ''}
 
-          <div id="page-volume-input" class="hidden">
-             <input 
-                type="number" 
-                id="page-volume-single" 
-                value=""
-                placeholder="${t("attributes.volume")}"
-                step="0.01"
-                min="0"
-                class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
+        ${session.manageDimension ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
+          <select id="page-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+             ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${product.dimensionUnit === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          </select>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="number" id="page-dim-length" value="" placeholder="${product.dimLength ? product.dimLength + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-width" value="" placeholder="${product.dimWidth ? product.dimWidth + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="number" id="page-dim-height" value="" placeholder="${product.dimHeight ? product.dimHeight + ' ' + (product.dimensionUnit || '') : ''}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+        </div>
+        ` : ''}
+
+        ${session.manageDistance ? `
+        <div class="mb-6">
+          <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.distance")}</label>
+          <div class="flex space-x-2">
+            <input type="number" id="page-distance" value="" step="0.01" min="0" class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="page-distance-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              ${DISTANCE_UNITS.map(u => `<option value="${u.value}">${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+            </select>
           </div>
         </div>
         ` : ''}
@@ -2703,41 +2911,59 @@ function showScrapedDataModal() {
 
   document.body.appendChild(modal)
 
+  // Setup volume unit change handlers (must be before dispatching change events)
+  const volumeUnitSelect = document.getElementById("page-volume-unit")
+  const volumeUnitSelectDim = document.getElementById("page-volume-unit-dim")
+  const dimInputs = document.getElementById("page-dimensions-inputs")
+  const volInput = document.getElementById("page-volume-input")
+
+  const handleVolumeUnitChange = (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex]
+      const type = selectedOption.dataset.type
+      const value = e.target.value
+
+      // Sync both selects
+      if (volumeUnitSelect) volumeUnitSelect.value = value
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = value
+
+      if (type === "volumetric") {
+          dimInputs?.classList.add("hidden")
+          volInput?.classList.remove("hidden")
+          volInput?.classList.add("flex")
+      } else {
+          dimInputs?.classList.remove("hidden")
+          volInput?.classList.add("hidden")
+          volInput?.classList.remove("flex")
+      }
+  }
+
+  if (volumeUnitSelect) volumeUnitSelect.addEventListener("change", handleVolumeUnitChange)
+  if (volumeUnitSelectDim) volumeUnitSelectDim.addEventListener("change", handleVolumeUnitChange)
+
   // Initialize defaults
-  browser.storage.local.get(["defaultWeightUnit", "defaultVolumeUnit"]).then((res) => {
+  browser.storage.local.get(["defaultWeightUnit", "defaultVolumeUnit", "defaultDimensionUnit", "defaultDistanceUnit"]).then((res) => {
       const weightUnitSelect = document.getElementById("page-weight-unit")
       if (weightUnitSelect) {
           weightUnitSelect.value = res.defaultWeightUnit || DEFAULT_WEIGHT_UNIT
       }
-      
-      const volumeUnitSelect = document.getElementById("page-volume-unit")
-      if (volumeUnitSelect) {
-          volumeUnitSelect.value = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
-           // Trigger change event to set correct visibility
-          volumeUnitSelect.dispatchEvent(new Event('change'))
+
+      const defaultVolUnit = res.defaultVolumeUnit || DEFAULT_VOLUME_UNIT
+      if (volumeUnitSelect) volumeUnitSelect.value = defaultVolUnit
+      if (volumeUnitSelectDim) volumeUnitSelectDim.value = defaultVolUnit
+      // Trigger change event to set correct visibility
+      const selectToTrigger = volumeUnitSelect || volumeUnitSelectDim
+      if (selectToTrigger) selectToTrigger.dispatchEvent(new Event('change'))
+
+      const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+      if (dimensionUnitSelect) {
+          dimensionUnitSelect.value = res.defaultDimensionUnit || DEFAULT_DIMENSION_UNIT
+      }
+
+      const distanceUnitSelect = document.getElementById("page-distance-unit")
+      if (distanceUnitSelect) {
+          distanceUnitSelect.value = res.defaultDistanceUnit || DEFAULT_DISTANCE_UNIT
       }
   })
-
-  const volumeUnitSelect = document.getElementById("page-volume-unit")
-  if (volumeUnitSelect) {
-      volumeUnitSelect.addEventListener("change", (e) => {
-          const selectedOption = e.target.options[e.target.selectedIndex]
-          const type = selectedOption.dataset.type
-          
-          const dimInputs = document.getElementById("page-dimensions-inputs")
-          const volInput = document.getElementById("page-volume-input")
-          
-          if (type === "dimensional") {
-              dimInputs.classList.remove("hidden")
-              dimInputs.classList.add("grid")
-              volInput.classList.add("hidden")
-          } else {
-              dimInputs.classList.add("hidden")
-              dimInputs.classList.remove("grid")
-              volInput.classList.remove("hidden")
-          }
-      })
-  }
 
   document.getElementById("is-bundle").addEventListener("change", (e) => {
     const productSelection = document.getElementById("product-selection")
@@ -2781,14 +3007,14 @@ function showScrapedDataModal() {
     const maxPerPurchase = maxPerPurchaseValue ? parseInt(maxPerPurchaseValue) : null
     const customsCategoryElement = document.getElementById("customs-category")
     const customsCategoryId = customsCategoryElement ? (customsCategoryElement.value || null) : null
-    
+
     const weightInput = document.getElementById("page-weight")
     const weight = weightInput ? (parseFloat(weightInput.value) || null) : null
     const weightUnit = document.getElementById("page-weight-unit")?.value || null
 
-    const volumeUnitSelect = document.getElementById("page-volume-unit")
-    const volumeUnit = volumeUnitSelect?.value || null
-    const isVolumetric = volumeUnitSelect?.options[volumeUnitSelect.selectedIndex]?.dataset.type === "volumetric"
+    const volumeUnitSelectSave = document.getElementById("page-volume-unit") || document.getElementById("page-volume-unit-dim")
+    const volumeUnit = volumeUnitSelectSave?.value || null
+    const isVolumetric = volumeUnitSelectSave?.options[volumeUnitSelectSave.selectedIndex]?.dataset.type === "volumetric"
 
     let length = null
     let width = null
@@ -2810,6 +3036,29 @@ function showScrapedDataModal() {
             volume = volInput ? (parseFloat(volInput.value) || null) : null
         }
     }
+
+    // Collect dimension values (separate from volume)
+    const dimensionUnitSelect = document.getElementById("page-dimension-unit")
+    const dimensionUnit = dimensionUnitSelect?.value || null
+    let dimLength = null
+    let dimWidth = null
+    let dimHeight = null
+
+    if (dimensionUnit) {
+        const dimLengthInput = document.getElementById("page-dim-length")
+        dimLength = dimLengthInput ? (parseFloat(dimLengthInput.value) || null) : null
+
+        const dimWidthInput = document.getElementById("page-dim-width")
+        dimWidth = dimWidthInput ? (parseFloat(dimWidthInput.value) || null) : null
+
+        const dimHeightInput = document.getElementById("page-dim-height")
+        dimHeight = dimHeightInput ? (parseFloat(dimHeightInput.value) || null) : null
+    }
+
+    // Collect distance values
+    const distanceInput = document.getElementById("page-distance")
+    const distance = distanceInput ? (parseFloat(distanceInput.value) || null) : null
+    const distanceUnit = document.getElementById("page-distance-unit")?.value || null
 
     let isValid = true
     if (currency !== 'FREE') {
@@ -2846,7 +3095,6 @@ function showScrapedDataModal() {
         currency,
         itemsPerPurchase,
         ...(maxPerPurchase !== null && { maxPerPurchase }),
-        ...(maxPerPurchase !== null && { maxPerPurchase }),
         ...(customsCategoryId && { customsCategoryId }),
         ...(weight !== null && { weight }),
         ...(weightUnit && { weightUnit }),
@@ -2855,6 +3103,12 @@ function showScrapedDataModal() {
         ...(height !== null && { height }),
         ...(volume !== null && { volume }),
         ...(volumeUnit && { volumeUnit }),
+        ...(dimLength !== null && { dimLength }),
+        ...(dimWidth !== null && { dimWidth }),
+        ...(dimHeight !== null && { dimHeight }),
+        ...(dimensionUnit && { dimensionUnit }),
+        ...(distance !== null && { distance }),
+        ...(distanceUnit && { distanceUnit }),
         products: [],
         timestamp: new Date().toISOString(),
       }
@@ -2873,7 +3127,7 @@ function showScrapedDataModal() {
         renderApp()
       })
     } else {
-            const page = {
+      const page = {
         url,
         price,
         shippingPrice,
@@ -2882,9 +3136,7 @@ function showScrapedDataModal() {
         currency,
         itemsPerPurchase,
         ...(maxPerPurchase !== null && { maxPerPurchase }),
-        ...(maxPerPurchase !== null && { maxPerPurchase }),
         ...(customsCategoryId && { customsCategoryId }),
-        weight,
         ...(weight !== null && { weight }),
         ...(weightUnit && { weightUnit }),
         ...(length !== null && { length }),
@@ -2892,6 +3144,12 @@ function showScrapedDataModal() {
         ...(height !== null && { height }),
         ...(volume !== null && { volume }),
         ...(volumeUnit && { volumeUnit }),
+        ...(dimLength !== null && { dimLength }),
+        ...(dimWidth !== null && { dimWidth }),
+        ...(dimHeight !== null && { dimHeight }),
+        ...(dimensionUnit && { dimensionUnit }),
+        ...(distance !== null && { distance }),
+        ...(distanceUnit && { distanceUnit }),
         timestamp: new Date().toISOString(),
       }
 
@@ -2924,19 +3182,31 @@ function renderCalculationRules(prefix, ruleData, showFreeOption = true) {
 
     if (!showFreeOption && type === 'free') type = 'fixed';
 
-    const types = [
-        { value: 'item', label: t('deliveryRules.typeItem'), help: t('deliveryRules.typeItemHelp') },
-        { value: 'free', label: t('deliveryRules.freeDelivery'), help: t('deliveryRules.freeDeliveryHelp') },
-        { value: 'fixed', label: t('deliveryRules.typeFixed'), help: t('deliveryRules.typeFixedHelp') },
-        { value: 'percentage', label: t('deliveryRules.typePercentage'), help: t('deliveryRules.typePercentageHelp') },
-        { value: 'quantity', label: t('deliveryRules.typeQuantity'), help: t('deliveryRules.typeQuantityHelp') },
-        { value: 'distance', label: t('deliveryRules.typeDistance'), help: t('deliveryRules.typeDistanceHelp') },
-        { value: 'weight', label: t('deliveryRules.typeWeight'), help: t('deliveryRules.typeWeightHelp') },
-        { value: 'volume', label: t('deliveryRules.typeVolume'), help: t('deliveryRules.typeVolumeHelp') },
-        { value: 'dimension', label: t('deliveryRules.typeDimension'), help: t('deliveryRules.typeDimensionHelp') },
-        { value: 'weight_volume', label: t('deliveryRules.typeWeightVolume'), help: t('deliveryRules.typeWeightVolumeHelp') },
-        { value: 'weight_dimension', label: t('deliveryRules.typeWeightDimension'), help: t('deliveryRules.typeWeightDimensionHelp') },
-    ].filter(t => showFreeOption || t.value !== 'free');
+    const session = sessions.find(s => s.id === currentSession);
+
+    // Build types list based on session options
+    const allTypes = [
+        { value: 'item', label: t('deliveryRules.typeItem'), help: t('deliveryRules.typeItemHelp'), always: true },
+        { value: 'free', label: t('deliveryRules.freeDelivery'), help: t('deliveryRules.freeDeliveryHelp'), always: true },
+        { value: 'fixed', label: t('deliveryRules.typeFixed'), help: t('deliveryRules.typeFixedHelp'), always: true },
+        { value: 'percentage', label: t('deliveryRules.typePercentage'), help: t('deliveryRules.typePercentageHelp'), always: true },
+        { value: 'quantity', label: t('deliveryRules.typeQuantity'), help: t('deliveryRules.typeQuantityHelp'), always: true },
+        { value: 'distance', label: t('deliveryRules.typeDistance'), help: t('deliveryRules.typeDistanceHelp'), requires: ['manageDistance'] },
+        { value: 'weight', label: t('deliveryRules.typeWeight'), help: t('deliveryRules.typeWeightHelp'), requires: ['manageWeight'] },
+        { value: 'volume', label: t('deliveryRules.typeVolume'), help: t('deliveryRules.typeVolumeHelp'), requires: ['manageVolume'] },
+        { value: 'dimension', label: t('deliveryRules.typeDimension'), help: t('deliveryRules.typeDimensionHelp'), requires: ['manageDimension'] },
+        { value: 'weight_volume', label: t('deliveryRules.typeWeightVolume'), help: t('deliveryRules.typeWeightVolumeHelp'), requires: ['manageWeight', 'manageVolume'] },
+        { value: 'weight_dimension', label: t('deliveryRules.typeWeightDimension'), help: t('deliveryRules.typeWeightDimensionHelp'), requires: ['manageWeight', 'manageDimension'] },
+    ];
+
+    const types = allTypes.filter(tType => {
+        if (!showFreeOption && tType.value === 'free') return false;
+        if (tType.always) return true;
+        if (tType.requires) {
+            return tType.requires.every(req => session && session[req]);
+        }
+        return true;
+    });
 
     let html = `<div class="calculation-rules-container space-y-4" data-prefix="${prefix}">`;
 
@@ -2979,7 +3249,7 @@ function renderCalculationRules(prefix, ruleData, showFreeOption = true) {
          // No specific inputs for 'item' (sum of shipping prices)
          html += `<p class="text-sm secondary-text italic">${t('deliveryRules.typeItem')}</p>`;
     } else if (type === 'free') {
-         html += `<p class="text-sm font-medium text-green-600 dark:text-green-400 italic">${t('deliveryRules.freeDelivery')}</p>`;
+         html += `<p class="text-sm font-medium card-text italic">${t('deliveryRules.freeDelivery')}</p>`;
     }
 
     html += `</div></div>`;
@@ -3238,7 +3508,27 @@ function renderTieredInputs(prefix, data, type) {
         html += `
              <div class="mb-4">
                 <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="${type}" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${unit}">
-                    ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, unit)).join('')}
+                    ${(() => {
+                        // Create default tiers when switching to tiered mode for applicable types
+                        const shouldCreateDefaults = isTiered &&
+                                                     (!data.ranges || data.ranges.length === 0) &&
+                                                     ['quantity', 'distance', 'weight', 'volume'].includes(type);
+
+                        if (shouldCreateDefaults) {
+                            const minStart = type === 'quantity' ? 1 : 0;
+                            const maxFirst = 10;
+                            const minSecond = type === 'quantity' ? 11 : 10;
+
+                            data.ranges = [
+                                { min: minStart, max: maxFirst, value: 0 },
+                                { min: minSecond, max: null, value: 0 }
+                            ];
+                        }
+
+                        return (data.ranges || []).map((range, idx) =>
+                            renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, unit)
+                        ).join('');
+                    })()}
                     ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
                 </div>
 
@@ -3634,7 +3924,14 @@ function extractCalculationRule(prefix, container) {
                      const idx = match[1];
                      const field = match[2]; // min, max, value
                      if (!rangesMap[idx]) rangesMap[idx] = {};
-                     rangesMap[idx][field] = parseFloat(inp.value) || 0;
+
+                     // Handle infinity: empty max field should be null, not 0
+                     if (field === 'max' && (inp.value === '' || inp.value === null || inp.value === undefined)) {
+                         rangesMap[idx][field] = null;
+                     } else {
+                         const parsedValue = parseFloat(inp.value);
+                         rangesMap[idx][field] = isNaN(parsedValue) ? 0 : parsedValue;
+                     }
                  }
              });
              rule.ranges = Object.values(rangesMap);
@@ -3673,7 +3970,14 @@ function extractCalculationRule(prefix, container) {
                      const idx = match[1];
                      const field = match[2]; // maxL, maxW, maxH, value
                      if (!rangesMap[idx]) rangesMap[idx] = {};
-                     rangesMap[idx][field] = parseFloat(inp.value) || 0;
+
+                     // Handle infinity: empty max fields should be null, not 0
+                     if (['maxL', 'maxW', 'maxH'].includes(field) && (inp.value === '' || inp.value === null || inp.value === undefined)) {
+                         rangesMap[idx][field] = null;
+                     } else {
+                         const parsedValue = parseFloat(inp.value);
+                         rangesMap[idx][field] = isNaN(parsedValue) ? 0 : parsedValue;
+                     }
                  }
              });
              rule.ranges = Object.values(rangesMap);
@@ -3700,7 +4004,14 @@ function extractCalculationRule(prefix, container) {
                  const idx = match[1];
                  const field = match[2]; // maxWeight, maxVol, value
                  if (!rangesMap[idx]) rangesMap[idx] = {};
-                 rangesMap[idx][field] = parseFloat(inp.value) || 0;
+
+                 // Handle infinity: empty max fields should be null, not 0
+                 if (['maxWeight', 'maxVol'].includes(field) && (inp.value === '' || inp.value === null || inp.value === undefined)) {
+                     rangesMap[idx][field] = null;
+                 } else {
+                     const parsedValue = parseFloat(inp.value);
+                     rangesMap[idx][field] = isNaN(parsedValue) ? 0 : parsedValue;
+                 }
              }
          });
          rule.ranges = Object.values(rangesMap);
@@ -4342,28 +4653,224 @@ function getSellerProducts(session, seller) {
 function renderSellerRecapCard(session, seller, rule) {
   const billingMethod = rule.billingMethod || 'global'
   const copiedFrom = rule.copiedFrom || null
-  let statusText = ''
-  
+
+  // Helper to render detailed calculation method
+  function renderCalcMethodDetails(calcMethod, indent = false) {
+    if (!calcMethod || !calcMethod.type) return ''
+
+    const type = calcMethod.type
+    const indentClass = indent ? 'ml-4' : ''
+    let html = ''
+
+    if (type === 'free') {
+      html = `<div class="${indentClass} text-sm card-text font-medium">${t("deliveryRules.freeDelivery")}</div>`
+    } else if (type === 'item') {
+      html = `<div class="${indentClass} text-sm secondary-text italic">${t("deliveryRules.typeItem")}</div>`
+    } else if (type === 'fixed') {
+      const amount = calcMethod.amount || 0
+      html = `
+        <div class="${indentClass} text-sm secondary-text">
+          <span class="font-medium">${t("deliveryRules.typeFixed")}:</span>
+          <span class="card-text font-semibold">${amount.toFixed(2)} ${currentCurrencySymbol}</span>
+        </div>
+      `
+    } else if (type === 'percentage') {
+      const rate = calcMethod.rate || 0
+      const base = calcMethod.base || 'order'
+      const baseLabel = base === 'order' ? t("deliveryRules.baseOrder") : t("deliveryRules.baseDelivery")
+      html = `
+        <div class="${indentClass} text-sm secondary-text">
+          <span class="font-medium">${t("deliveryRules.typePercentage")}:</span>
+          <span class="card-text font-semibold">${(rate * 100).toFixed(2)}%</span>
+          <span class="text-xs muted-text">(${baseLabel})</span>
+        </div>
+      `
+    } else {
+      // Other types: quantity, distance, weight, volume, dimension, weight_volume, weight_dimension
+      const typeLabels = {
+        'quantity': t("deliveryRules.typeQuantity"),
+        'distance': t("deliveryRules.typeDistance"),
+        'weight': t("deliveryRules.typeWeight"),
+        'volume': t("deliveryRules.typeVolume"),
+        'dimension': t("deliveryRules.typeDimension"),
+        'weight_volume': t("deliveryRules.typeWeightVolume"),
+        'weight_dimension': t("deliveryRules.typeWeightDimension")
+      }
+
+      const ranges = calcMethod.ranges || []
+      const isTiered = calcMethod.isTiered !== false && ranges.length > 0
+
+      if (isTiered) {
+        // Tiered pricing with ranges
+        const tierValueType = calcMethod.tierValueType || 'fixed'
+        const tierValueMode = calcMethod.tierValueMode || 'total'
+
+        html = `
+          <div class="${indentClass} text-sm">
+            <div class="font-medium secondary-text mb-1">
+              ${typeLabels[type] || type}
+              <span class="text-xs muted-text font-normal ml-1">
+                (${ranges.length} ${ranges.length === 1 ? t("deliveryRules.addRange").toLowerCase() : t("deliveryRules.ranges").toLowerCase()})
+              </span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-default">
+                    <th class="text-left py-1 px-2 secondary-text font-medium">${t("deliveryRules.min")}</th>
+                    <th class="text-left py-1 px-2 secondary-text font-medium">${t("deliveryRules.max")}</th>
+                    <th class="text-left py-1 px-2 secondary-text font-medium">${t("deliveryRules.value")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${ranges.map((range, idx) => {
+                    const min = range.min !== undefined && range.min !== null ? range.min : ''
+                    const max = range.max !== undefined && range.max !== null ? range.max : '∞'
+                    let value = range.value || 0
+
+                    let valueDisplay = ''
+                    if (tierValueType === 'fixed') {
+                      valueDisplay = `${value.toFixed(2)} ${currentCurrencySymbol}`
+                    } else if (tierValueType === 'pctOrder' || tierValueType === 'pctDelivery') {
+                      valueDisplay = `${(value * 100).toFixed(2)}%`
+                    }
+
+                    if (tierValueMode === 'perUnit') {
+                      valueDisplay += ` / ${t("deliveryRules.unit").toLowerCase()}`
+                    }
+
+                    return `
+                      <tr class="border-b border-default/50">
+                        <td class="py-1 px-2 card-text">${min}</td>
+                        <td class="py-1 px-2 card-text">${max}</td>
+                        <td class="py-1 px-2 card-text font-medium">${valueDisplay}</td>
+                      </tr>
+                    `
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `
+      } else if (calcMethod.amount !== undefined) {
+        // Simple pricing (non-tiered)
+        const amount = calcMethod.amount || 0
+        const unit = calcMethod.unit || ''
+        let unitLabel = unit
+
+        // Get unit label from translations if available
+        if (unit && t(`attributes.units.${unit}`)) {
+          unitLabel = t(`attributes.units.${unit}`)
+        }
+
+        html = `
+          <div class="${indentClass} text-sm secondary-text">
+            <span class="font-medium">${typeLabels[type] || type}:</span>
+            <span class="card-text font-semibold">${amount.toFixed(2)} ${currentCurrencySymbol}</span>
+            ${unit ? `<span class="text-xs muted-text"> / ${unitLabel}</span>` : ''}
+          </div>
+        `
+      } else {
+        // Fallback for unknown structure
+        html = `<div class="${indentClass} text-sm muted-text italic">${typeLabels[type] || type}</div>`
+      }
+    }
+
+    return html
+  }
+
+  let detailsHtml = ''
+
   if (copiedFrom) {
-    statusText = `${t("deliveryRules.sameSellerAs")}: ${copiedFrom}`
-  } else if (billingMethod === 'global') {
-    statusText = t("deliveryRules.sameFee")
+    detailsHtml = `
+      <div class="p-3 secondary-bg rounded-lg border border-default">
+        <p class="text-sm secondary-text">
+          <span class="font-medium">${t("deliveryRules.sameSellerAs")}:</span>
+          <span class="card-text font-semibold">${copiedFrom}</span>
+        </p>
+      </div>
+    `
   } else if (billingMethod === 'free') {
-    statusText = t("deliveryRules.freeDelivery")
-  } else {
+    detailsHtml = `
+      <div class="p-3 secondary-bg rounded-lg border border-default">
+        <p class="text-sm card-text font-medium">${t("deliveryRules.freeDelivery")}</p>
+      </div>
+    `
+  } else if (billingMethod === 'global') {
+    detailsHtml = `
+      <div class="p-3 secondary-bg rounded-lg border border-default space-y-2">
+        <p class="text-xs font-semibold secondary-text uppercase tracking-wide">${t("deliveryRules.sameFee")}</p>
+        ${renderCalcMethodDetails(rule.calculationMethod)}
+    `
+    if (rule.globalFreeShipping && rule.globalFreeShippingThreshold) {
+      detailsHtml += `
+        <div class="pt-2 mt-2 border-t border-default">
+          <p class="text-xs secondary-text">
+            <span class="font-medium">${t("deliveryRules.freeShippingThreshold")}</span>
+            <span class="card-text font-semibold ml-1">${rule.globalFreeShippingThreshold.toFixed(2)} ${currentCurrencySymbol}</span>
+          </p>
+        </div>
+      `
+    }
+    detailsHtml += `</div>`
+  } else if (billingMethod === 'groups') {
     const groupCount = (rule.groups || []).length
-    statusText = `${groupCount} ${t("deliveryRules.dependsOnProducts")}`
+    detailsHtml = `
+      <div class="p-3 secondary-bg rounded-lg border border-default space-y-3">
+        <p class="text-xs font-semibold secondary-text uppercase tracking-wide">
+          ${groupCount} ${groupCount === 1 ? t("deliveryRules.addGroup") : t("deliveryRules.addGroup") + 's'}
+        </p>
+    `
+    ;(rule.groups || []).forEach((group, idx) => {
+      const productCount = (group.productIds || []).length
+      detailsHtml += `
+        <div class="p-2 bg-[hsl(var(--card))] rounded border border-default/50 space-y-1">
+          <div class="flex justify-between items-start">
+            <p class="text-sm font-medium card-text">${group.name || t("deliveryRules.newGroupPlaceholder")}</p>
+            <span class="text-xs secondary-text bg-[hsl(var(--muted))] px-2 py-0.5 rounded">
+              ${productCount} ${productCount === 1 ? t("sessions.product") : t("sessions.products")}
+            </span>
+          </div>
+          ${renderCalcMethodDetails(group.calculationMethod, false)}
+      `
+      if (group.freeShipping && group.freeShippingThreshold) {
+        detailsHtml += `
+          <div class="pt-1 mt-1 border-t border-default/50">
+            <p class="text-xs secondary-text">
+              <span class="font-medium">${t("deliveryRules.freeShippingThreshold")}</span>
+              <span class="card-text font-semibold ml-1">${group.freeShippingThreshold.toFixed(2)} ${currentCurrencySymbol}</span>
+            </p>
+          </div>
+        `
+      }
+      detailsHtml += `</div>`
+    })
+    detailsHtml += `</div>`
+  }
+
+  // Add customs clearance fee if present
+  if (session.importFeesEnabled && rule.customsClearanceFee) {
+    detailsHtml += `
+      <div class="p-3 mt-2 secondary-bg rounded-lg border border-default">
+        <p class="text-sm secondary-text">
+          <span class="font-medium">${t("deliveryRules.customsClearanceFees")}:</span>
+          <span class="card-text font-semibold">${rule.customsClearanceFee.toFixed(2)} ${currentCurrencySymbol}</span>
+        </p>
+      </div>
+    `
   }
 
   return `
-  <div class="card-bg rounded-xl shadow-md p-4 border border-default flex justify-between items-center">
-    <div class="flex-1 min-w-0 mr-4">
-      <h4 class="text-lg font-medium card-text truncate">${seller}</h4>
-      <p class="text-sm muted-text">${statusText}</p>
+  <div class="card-bg rounded-xl shadow-md p-4 border border-default">
+    <div class="flex justify-between items-start mb-3">
+      <h4 class="text-lg font-semibold card-text">${seller}</h4>
+      <button class="edit-seller-btn text-sm secondary-bg secondary-text px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 border border-default flex-shrink-0" data-seller="${seller}">
+        ${t("common.edit")}
+      </button>
     </div>
-    <button class="edit-seller-btn text-sm secondary-bg secondary-text px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 border border-default" data-seller="${seller}">
-      ${t("common.edit")}
-    </button>
+    <div class="space-y-2">
+      ${detailsHtml}
+    </div>
   </div>
   `
 }
@@ -4832,10 +5339,36 @@ function renderSellerDeliveryRulesView(seller) {
         const newIndex = existingRows.length
         
         let newMin = 0
+
         if (existingRows.length > 0 && !['dimension', 'weight_volume', 'weight_dimension'].includes(type)) {
             const lastRow = existingRows[existingRows.length - 1]
             const maxInput = lastRow.querySelector('input[name$="_max"]')
-            if (maxInput && maxInput.value !== '') {
+            const minInput = lastRow.querySelector('input[name$="_min"]')
+
+            // Smart insertion: if last tier is infinite (max is null/empty)
+            if (maxInput && (maxInput.value === '' || maxInput.value === null)) {
+                // Calculate diff from previous tier, default to 10
+                let diff = 10;
+                if (existingRows.length >= 2) {
+                    const prevRow = existingRows[existingRows.length - 2]
+                    const prevMinInput = prevRow.querySelector('input[name$="_min"]')
+                    const lastMin = parseFloat(minInput.value) || 0
+                    const prevMin = parseFloat(prevMinInput.value) || 0
+                    diff = lastMin - prevMin || 10
+                }
+
+                // Calculate new max for the currently-infinite tier
+                const lastMin = parseFloat(minInput.value) || 0
+                const newMaxForLast = lastMin + diff
+
+                // Update the last tier's max (make it finite)
+                maxInput.value = newMaxForLast
+
+                // New tier starts after the updated max
+                newMin = type === 'quantity' ? newMaxForLast + 1 : newMaxForLast
+            }
+            // Original logic: last tier has a finite max
+            else if (maxInput && maxInput.value !== '') {
                 const lastMax = parseFloat(maxInput.value) || 0
                 newMin = type === 'quantity' ? lastMax + 1 : lastMax
             }

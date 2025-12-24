@@ -183,6 +183,8 @@ function createSession(data) {
     importFeesEnabled: data.importFeesEnabled,
     manageWeight: data.manageWeight,
     manageVolume: data.manageVolume,
+    manageDimension: data.manageDimension,
+    manageDistance: data.manageDistance,
     customsCategories: [],
     products: [],
     bundles: [],

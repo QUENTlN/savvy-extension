@@ -20,6 +20,8 @@
         "ImportFeesManagement": "Gérer les frais d'importation",
         "manageWeight": "Gérer les poids",
         "manageVolume": "Gérer les volumes",
+        "manageDimension": "Gérer les dimensions",
+        "manageDistance": "Gérer les distances",
         "deleteAllSessions": "Supprimer toutes les sessions",
         "sessionName": "Nom de la session",
         "enterSessionName": "Entrez le nom de la session",
@@ -88,6 +90,8 @@
         "darkMode": "Mode sombre",
         "defaultWeightUnit": "Unité de poids par défaut",
         "defaultVolumeUnit": "Unité de volume par défaut",
+        "defaultDimensionUnit": "Unité de dimension par défaut",
+        "defaultDistanceUnit": "Unité de distance par défaut",
         "saveSettings": "Enregistrer les paramètres"
     },
     "alternatives": {
@@ -197,7 +201,7 @@
         "length": "Longueur",
         "width": "Largeur",
         "height": "Hauteur",
-        "freeShippingThreshold": "Livraison gratuite à partir de...",
+        "freeShippingThreshold": "Livraison gratuite à partir de",
         "saveRules": "Enregistrer les règles de livraison",
         "globalRules": "Règles globales",
         "sellerRules": "Règles spécifiques au vendeur",
@@ -285,12 +289,15 @@
     "attributes": {
         "weight": "Poids",
         "volume": "Volume",
+        "dimension": "Dimension",
+        "distance": "Distance",
         "length": "Longueur",
         "width": "Largeur",
         "height": "Hauteur",
         "weightUnit": "Unité de poids",
         "volumeUnit": "Unité de volume",
         "dimensionUnit": "Unité de dimension",
+        "distanceUnit": "Unité de distance",
         "units": {
             "mg": "milligramme",
             "g": "gramme",
@@ -311,7 +318,9 @@
             "ft3": "pied cube",
             "qt": "quart",
             "gal": "gallon",
-            "pt": "pinte"
+            "pt": "pinte",
+            "km": "kilomètre",
+            "mi": "mile"
         }
     },
     "validation": {

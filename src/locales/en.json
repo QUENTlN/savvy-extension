@@ -20,6 +20,8 @@
         "ImportFeesManagement": "Manage import fees",
         "manageWeight": "Manage weights",
         "manageVolume": "Manage volumes",
+        "manageDimension": "Manage dimensions",
+        "manageDistance": "Manage distances",
         "deleteAllSessions": "Delete all sessions",
         "sessionName": "Session name",
         "enterSessionName": "Enter session name",
@@ -88,6 +90,8 @@
         "darkMode": "Dark mode",
         "defaultWeightUnit": "Default Weight Unit",
         "defaultVolumeUnit": "Default Volume Unit",
+        "defaultDimensionUnit": "Default Dimension Unit",
+        "defaultDistanceUnit": "Default Distance Unit",
         "saveSettings": "Save Settings"
     },
     "alternatives": {
@@ -197,7 +201,7 @@
         "length": "Length",
         "width": "Width",
         "height": "Height",
-        "freeShippingThreshold": "Free shipping starting at...",
+        "freeShippingThreshold": "Free shipping starting at",
         "saveRules": "Save Delivery Rules",
         "globalRules": "Global rules",
         "sellerRules": "Seller-specific rules",
@@ -285,12 +289,15 @@
     "attributes": {
         "weight": "Weight",
         "volume": "Volume",
+        "dimension": "Dimension",
+        "distance": "Distance",
         "length": "Length",
         "width": "Width",
         "height": "Height",
         "weightUnit": "Weight Unit",
         "volumeUnit": "Volume Unit",
         "dimensionUnit": "Dimension Unit",
+        "distanceUnit": "Distance Unit",
         "units": {
             "mg": "milligram",
             "g": "gram",
@@ -311,7 +318,9 @@
             "ft3": "cubic foot",
             "qt": "quart",
             "gal": "gallon",
-            "pt": "pint"
+            "pt": "pint",
+            "km": "kilometer",
+            "mi": "mile"
         }
     },
     "validation": {
