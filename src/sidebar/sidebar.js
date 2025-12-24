@@ -4021,6 +4021,84 @@ function extractCalculationRule(prefix, container) {
 }
 
 // ============================================================================
+// HTML COMPONENT HELPERS
+// ============================================================================
+
+/**
+ * Génère un radio button avec son label et icône help
+ */
+function renderRadioOption(config) {
+  const { name, value, checked, label, helpText, helpIcon = true, additionalClasses = '' } = config
+  const radioId = `${name}_${value}`
+  
+  return `
+    <div class="relative ${additionalClasses}">
+      <label for="${radioId}" class="flex items-center p-4 border border-default rounded-xl cursor-pointer hover:bg-[hsl(var(--muted))] transition-all bg-[hsl(var(--card))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--muted))]/50 has-[:checked]:ring-1 has-[:checked]:ring-[hsl(var(--primary))]/20">
+        <input type="radio" id="${radioId}" name="${name}" value="${value}" class="sr-only peer" ${checked ? 'checked' : ''}>
+        <div class="w-5 h-5 rounded-full border border-default flex items-center justify-center mr-3 peer-checked:border-[hsl(var(--primary))] peer-checked:bg-[hsl(var(--primary))] transition-all">
+          <div class="w-2 h-2 rounded-full bg-white scale-0 peer-checked:scale-100 transition-transform"></div>
+        </div>
+        <span class="card-text font-medium text-sm transition-colors peer-checked:text-primary flex-1 truncate">${label}</span>
+        ${helpIcon && helpText ? `<div class="icon icon-help w-4 h-4 secondary-text opacity-40 hover:opacity-100 transition-opacity cursor-help" title="${helpText}"></div>` : ''}
+      </label>
+    </div>
+  `
+}
+
+/**
+ * Génère un toggle switch avec son label
+ */
+function renderToggleSwitch(config) {
+  const { id, label, checked, containerClass = '', additionalAttrs = '' } = config
+  
+  return `
+    <div class="${containerClass}">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium card-text">${label}</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="${id}" class="sr-only peer" ${checked ? 'checked' : ''} ${additionalAttrs}>
+          <div class="toggle-switch"></div>
+        </label>
+      </div>
+    </div>
+  `
+}
+
+/**
+ * Génère un input de seuil conditionnel
+ */
+function renderConditionalThresholdInput(config) {
+  const { containerClass, inputClass, label, value, visible, placeholder = '0.00', additionalAttrs = '' } = config
+  
+  return `
+    <div class="${containerClass}" style="display: ${visible ? 'block' : 'none'}">
+      <label class="block text-xs secondary-text mb-1 ml-1">${label}</label>
+      <input type="number" class="w-full px-3 py-2 border border-default input-bg card-text rounded-md ${inputClass} focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" value="${value || ''}" placeholder="${placeholder}" step="0.01" ${additionalAttrs}>
+    </div>
+  `
+}
+
+/**
+ * Génère un bouton d'action primaire ou secondaire
+ */
+function renderActionButton(config) {
+  const { id, label, icon, primary = true, fullWidth = false, additionalClass = '' } = config
+  const bgClass = primary ? 'primary-bg primary-text' : 'secondary-bg secondary-text'
+  const widthClass = fullWidth ? 'w-full' : ''
+  
+  return `
+    <button id="${id}" class="${widthClass} flex items-center justify-center space-x-2 cursor-pointer ${bgClass} px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default ${additionalClass}">
+      ${icon ? `<span class="icon icon-${icon} h-5 w-5"></span>` : ''}
+      <span class="text-base font-medium">${label}</span>
+    </button>
+  `
+}
+
+// ============================================================================
+// END HTML COMPONENT HELPERS
+// ============================================================================
+
+// ============================================================================
 // TIER VALIDATION MODULE
 // ============================================================================
 
@@ -4631,6 +4709,103 @@ function validateAllTierForms() {
 // END TIER VALIDATION MODULE
 // ============================================================================
 
+// ============================================================================
+// EVENT HANDLERS MODULE
+// ============================================================================
+
+/**
+ * Configure les listeners pour la sélection "Same Seller"
+ */
+function setupSameSellerListener(container) {
+  const sameSellerSelect = container.querySelector('.same-seller-select')
+  if (!sameSellerSelect) return
+  
+  sameSellerSelect.addEventListener('change', (e) => {
+    const value = e.target.value
+    const configContainer = container.querySelector('.custom-config-container')
+    if (!configContainer) return
+    
+    configContainer.style.display = (value && value !== 'None') ? 'none' : 'block'
+  })
+}
+
+/**
+ * Configure les listeners pour les billing method radios
+ */
+function setupBillingMethodListeners(container, safeSellerId) {
+  const radios = container.querySelectorAll('.billing-method-radio')
+  radios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const val = e.target.value
+      toggleBillingMethodSections(safeSellerId, val)
+    })
+  })
+}
+
+/**
+ * Toggle la visibilité des sections selon le billing method
+ */
+function toggleBillingMethodSections(safeSellerId, method) {
+  const globalFreeContainer = document.querySelector('.global-free-shipping-container')
+  const groupsContainer = document.getElementById(`groups-container-${safeSellerId}`)
+  const globalCalcContainer = document.getElementById(`calc-global-${safeSellerId}`)
+  
+  switch(method) {
+    case 'global':
+      if (globalFreeContainer) globalFreeContainer.style.display = 'block'
+      if (groupsContainer) groupsContainer.style.display = 'none'
+      if (globalCalcContainer) globalCalcContainer.style.display = 'block'
+      break
+    case 'groups':
+      if (globalFreeContainer) globalFreeContainer.style.display = 'none'
+      if (groupsContainer) groupsContainer.style.display = 'block'
+      if (globalCalcContainer) globalCalcContainer.style.display = 'none'
+      break
+    case 'free':
+      if (globalFreeContainer) globalFreeContainer.style.display = 'none'
+      if (groupsContainer) groupsContainer.style.display = 'none'
+      if (globalCalcContainer) globalCalcContainer.style.display = 'none'
+      break
+  }
+}
+
+/**
+ * Configure le listener pour le toggle de free shipping
+ */
+function setupFreeShippingToggle(container, selector, thresholdSelector) {
+  const checkbox = container.querySelector(selector)
+  if (!checkbox) return
+  
+  checkbox.addEventListener('change', (e) => {
+    const inputDiv = container.querySelector(thresholdSelector)
+    if (inputDiv) {
+      inputDiv.style.display = e.target.checked ? 'block' : 'none'
+    }
+  })
+}
+
+/**
+ * Configure le listener pour le bouton "Add Group"
+ */
+function setupAddGroupButtonListener(session, seller, safeSellerId) {
+  const addGroupBtn = document.querySelector('.add-group-btn')
+  if (!addGroupBtn) return
+  
+  addGroupBtn.addEventListener('click', () => {
+    const container = document.querySelector('.groups-list')
+    const index = container.children.length
+    const newGroupHtml = renderGroupItem(session, seller, { name: t("deliveryRules.newGroupPlaceholder") }, index, safeSellerId)
+    
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = newGroupHtml
+    container.appendChild(tempDiv.firstElementChild)
+  })
+}
+
+// ============================================================================
+// END EVENT HANDLERS MODULE
+// ============================================================================
+
 function getRule(session, seller) {
   const rule = (session.deliveryRules || []).find(r => r.seller === seller) || {}
   // Migration/Default logic
@@ -4918,188 +5093,233 @@ function renderGroupItem(session, seller, group, gIdx, safeSellerId) {
   `;
 }
 
+// ============================================================================
+// SELLER DELIVERY RULES VIEW - HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Rendu du header avec bouton retour et titre
+ */
+function renderSellerEditorHeader(seller) {
+  return `
+    <div class="flex items-center space-x-3 mb-4">
+      <button class="muted-text p-2 cursor-pointer" id="back-to-list-button">
+        <span class="icon icon-back h-8 w-8"></span>
+      </button>
+      <h1 class="text-2xl font-semibold card-text truncate flex-1">${seller}</h1>
+    </div>
+  `
+}
+
+/**
+ * Rendu du sélecteur "Same Seller As"
+ */
+function renderSameSellerSelector(session, seller, copiedFrom) {
+  const otherSellers = getUniqueSellers(session).filter(s => s !== seller)
+  
+  return `
+    <div class="mb-6">
+      <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.sameSellerAs")}</label>
+      <select class="same-seller-select w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary border-transparent" data-seller="${seller}">
+        <option value="None" ${copiedFrom === 'None' ? 'selected' : ''}>${t("deliveryRules.none")}</option>
+        ${otherSellers.map(s2 => `<option value="${s2}" ${copiedFrom === s2 ? 'selected' : ''}>${s2}</option>`).join('')}
+      </select>
+    </div>
+  `
+}
+
+/**
+ * Rendu du container global free shipping
+ */
+function renderGlobalFreeShippingContainer(rule, billingMethod) {
+  const globalFree = rule.globalFreeShipping || false
+  const globalThreshold = rule.globalFreeShippingThreshold || ''
+  const visible = billingMethod === 'global'
+  
+  return `
+    <div class="mb-6 global-free-shipping-container bg-[hsl(var(--muted))] rounded-xl p-4 border border-default" style="display: ${visible ? 'block' : 'none'}">
+      ${renderToggleSwitch({
+        id: 'global-free-shipping-checkbox',
+        label: t("deliveryRules.freeDeliveryCondition"),
+        checked: globalFree,
+        additionalAttrs: 'class="global-free-shipping-checkbox"'
+      })}
+      ${renderConditionalThresholdInput({
+        containerClass: 'mt-3 global-free-shipping-threshold',
+        inputClass: 'global-free-shipping-input',
+        label: t("deliveryRules.freeDeliveryThreshold"),
+        value: globalThreshold,
+        visible: globalFree
+      })}
+    </div>
+  `
+}
+
+/**
+ * Rendu de la section Billing Method
+ */
+function renderBillingMethodSection(rule, safeSellerId, seller) {
+  const billingMethod = rule.billingMethod || 'global'
+  
+  return `
+    <div class="step-1 mb-6">
+      <h5 class="text-sm font-semibold secondary-text mb-2">${t("deliveryRules.billingMethod")}</h5>
+      <div class="space-y-3 mb-4">
+        ${renderRadioOption({
+          name: `billing-method-${safeSellerId}`,
+          value: 'global',
+          checked: billingMethod === 'global',
+          label: t("deliveryRules.sameFee"),
+          helpText: t("deliveryRules.billingMethodSameFeeHelp"),
+          additionalClasses: 'billing-method-radio'
+        })}
+        ${renderRadioOption({
+          name: `billing-method-${safeSellerId}`,
+          value: 'groups',
+          checked: billingMethod === 'groups',
+          label: t("deliveryRules.dependsOnProducts"),
+          helpText: t("deliveryRules.billingMethodDependsHelp"),
+          additionalClasses: 'billing-method-radio'
+        })}
+        ${renderRadioOption({
+          name: `billing-method-${safeSellerId}`,
+          value: 'free',
+          checked: billingMethod === 'free',
+          label: t("deliveryRules.freeDelivery"),
+          helpText: null,
+          helpIcon: false,
+          additionalClasses: 'billing-method-radio'
+        })}
+      </div>
+      ${renderGlobalFreeShippingContainer(rule, billingMethod)}
+    </div>
+  `
+}
+
+/**
+ * Rendu de la section Groupes de produits
+ */
+function renderGroupsSection(session, seller, rule, safeSellerId) {
+  const billingMethod = rule.billingMethod || 'global'
+  const visible = billingMethod === 'groups'
+  
+  return `
+    <div class="step-2 mb-6" id="groups-container-${safeSellerId}" style="display: ${visible ? 'block' : 'none'}">
+      <h5 class="text-sm font-semibold secondary-text mb-3 px-1">${t("deliveryRules.dependsOnProducts")}</h5>
+      
+      <div class="groups-list space-y-4 mb-6" data-seller="${seller}">
+        ${(rule.groups || []).map((group, gIdx) => renderGroupItem(session, seller, group, gIdx, safeSellerId)).join('')}
+      </div>
+      
+      <button class="add-group-btn w-full py-3 flex items-center justify-center space-x-2 text-sm font-semibold secondary-bg secondary-text hover:bg-[hsl(var(--muted))] rounded-xl border border-default transition-all shadow-sm" data-seller="${seller}">
+        <span class="icon icon-plus h-4 w-4"></span>
+        <span>${t("deliveryRules.addGroup")}</span>
+      </button>
+    </div>
+  `
+}
+
+/**
+ * Rendu de la section Calculation Rules (Global)
+ */
+function renderGlobalCalculationSection(rule, safeSellerId) {
+  const billingMethod = rule.billingMethod || 'global'
+  const visible = billingMethod === 'global'
+  
+  return `
+    <div class="step-3-global mb-6" id="calc-global-${safeSellerId}" style="display: ${visible ? 'block' : 'none'}">
+      ${renderCalculationRules(`global_${safeSellerId}`, rule.calculationMethod || {}, false)}
+    </div>
+  `
+}
+
+/**
+ * Rendu de la section Customs Fees
+ */
+function renderCustomsFeesSection(session, rule, seller) {
+  if (!session.importFeesEnabled) return ''
+  
+  return `
+    <div class="mt-6 pt-6 border-t border-default">
+      <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.customsClearanceFees")}</label>
+      <input type="number" step="0.01" value="${rule.customsClearanceFee || 0}" class="customs-clearance-fees w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary border-transparent" data-seller="${seller}">
+    </div>
+  `
+}
+
+/**
+ * Rendu du container de configuration personnalisée
+ */
+function renderCustomConfigContainer(session, seller, rule, safeSellerId, copiedFrom) {
+  const visible = copiedFrom === 'None'
+  
+  return `
+    <div class="custom-config-container" style="display: ${visible ? 'block' : 'none'}">
+      ${renderBillingMethodSection(rule, safeSellerId, seller)}
+      ${renderGroupsSection(session, seller, rule, safeSellerId)}
+      ${renderGlobalCalculationSection(rule, safeSellerId)}
+      ${renderCustomsFeesSection(session, rule, seller)}
+    </div>
+  `
+}
+
+/**
+ * Rendu du bouton de sauvegarde
+ */
+function renderSaveButton() {
+  return `
+    <button id="save-seller-rules" class="w-full mt-8 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-4 rounded-xl hover:opacity-90 transition-all shadow-md">
+      <span class="text-lg font-semibold">${t("common.save")}</span>
+    </button>
+  `
+}
+
+// ============================================================================
+// END SELLER DELIVERY RULES VIEW - HELPER FUNCTIONS
+// ============================================================================
+
 function renderSellerDeliveryRulesView(seller) {
   const session = sessions.find((s) => s.id === currentSession)
   const rule = getRule(session, seller)
   const safeSellerId = seller.replace(/\s+/g, '-')
   const copiedFrom = rule.copiedFrom || 'None'
-  const billingMethod = rule.billingMethod || 'global'
-  const globalFree = rule.globalFreeShipping || false
-  const globalThreshold = rule.globalFreeShippingThreshold || ''
   
+  // Build HTML using helper functions
   app.innerHTML = `
     <div class="mx-4 pb-8">
-      <div class="flex items-center space-x-3 mb-4">
-        <button class="muted-text p-2 cursor-pointer" id="back-to-list-button">
-          <span class="icon icon-back h-8 w-8"></span>
-        </button>
-        <h1 class="text-2xl font-semibold card-text truncate flex-1">${seller}</h1>
-      </div>
-
+      ${renderSellerEditorHeader(seller)}
       <div class="seller-card card-bg rounded-xl shadow-md p-6 border border-default">
-        <div class="mb-6">
-          <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.sameSellerAs")}</label>
-          <select class="same-seller-select w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary border-transparent" data-seller="${seller}">
-            <option value="None" ${copiedFrom === 'None' ? 'selected' : ''}>${t("deliveryRules.none")}</option>
-            ${getUniqueSellers(session).filter(s => s !== seller).map(s2 => `<option value="${s2}" ${copiedFrom === s2 ? 'selected' : ''}>${s2}</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="custom-config-container" style="display: ${copiedFrom !== 'None' ? 'none' : 'block'}">
-            <!-- STEP 1: Billing Method -->
-            <div class="step-1 mb-6">
-                <h5 class="text-sm font-semibold secondary-text mb-2">${t("deliveryRules.billingMethod")}</h5>
-                <div class="space-y-3 mb-4">
-                  <div class="relative">
-                    <label class="flex items-center p-4 border border-default rounded-xl cursor-pointer hover:bg-[hsl(var(--muted))] transition-all bg-[hsl(var(--card))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--muted))]/50 has-[:checked]:ring-1 has-[:checked]:ring-[hsl(var(--primary))]/20">
-                        <input type="radio" name="billing-method-${safeSellerId}" value="global" class="billing-method-radio sr-only peer" ${billingMethod === 'global' ? 'checked' : ''} data-seller="${seller}">
-                        <div class="w-5 h-5 rounded-full border border-default flex items-center justify-center mr-3 peer-checked:border-[hsl(var(--primary))] peer-checked:bg-[hsl(var(--primary))] transition-all">
-                            <div class="w-2 h-2 rounded-full bg-white scale-0 peer-checked:scale-100 transition-transform"></div>
-                        </div>
-                        <span class="card-text font-medium text-sm transition-colors peer-checked:text-primary flex-1 truncate">${t("deliveryRules.sameFee")}</span>
-                        <div class="icon icon-help w-4 h-4 secondary-text opacity-40 hover:opacity-100 transition-opacity cursor-help" title="${t("deliveryRules.billingMethodSameFeeHelp")}"></div>
-                    </label>
-                  </div>
-                  <div class="relative">
-                    <label class="flex items-center p-4 border border-default rounded-xl cursor-pointer hover:bg-[hsl(var(--muted))] transition-all bg-[hsl(var(--card))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--muted))]/50 has-[:checked]:ring-1 has-[:checked]:ring-[hsl(var(--primary))]/20">
-                        <input type="radio" name="billing-method-${safeSellerId}" value="groups" class="billing-method-radio sr-only peer" ${billingMethod === 'groups' ? 'checked' : ''} data-seller="${seller}">
-                        <div class="w-5 h-5 rounded-full border border-default flex items-center justify-center mr-3 peer-checked:border-[hsl(var(--primary))] peer-checked:bg-[hsl(var(--primary))] transition-all">
-                            <div class="w-2 h-2 rounded-full bg-white scale-0 peer-checked:scale-100 transition-transform"></div>
-                        </div>
-                        <span class="card-text font-medium text-sm transition-colors peer-checked:text-primary flex-1 truncate">${t("deliveryRules.dependsOnProducts")}</span>
-                        <div class="icon icon-help w-4 h-4 secondary-text opacity-40 hover:opacity-100 transition-opacity cursor-help" title="${t("deliveryRules.billingMethodDependsHelp")}"></div>
-                    </label>
-                  </div>
-                  <div class="relative">
-                    <label class="flex items-center p-4 border border-default rounded-xl cursor-pointer hover:bg-[hsl(var(--muted))] transition-all bg-[hsl(var(--card))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--muted))]/50 has-[:checked]:ring-1 has-[:checked]:ring-[hsl(var(--primary))]/20">
-                        <input type="radio" name="billing-method-${safeSellerId}" value="free" class="billing-method-radio sr-only peer" ${billingMethod === 'free' ? 'checked' : ''} data-seller="${seller}">
-                        <div class="w-5 h-5 rounded-full border border-default flex items-center justify-center mr-3 peer-checked:border-[hsl(var(--primary))] peer-checked:bg-[hsl(var(--primary))] transition-all">
-                            <div class="w-2 h-2 rounded-full bg-white scale-0 peer-checked:scale-100 transition-transform"></div>
-                        </div>
-                        <span class="card-text font-medium text-sm transition-colors peer-checked:text-primary">${t("deliveryRules.freeDelivery")}</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="mb-6 global-free-shipping-container bg-[hsl(var(--muted))] rounded-xl p-4 border border-default" style="display: ${billingMethod === 'global' ? 'block' : 'none'}">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium card-text">${t("deliveryRules.freeDeliveryCondition")}</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="global-free-shipping-checkbox sr-only peer" ${globalFree ? 'checked' : ''} data-seller="${seller}">
-                            <div class="toggle-switch"></div>
-                        </label>
-                    </div>
-                    <div class="mt-3 global-free-shipping-threshold" style="display: ${globalFree ? 'block' : 'none'}">
-                        <label class="block text-xs secondary-text mb-1 ml-1">${t("deliveryRules.freeDeliveryThreshold")}</label>
-                        <input type="number" class="w-full px-3 py-2 border border-default input-bg card-text rounded-md global-free-shipping-input focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" value="${globalThreshold}" placeholder="0.00" step="0.01" data-seller="${seller}">
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 2: Product Grouping -->
-            <div class="step-2 mb-6" id="groups-container-${safeSellerId}" style="display: ${billingMethod === 'groups' ? 'block' : 'none'}">
-                <h5 class="text-sm font-semibold secondary-text mb-3 px-1">${t("deliveryRules.dependsOnProducts")}</h5>
-                
-                <div class="groups-list space-y-4 mb-6" data-seller="${seller}">
-                    ${(rule.groups || []).map((group, gIdx) => renderGroupItem(session, seller, group, gIdx, safeSellerId)).join('')}
-                </div>
-                
-                <button class="add-group-btn w-full py-3 flex items-center justify-center space-x-2 text-sm font-semibold secondary-bg secondary-text hover:bg-[hsl(var(--muted))] rounded-xl border border-default transition-all shadow-sm" data-seller="${seller}">
-                  <span class="icon icon-plus h-4 w-4"></span>
-                  <span>${t("deliveryRules.addGroup")}</span>
-                </button>
-            </div>
-
-            <!-- STEP 3: Calculation Rules (Global) -->
-            <div class="step-3-global mb-6" id="calc-global-${safeSellerId}" style="display: ${billingMethod === 'global' ? 'block' : 'none'}">
-                 ${renderCalculationRules(`global_${safeSellerId}`, rule.calculationMethod || {}, false)}
-            </div>
-
-            <!-- Customs Fees -->
-            ${session.importFeesEnabled ? `
-            <div class="mt-6 pt-6 border-t border-default">
-                <label class="block text-sm font-medium secondary-text mb-1">${t("deliveryRules.customsClearanceFees")}</label>
-                <input type="number" step="0.01" value="${rule.customsClearanceFee || 0}" class="customs-clearance-fees w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary border-transparent" data-seller="${seller}">
-            </div>
-            ` : ''}
-        </div>
-
-        <button id="save-seller-rules" class="w-full mt-8 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-4 rounded-xl hover:opacity-90 transition-all shadow-md">
-          <span class="text-lg font-semibold">${t("common.save")}</span>
-        </button>
+        ${renderSameSellerSelector(session, seller, copiedFrom)}
+        ${renderCustomConfigContainer(session, seller, rule, safeSellerId, copiedFrom)}
+        ${renderSaveButton()}
       </div>
     </div>
   `
 
-  document.getElementById("back-to-list-button").addEventListener("click", () => {
+  // Setup event listeners using helper functions
+  const sellerCard = document.querySelector('.seller-card')
+  if (!sellerCard) return
+
+  // Back button
+  document.getElementById("back-to-list-button")?.addEventListener("click", () => {
     currentRulesView = "list"
     currentSellerEditing = null
     renderApp()
   })
 
-  // Same Seller Logic
-  const sameSellerSelect = document.querySelector('.same-seller-select')
-  if (sameSellerSelect) {
-    sameSellerSelect.addEventListener('change', (e) => {
-      const value = e.target.value
-      const configContainer = document.querySelector('.custom-config-container')
-      if (value && value !== 'None') {
-        if (configContainer) configContainer.style.display = 'none'
-      } else {
-        if (configContainer) configContainer.style.display = 'block'
-      }
-    })
-  }
+  // Same Seller selector
+  setupSameSellerListener(sellerCard)
 
-  // Billing Method Radio Logic
-  document.querySelectorAll('.billing-method-radio').forEach(radio => {
-     radio.addEventListener('change', (e) => {
-        const val = e.target.value
-        const globalFreeContainer = document.querySelector('.global-free-shipping-container')
-        const groupsContainer = document.getElementById(`groups-container-${safeSellerId}`)
-        const globalCalcContainer = document.getElementById(`calc-global-${safeSellerId}`)
-        
-        if (val === 'global') {
-            if (globalFreeContainer) globalFreeContainer.style.display = 'block'
-            if (groupsContainer) groupsContainer.style.display = 'none'
-            if (globalCalcContainer) globalCalcContainer.style.display = 'block'
-        } else if (val === 'groups') {
-            if (globalFreeContainer) globalFreeContainer.style.display = 'none'
-            if (groupsContainer) groupsContainer.style.display = 'block'
-            if (globalCalcContainer) globalCalcContainer.style.display = 'none'
-        } else if (val === 'free') {
-            if (globalFreeContainer) globalFreeContainer.style.display = 'none'
-            if (groupsContainer) groupsContainer.style.display = 'none'
-            if (globalCalcContainer) globalCalcContainer.style.display = 'none'
-        }
-     })
-  })
+  // Billing Method radios
+  setupBillingMethodListeners(sellerCard, safeSellerId)
 
-  // Global Free Shipping Toggle
-  const globalFreeCb = document.querySelector('.global-free-shipping-checkbox')
-  if (globalFreeCb) {
-    globalFreeCb.addEventListener('change', (e) => {
-        const inputDiv = document.querySelector('.global-free-shipping-threshold')
-        if (inputDiv) inputDiv.style.display = e.target.checked ? 'block' : 'none'
-    })
-  }
+  // Free Shipping toggles
+  setupFreeShippingToggle(sellerCard, '.global-free-shipping-checkbox', '.global-free-shipping-threshold')
 
-  // Group Management (Add)
-  const addGroupBtn = document.querySelector('.add-group-btn')
-  if (addGroupBtn) {
-    addGroupBtn.addEventListener('click', () => {
-        const container = document.querySelector('.groups-list')
-        const index = container.children.length
-        const newGroupHtml = renderGroupItem(session, seller, { name: t("deliveryRules.newGroupPlaceholder") }, index, safeSellerId);
-        
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = newGroupHtml
-        container.appendChild(tempDiv.firstElementChild)
-    })
-  }
+  // Add Group button
+  setupAddGroupButtonListener(session, seller, safeSellerId)
 
   // Scoped Event Delegation for the seller editor
-  const sellerCard = document.querySelector('.seller-card')
   sellerCard.addEventListener('click', (e) => {
     if (e.target.closest('.delete-group-btn')) {
         e.target.closest('.group-item').remove()
