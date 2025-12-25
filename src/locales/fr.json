@@ -138,7 +138,7 @@
         "typePercentage": "Pourcentage",
         "pctOrderLabel": "Pourcentage du prix de la commande (%)",
         "typeQuantity": "Quantité",
-        "typeItem": "Par Article (Somme)",
+        "typeItem": "Cumul des frais unitaires",
         "typeDistance": "Distance",
         "typeWeight": "Poids",
         "typeVolume": "Volume",
@@ -194,6 +194,7 @@
         "startingFrom": "À partir de",
         "ranges": "Paliers",
         "addRange": "Ajouter un palier",
+        "noRange": "Aucun palier",
         "removeRange": "Supprimer",
         "weight": "Poids",
         "volume": "Volume",
@@ -335,7 +336,7 @@
             "gapBetweenTiers": "Écart détecté - doit continuer du palier précédent",
             "overlapDetected": "Chevauchement détecté avec le palier précédent",
             "lastTierMustBeInfinity": "Le dernier palier doit avoir un maximum vide (∞)",
-            "atLeastOneTierRequired": "Au moins un palier est requis",
+            "atLeastOneTierRequired": "Aucun palier",
             "duplicateRange": "Plage en double détectée",
             "fixErrorsBeforeSaving": "Veuillez corriger toutes les erreurs de validation avant d'enregistrer"
         }

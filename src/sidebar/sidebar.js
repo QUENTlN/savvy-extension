@@ -3529,7 +3529,7 @@ function renderTieredInputs(prefix, data, type) {
                             renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, unit)
                         ).join('');
                     })()}
-                    ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
+                    ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center p-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.noRange')}</div>` : ''}
                 </div>
 
                 <button class="add-range-btn w-full py-2 flex items-center justify-center space-x-2 text-sm font-medium text-primary hover:bg-[hsl(var(--primary))]/10 rounded-md border border-dashed border-[hsl(var(--primary))]/30 transition-all" data-prefix="${prefix}">
@@ -3685,7 +3685,7 @@ function renderDimensionInputs(prefix, data) {
 
                 <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="dimension" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${unit}">
                      ${(data.ranges || []).map((range, idx) => renderRangeRow('dimension', prefix, idx, range, tierValueType, tierValueMode, unit)).join('')}
-                    ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
+                    ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center p-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.noRange')}</div>` : ''}
                 </div>
 
                 <button class="add-range-btn w-full py-2 flex items-center justify-center space-x-2 text-sm font-medium text-primary hover:bg-[hsl(var(--primary))]/10 rounded-md border border-dashed border-[hsl(var(--primary))]/30 transition-all" data-prefix="${prefix}">
@@ -3807,7 +3807,7 @@ function renderCombinedInputs(prefix, data, type) {
 
                 <div class="ranges-container space-y-2 mb-4" data-prefix="${prefix}" data-type="${type}" data-tier-value-type="${tierValueType}" data-tier-value-mode="${tierValueMode}" data-unit="${weightUnit}" data-unit2="${volUnit}">
                     ${(data.ranges || []).map((range, idx) => renderRangeRow(type, prefix, idx, range, tierValueType, tierValueMode, weightUnit, volUnit)).join('')}
-                     ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>` : ''}
+                    ${(!data.ranges || data.ranges.length === 0) ? `<div class="empty-placeholder text-xs secondary-text italic text-center p-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.noRange')}</div>` : ''}
                 </div>
 
                 <button class="add-range-btn w-full py-2 flex items-center justify-center space-x-2 text-sm font-medium text-primary hover:bg-[hsl(var(--primary))]/10 rounded-md border border-dashed border-[hsl(var(--primary))]/30 transition-all" data-prefix="${prefix}">
@@ -4437,7 +4437,7 @@ function validateAtLeastOneTier(ranges, container, severity = 'error') {
             let errorDiv = rangesContainer.querySelector('.tier-container-error');
             if (!errorDiv) {
                 errorDiv = document.createElement('div');
-                errorDiv.className = 'tier-container-error text-sm text-red-500 text-center py-2 px-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-300 dark:border-red-700';
+                errorDiv.className = 'tier-container-error text-xs text-red-500 mt-1 px-2 mb-2';
                 rangesContainer.insertBefore(errorDiv, rangesContainer.firstChild);
             }
             errorDiv.textContent = t('validation.tier.atLeastOneTierRequired');
@@ -4805,6 +4805,28 @@ function setupAddGroupButtonListener(session, seller, safeSellerId) {
 // ============================================================================
 // END EVENT HANDLERS MODULE
 // ============================================================================
+
+// Helper function to ensure a seller has a default delivery rule
+function ensureDefaultRule(session, seller) {
+  if (!session.deliveryRules) session.deliveryRules = []
+  
+  const existingRule = session.deliveryRules.find(r => r.seller === seller)
+  
+  // Only create default rule if no rule exists for this seller
+  if (!existingRule) {
+    const defaultRule = {
+      seller: seller,
+      billingMethod: 'global',
+      calculationMethod: {
+        type: 'item'
+      }
+    }
+    session.deliveryRules.push(defaultRule)
+    return true // Indicates a new rule was created
+  }
+  
+  return false // No new rule was created
+}
 
 function getRule(session, seller) {
   const rule = (session.deliveryRules || []).find(r => r.seller === seller) || {}
@@ -5643,7 +5665,7 @@ function renderSellerDeliveryRulesView(seller) {
 
         // If empty, add back placeholder
         if (container.querySelectorAll('.range-row').length === 0) {
-            container.innerHTML = `<div class="empty-placeholder text-xs secondary-text italic text-center py-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.addRange')}</div>`
+            container.innerHTML = `<div class="empty-placeholder text-xs secondary-text italic text-center p-4 bg-[hsl(var(--muted))] rounded-lg border border-dashed border-default">${t('deliveryRules.noRange')}</div>`
         }
     }
   })
@@ -5734,6 +5756,23 @@ function renderDeliveryRulesView() {
     return
   }
 
+  // Ensure all sellers have default delivery rules
+  const sellers = getUniqueSellers(session)
+  let hasNewRules = false
+  
+  sellers.forEach(seller => {
+    const created = ensureDefaultRule(session, seller)
+    if (created) {
+      hasNewRules = true
+    }
+  })
+  
+  // Save session if new default rules were created
+  if (hasNewRules) {
+    SidebarAPI.updateSession(currentSession, session).then((response) => {
+      sessions = response.sessions
+    })
+  }
 
   app.innerHTML = `
     <div class="mx-4 pb-8">
