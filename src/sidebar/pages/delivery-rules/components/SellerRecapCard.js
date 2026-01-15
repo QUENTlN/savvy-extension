@@ -84,6 +84,8 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
         'single': t("deliveryRules.packingModeSingle")
       }
 
+      const allowConversion = calcMethod.allowConversion || false
+
       html = `
         <div class="${indentClass} text-sm" data-rule-type="${normalizedType}">
           <div class="font-medium secondary-text mb-1">
@@ -96,6 +98,12 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
             <span class="font-medium">${t("deliveryRules.packingMode")}:</span>
             <span class="card-text">${packingModeLabels[packingMode]}</span>
           </div>
+          ${allowConversion ? `
+          <div class="text-xs secondary-text mb-2 flex items-center gap-1">
+            <span class="icon icon-check w-3 h-3 text-green-500"></span>
+            <span>${t("deliveryRules.allowConversionEnabled")}</span>
+          </div>
+          ` : ''}
           <div class="overflow-x-auto">
             <table class="w-full text-xs border-collapse">
               <thead>
@@ -219,6 +227,7 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
           'single': t("deliveryRules.packingModeSingle")
         }
         const showPackingMode = ['weight_volume', 'weight_dimension', 'volume_packages'].includes(normalizedType)
+        const allowConversion = calcMethod.allowConversion || false
 
         html = `
         <div class="${indentClass} text-sm" data-rule-type="${normalizedType}">
@@ -232,6 +241,12 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
           <div class="text-xs secondary-text mb-2 flex items-center gap-1">
             <span class="font-medium">${t("deliveryRules.packingMode")}:</span>
             <span class="card-text">${packingModeLabels[packingMode]}</span>
+          </div>
+          ` : ''}
+          ${allowConversion ? `
+          <div class="text-xs secondary-text mb-2 flex items-center gap-1">
+            <span class="icon icon-check w-3 h-3 text-green-500"></span>
+            <span>${t("deliveryRules.allowConversionEnabled")}</span>
           </div>
           ` : ''}
           <div class="overflow-x-auto">

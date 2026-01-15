@@ -84,6 +84,10 @@ export function extractCalculationRule(prefix, container) {
         const packingModeRadio = container.querySelector(`input[name="${prefix}_packingMode"]:checked`)
         rule.packingMode = packingModeRadio ? packingModeRadio.value : 'grouped'
 
+        // Extract allowConversion
+        const allowConversionCb = container.querySelector(`input[name="${prefix}_allowConversion"]`)
+        rule.allowConversion = allowConversionCb ? allowConversionCb.checked : false
+
         rule.ranges = extractRangesFromInputs(prefix, container, ['maxL', 'maxW', 'maxH'])
 
     } else if (['weight_volume', 'weight_dimension'].includes(type)) {
@@ -96,6 +100,10 @@ export function extractCalculationRule(prefix, container) {
         const packingModeRadio = container.querySelector(`input[name="${prefix}_packingMode"]:checked`)
         rule.packingMode = packingModeRadio ? packingModeRadio.value : 'grouped'
 
+        // Extract allowConversion
+        const allowConversionCb = container.querySelector(`input[name="${prefix}_allowConversion"]`)
+        rule.allowConversion = allowConversionCb ? allowConversionCb.checked : false
+
         rule.ranges = extractRangesFromInputs(prefix, container, ['maxWeight', 'maxVol'])
     } else if (type === 'volume_packages') {
         const unitSelect = container.querySelector(`select[name="${prefix}_unit"]`)
@@ -104,6 +112,10 @@ export function extractCalculationRule(prefix, container) {
         // Extract packing mode
         const packingModeRadio = container.querySelector(`input[name="${prefix}_packingMode"]:checked`)
         rule.packingMode = packingModeRadio ? packingModeRadio.value : 'grouped'
+
+        // Extract allowConversion
+        const allowConversionCb = container.querySelector(`input[name="${prefix}_allowConversion"]`)
+        rule.allowConversion = allowConversionCb ? allowConversionCb.checked : false
 
         rule.ranges = extractRangesFromInputs(prefix, container, ['maxVol'])
     } else if (type === 'order_amount') {

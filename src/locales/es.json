@@ -255,7 +255,11 @@
         "packingModeSingle": "Paquete único",
         "packingModePerItemHelp": "Cada oferta/lote se envía en su propio paquete",
         "packingModeGroupedHelp": "Los artículos se pueden agrupar para optimizar los costos de envío (predeterminado)",
-        "packingModeSingleHelp": "Todos los artículos deben caber en un solo paquete"
+        "packingModeSingleHelp": "Todos los artículos deben caber en un solo paquete",
+        "allowConversion": "Permitir conversión automática",
+        "allowConversionEnabled": "Conversión automática activada",
+        "allowConversionDimensionHelp": "Si un producto solo tiene volumen, comparar con la capacidad del paquete (L×A×H).",
+        "allowConversionVolumeHelp": "Si un producto solo tiene dimensiones, calcular su volumen (L×A×H/1000 litros)."
     },
     "importFees": {
         "subtitle": "Gestione las tasas de importación para productos internacionales"

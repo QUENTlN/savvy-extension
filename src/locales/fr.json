@@ -255,7 +255,11 @@
         "packingModeSingle": "Colis unique",
         "packingModePerItemHelp": "Chaque offre/lot est expédié dans son propre colis",
         "packingModeGroupedHelp": "Les articles peuvent être groupés pour optimiser les coûts de livraison (défaut)",
-        "packingModeSingleHelp": "Tous les articles doivent tenir dans un seul colis"
+        "packingModeSingleHelp": "Tous les articles doivent tenir dans un seul colis",
+        "allowConversion": "Autoriser la conversion automatique",
+        "allowConversionEnabled": "Conversion automatique activée",
+        "allowConversionDimensionHelp": "Si un produit n'a que du volume, comparer avec la capacité du colis (L×l×H).",
+        "allowConversionVolumeHelp": "Si un produit n'a que des dimensions, calculer son volume (L×l×H/1000 litres)."
     },
     "importFees": {
         "subtitle": "Configurez les taux de TVA et de droits de douane pour les produits importés."

@@ -255,7 +255,11 @@
         "packingModeSingle": "Single Parcel",
         "packingModePerItemHelp": "Each offer/bundle is shipped in its own parcel",
         "packingModeGroupedHelp": "Items can be grouped to optimize shipping costs (default)",
-        "packingModeSingleHelp": "All items must fit in a single parcel"
+        "packingModeSingleHelp": "All items must fit in a single parcel",
+        "allowConversion": "Allow automatic conversion",
+        "allowConversionEnabled": "Automatic conversion enabled",
+        "allowConversionDimensionHelp": "If a product has only volume, compare with package capacity (L×W×H).",
+        "allowConversionVolumeHelp": "If a product has only dimensions, calculate its volume (L×W×H/1000 liters)."
     },
     "importFees": {
         "subtitle": "Configure VAT and customs duty rates for imported products."

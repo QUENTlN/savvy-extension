@@ -402,10 +402,25 @@ export function renderDimensionInputs(prefix, data, currency = null) {
                 </label>
             </div>
             <p class="text-[10px] secondary-text italic mt-2 px-1">
-                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') : 
-                  packingMode === 'single' ? t('deliveryRules.packingModeSingleHelp') : 
+                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') :
+                  packingMode === 'single' ? t('deliveryRules.packingModeSingleHelp') :
                   t('deliveryRules.packingModeGroupedHelp')}
             </p>
+        </div>
+    `
+
+    // Allow conversion checkbox
+    const allowConversion = data.allowConversion || false
+    html += `
+        <div class="mb-4">
+            <label class="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" name="${prefix}_allowConversion"
+                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                       ${allowConversion ? 'checked' : ''}>
+                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                      title="${t('deliveryRules.allowConversionDimensionHelp')}"></span>
+            </label>
         </div>
     `
 
@@ -597,10 +612,26 @@ export function renderCombinedInputs(prefix, data, type, currency = null) {
                 </label>
             </div>
             <p class="text-[10px] secondary-text italic mt-2 px-1">
-                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') : 
-                  packingMode === 'single' ? t('deliveryRules.packingModeSingleHelp') : 
+                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') :
+                  packingMode === 'single' ? t('deliveryRules.packingModeSingleHelp') :
                   t('deliveryRules.packingModeGroupedHelp')}
             </p>
+        </div>
+    `
+
+    // Allow conversion checkbox
+    const allowConversion = data.allowConversion || false
+    const conversionHelpKey = type === 'weight_dimension' ? 'allowConversionDimensionHelp' : 'allowConversionVolumeHelp'
+    html += `
+        <div class="mb-4">
+            <label class="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" name="${prefix}_allowConversion"
+                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                       ${allowConversion ? 'checked' : ''}>
+                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                      title="${t('deliveryRules.' + conversionHelpKey)}"></span>
+            </label>
         </div>
     `
 
@@ -682,6 +713,21 @@ export function renderVolumePackagesInputs(prefix, data, currency = null) {
                   packingMode === 'single' ? t('deliveryRules.packingModeSingleHelp') :
                   t('deliveryRules.packingModeGroupedHelp')}
             </p>
+        </div>
+    `
+
+    // Allow conversion checkbox
+    const allowConversion = data.allowConversion || false
+    html += `
+        <div class="mb-4">
+            <label class="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" name="${prefix}_allowConversion"
+                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                       ${allowConversion ? 'checked' : ''}>
+                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                      title="${t('deliveryRules.allowConversionVolumeHelp')}"></span>
+            </label>
         </div>
     `
 
