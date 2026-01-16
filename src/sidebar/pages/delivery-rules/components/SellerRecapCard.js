@@ -272,11 +272,19 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
           unitLabel = t(`attributes.units.${unit}`)
         }
 
+        // For quantity type, always show per unit suffix
+        let unitSuffix = ''
+        if (type === 'quantity') {
+          unitSuffix = `<span class="text-xs muted-text"> / ${t("deliveryRules.unit").toLowerCase()}</span>`
+        } else if (unit) {
+          unitSuffix = `<span class="text-xs muted-text"> / ${unitLabel}</span>`
+        }
+
         html = `
         <div class="${indentClass} text-sm secondary-text">
           <span class="font-medium">${typeLabels[type] || type}:</span>
           <span class="card-text font-semibold">${formatNumber(amount)} ${getCurrencySymbol(currency)}</span>
-          ${unit ? `<span class="text-xs muted-text"> / ${unitLabel}</span>` : ''}
+          ${unitSuffix}
         </div>
       `
       } else {
