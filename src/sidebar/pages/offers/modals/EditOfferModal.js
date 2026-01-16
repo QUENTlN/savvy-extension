@@ -1,5 +1,5 @@
 import { renderOfferFormView } from './OfferFormView.js'
-import { collectOfferFormData, setupBundleToggle, setupProductSelection, shouldSaveAsBundle, getSelectedProductId } from './offerFormHelpers.js'
+import { collectOfferFormData, setupBundleToggle, setupProductSelection, shouldSaveAsBundle, getSelectedProductId, validatePriceField } from './offerFormHelpers.js'
 import * as actions from '../OffersActions.js'
 import { t } from '../../../../shared/i18n.js'
 import { Store } from '../../../state.js'
@@ -103,10 +103,28 @@ async function saveOffer(modal, offer, session, product, isOriginallyBundle) {
 function validateForm(session) {
   let isValid = true
 
+  // Price is required
   if (!validateRequiredField('offer-price', t("offers.price"))) isValid = false
-  if (!validateRequiredField('offer-shipping', t("modals.shippingPrice"))) isValid = false
-  if (!validateRequiredField('offer-insurance', t("modals.insurancePrice"))) isValid = false
+  // Seller is required
   if (!validateRequiredField('offer-seller', t("offers.seller"))) isValid = false
+
+  // Validate price formats (shipping and insurance can be empty → 0)
+  const priceStr = document.getElementById("offer-price").value
+  const shippingStr = document.getElementById("offer-shipping").value
+  const insuranceStr = document.getElementById("offer-insurance").value
+
+  if (!validatePriceField(priceStr)) {
+    showFieldError('offer-price', t("modals.invalidNumber"))
+    isValid = false
+  }
+  if (!validatePriceField(shippingStr)) {
+    showFieldError('offer-shipping', t("modals.invalidNumber"))
+    isValid = false
+  }
+  if (!validatePriceField(insuranceStr)) {
+    showFieldError('offer-insurance', t("modals.invalidNumber"))
+    isValid = false
+  }
 
   if (session.manageQuantity !== false) {
     const itemsPerPurchaseValue = document.getElementById("items-per-purchase")?.value

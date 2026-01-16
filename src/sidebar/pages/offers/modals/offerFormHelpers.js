@@ -1,6 +1,27 @@
 import { t } from '../../../../shared/i18n.js'
-import { validateRequiredField, clearAllErrors } from '../../../modals.js'
+import { validateRequiredField, clearAllErrors, showFieldError } from '../../../modals.js'
 import { showToast } from '../../../utils/toast.js'
+
+// Helper to parse price: empty → 0, invalid non-empty → null (error)
+function parsePrice(str) {
+  if (str === '') return 0
+  // Allow comma as decimal separator
+  const normalized = str.replace(',', '.')
+  // Check if it's a valid number format (digits, optional decimal point, digits)
+  if (!/^-?\d*\.?\d+$/.test(normalized)) {
+    return null // Invalid format
+  }
+  const val = parseFloat(normalized)
+  return Number.isFinite(val) ? val : null
+}
+
+/**
+ * Validates a price field value. Returns true if valid, false if invalid.
+ * Empty values are valid (will be converted to 0).
+ */
+export function validatePriceField(value) {
+  return parsePrice(value.trim()) !== null
+}
 
 /**
  * Collects and returns all form data from the offer form.
@@ -16,10 +37,10 @@ export function collectOfferFormData(session) {
   const currency = document.getElementById("offer-currency").value
   const seller = document.getElementById("offer-seller").value.trim()
 
-  // Parse prices
-  const price = parseFloat(priceStr) || 0
-  const shippingPrice = parseFloat(shippingStr) || 0
-  const insurancePrice = parseFloat(insuranceStr) || 0
+  // Parse prices - empty/invalid values become 0
+  const price = parsePrice(priceStr)
+  const shippingPrice = parsePrice(shippingStr)
+  const insurancePrice = parsePrice(insuranceStr)
 
   // Build base data
   const data = {
@@ -117,6 +138,24 @@ export function validateOfferForm(modal, session) {
 
   // Price is required
   if (!validateRequiredField('offer-price', t("modals.price"))) return false
+
+  // Validate price formats (non-empty invalid values)
+  const priceStr = document.getElementById("offer-price").value.trim()
+  const shippingStr = document.getElementById("offer-shipping").value.trim()
+  const insuranceStr = document.getElementById("offer-insurance").value.trim()
+
+  if (parsePrice(priceStr) === null) {
+    showFieldError('offer-price', t("modals.invalidNumber"))
+    return false
+  }
+  if (parsePrice(shippingStr) === null) {
+    showFieldError('offer-shipping', t("modals.invalidNumber"))
+    return false
+  }
+  if (parsePrice(insuranceStr) === null) {
+    showFieldError('offer-insurance', t("modals.invalidNumber"))
+    return false
+  }
 
   // Check product selection if in bundle mode
   const isBundleToggle = document.getElementById("is-bundle")
