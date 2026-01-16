@@ -352,7 +352,10 @@
         "title": "Optimization",
         "running": "Running optimization...",
         "failed": "Optimization failed",
-        "success": "Optimization successful"
+        "success": "Optimization successful",
+        "noProducts": "No products in session",
+        "productWithoutOffer": "Product \"{name}\" has no offers and is not in any bundle",
+        "missingDeliveryRule": "No delivery rule for seller \"{seller}\""
     },
     "attributes": {
         "weight": "Weight",

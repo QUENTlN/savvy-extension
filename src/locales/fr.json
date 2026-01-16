@@ -352,7 +352,10 @@
         "title": "Optimisation",
         "running": "Optimisation en cours...",
         "failed": "L'optimisation a échoué",
-        "success": "Optimisation réussie"
+        "success": "Optimisation réussie",
+        "noProducts": "Aucun produit dans la session",
+        "productWithoutOffer": "Le produit \"{name}\" n'a aucune offre et n'est dans aucun lot",
+        "missingDeliveryRule": "Pas de règle de livraison pour le vendeur \"{seller}\""
     },
     "attributes": {
         "weight": "Poids",

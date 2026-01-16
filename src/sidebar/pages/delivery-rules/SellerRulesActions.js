@@ -5,6 +5,7 @@ import { Store } from '../../state.js'
 import { SidebarAPI } from '../../api.js'
 import { renderGroupItem, renderForwarderChainSection } from './SellerRulesView.js'
 import { showAssignForwarderModal } from './modals/AssignForwarderModal.js'
+import { showToast } from '../../utils/toast.js'
 import {
     extractCalculationRule,
     updateValueLabels,
@@ -323,15 +324,7 @@ export function handleRemoveForwarder(seller, index) {
 
 export function saveSellerRules(seller, safeSellerId, session) {
     if (!validateAllTierForms()) {
-        const errorMessage = document.createElement('div')
-        errorMessage.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in'
-        errorMessage.textContent = t('validation.tier.fixErrorsBeforeSaving')
-        document.body.appendChild(errorMessage)
-
-        setTimeout(() => {
-            errorMessage.remove()
-        }, 5000)
-
+        showToast(t('validation.tier.fixErrorsBeforeSaving'), { type: 'error' })
         return
     }
 

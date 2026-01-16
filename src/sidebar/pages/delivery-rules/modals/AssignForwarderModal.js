@@ -1,11 +1,12 @@
 import { t } from '../../../../shared/i18n.js'
 import { setupEscapeKey, setupEnterKey, setupAutoFocus } from '../../../modals.js'
+import { showToast } from '../../../utils/toast.js'
 
 export function showAssignForwarderModal(session, onSelect) {
   const forwarders = session.forwarders || []
 
   if (forwarders.length === 0) {
-    alert(t("deliveryRules.noForwardersAvailable") || "No forwarders available. Please create forwarders first.")
+    showToast(t("deliveryRules.noForwardersAvailable") || "No forwarders available. Please create forwarders first.", { type: 'error' })
     return
   }
 
@@ -51,7 +52,7 @@ export function showAssignForwarderModal(session, onSelect) {
     const forwarderId = select.value
 
     if (!forwarderId) {
-      alert(t("deliveryRules.pleaseSelectForwarder") || "Please select a forwarder")
+      showToast(t("deliveryRules.pleaseSelectForwarder") || "Please select a forwarder", { type: 'error' })
       return
     }
 

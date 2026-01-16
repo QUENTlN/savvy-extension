@@ -2,6 +2,7 @@
 import { t } from '../../shared/i18n.js';
 import { Store } from '../state.js';
 import { SidebarAPI } from '../api.js';
+import { showToast } from './toast.js';
 
 export function exportSession(session) {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session, null, 2));
@@ -28,7 +29,7 @@ export function importSession() {
         const sessionData = JSON.parse(content);
 
         if (!sessionData.name || !Array.isArray(sessionData.products)) {
-          alert(t("sessions.invalidFormat"));
+          showToast(t("sessions.invalidFormat"), { type: 'error' });
           return;
         }
 
@@ -54,7 +55,7 @@ export function importSession() {
         });
 
       } catch (err) {
-        alert("Error parsing session file: " + err.message);
+        showToast("Error parsing session file: " + err.message, { type: 'error' });
       }
     }
   }

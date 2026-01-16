@@ -5,6 +5,7 @@ import { t } from '../../../../shared/i18n.js'
 import { Store } from '../../../state.js'
 import { createModal, StorageService } from '../../../utils/index.js'
 import { clearAllErrors, validateRequiredField, showFieldError } from '../../../modals.js'
+import { showToast } from '../../../utils/toast.js'
 
 /**
  * Shows a modal to edit an existing Offer or Bundle.
@@ -130,7 +131,7 @@ function validateForm(session) {
   // Check product selection
   const checkedProducts = document.querySelectorAll(".bundle-product-checkbox:checked")
   if (checkedProducts.length === 0) {
-    alert(t("modals.selectAtLeastOneProduct"))
+    showToast(t("modals.selectAtLeastOneProduct"), { type: 'error' })
     isValid = false
   }
 

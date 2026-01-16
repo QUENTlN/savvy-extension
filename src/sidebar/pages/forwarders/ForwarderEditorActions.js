@@ -2,6 +2,7 @@ import { Store } from '../../state.js'
 import { SidebarAPI } from '../../api.js'
 import { extractCalculationRule, validateAllTierForms, updateValueLabels, updateNonTieredCurrencyLabels } from '../../components/fees/index.js'
 import { t } from '../../../shared/i18n.js'
+import { showToast } from '../../utils/toast.js'
 
 export function getSession() {
   return Store.state.sessions.find(s => s.id === Store.state.currentSession)
@@ -29,15 +30,7 @@ export function extractFeeData(prefix) {
 export function saveForwarder() {
   // Validate all tier forms before saving
   if (!validateAllTierForms()) {
-    const errorMessage = document.createElement('div')
-    errorMessage.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in'
-    errorMessage.textContent = t('validation.tier.fixErrorsBeforeSaving')
-    document.body.appendChild(errorMessage)
-
-    setTimeout(() => {
-      errorMessage.remove()
-    }, 5000)
-
+    showToast(t('validation.tier.fixErrorsBeforeSaving'), { type: 'error' })
     return
   }
 

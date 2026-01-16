@@ -1,5 +1,6 @@
 import { t } from '../../../../shared/i18n.js'
 import { validateRequiredField, clearAllErrors } from '../../../modals.js'
+import { showToast } from '../../../utils/toast.js'
 
 /**
  * Collects and returns all form data from the offer form.
@@ -124,7 +125,7 @@ export function validateOfferForm(modal, session) {
   if (productSelection && productSelection.style.display !== 'none') {
     const checkedProducts = document.querySelectorAll(".bundle-product-checkbox:checked")
     if (checkedProducts.length === 0) {
-      alert(t("modals.selectAtLeastOneProduct"))
+      showToast(t("modals.selectAtLeastOneProduct"), { type: 'error' })
       return false
     }
   }

@@ -6,6 +6,7 @@ import { t } from '../../../shared/i18n.js'
 import { getForeignCurrencies } from '../../utils/currencyDetection.js'
 import { convertSessionCurrency } from '../../utils/currencyConversion.js'
 import { StorageService } from '../../utils/StorageService.js'
+import { showToast } from '../../utils/toast.js'
 
 export function initProductsPage(app) {
   const session = actions.getSession()
@@ -42,8 +43,61 @@ function attachEventListeners(session) {
     const session = actions.getSession()
 
     if (!session) {
-      alert(t("optimization.sessionNotFound") || "Session not found")
+      showToast(t("optimization.sessionNotFound") || "Session not found", { type: 'error' })
       return
+    }
+
+    // Check if there are products
+    const products = session.products || []
+    if (products.length === 0) {
+      showToast(t("optimization.noProducts"), { type: 'error' })
+      return
+    }
+
+    // Collect all product IDs that are in bundles
+    const bundles = session.bundles || []
+    const productIdsInBundles = new Set()
+    bundles.forEach(bundle => {
+      (bundle.products || []).forEach(bp => productIdsInBundles.add(bp.productId))
+    })
+
+    // Check each product has offers or is in a bundle
+    for (const product of products) {
+      const hasOffers = (product.offers || []).length > 0
+      const isInBundle = productIdsInBundles.has(product.id)
+
+      if (!hasOffers && !isInBundle) {
+        showToast(t("optimization.productWithoutOffer").replace("{name}", product.name), { type: 'error' })
+        return
+      }
+    }
+
+    // Collect all sellers from offers and bundles
+    const sellersFromOffers = new Set()
+    products.forEach(p => {
+      (p.offers || []).forEach(offer => {
+        if (offer.seller) sellersFromOffers.add(offer.seller)
+      })
+    })
+    bundles.forEach(bundle => {
+      if (bundle.seller) sellersFromOffers.add(bundle.seller)
+    })
+
+    // Get delivery rules sellers
+    const deliveryRules = session.deliveryRules || []
+    const sellersWithRules = new Set()
+    deliveryRules.forEach(rule => {
+      if (rule.seller) sellersWithRules.add(rule.seller)
+      // Also add sellers that are copied from other sellers
+      if (rule.copiedFrom) sellersWithRules.add(rule.seller)
+    })
+
+    // Check all offer/bundle sellers have delivery rules
+    for (const seller of sellersFromOffers) {
+      if (!sellersWithRules.has(seller)) {
+        showToast(t("optimization.missingDeliveryRule").replace("{seller}", seller), { type: 'error' })
+        return
+      }
     }
 
     try {
@@ -75,11 +129,11 @@ function attachEventListeners(session) {
       if (result.success) {
         actions.showOptimizationResults(result.result)
       } else {
-        alert(`${t("optimization.failed")}: ${result.error}`)
+        showToast(`${t("optimization.failed")}: ${result.error}`, { type: 'error' })
       }
     } catch (error) {
       console.error("Optimization error:", error)
-      alert(`${t("optimization.failed")}: ${error.message}`)
+      showToast(`${t("optimization.failed")}: ${error.message}`, { type: 'error' })
     }
   })
 
