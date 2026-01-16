@@ -48,6 +48,7 @@ export function renderGroupItem(session, seller, group, gIdx, safeSellerId, getS
             <div class="step-3-group">
                  ${renderCalculationRules(`group_${safeSellerId}_${gIdx}`, group.calculationMethod || { type: 'fixed' }, {
                     preset: 'sellerShipping',
+                    session: session,
                     currency: rule.currency || session.currency || DEFAULT_CURRENCY
                 })}
             </div>
@@ -241,6 +242,7 @@ export function renderGlobalCalculationSection(rule, safeSellerId, session) {
         <div class="step-3-global mb-6" id="calc-global-${safeSellerId}" style="display: ${visible ? 'block' : 'none'}">
             ${renderCalculationRules(`global_${safeSellerId}`, rule.calculationMethod || {}, {
                 preset: 'sellerShipping',
+                session: session,
                 showFreeOption: false,
                 currency: rule.currency || session.currency || DEFAULT_CURRENCY
             })}

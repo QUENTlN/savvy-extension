@@ -364,7 +364,7 @@ export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = fa
     return html
 }
 
-export function renderDimensionInputs(prefix, data, currency = null) {
+export function renderDimensionInputs(prefix, data, currency = null, canConvert = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const units = DIMENSION_UNITS
     const unit = data.unit || DEFAULT_DIMENSION_UNIT
@@ -409,20 +409,22 @@ export function renderDimensionInputs(prefix, data, currency = null) {
         </div>
     `
 
-    // Allow conversion checkbox
-    const allowConversion = data.allowConversion || false
-    html += `
-        <div class="mb-4">
-            <label class="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" name="${prefix}_allowConversion"
-                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
-                       ${allowConversion ? 'checked' : ''}>
-                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
-                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
-                      title="${t('deliveryRules.allowConversionDimensionHelp')}"></span>
-            </label>
-        </div>
-    `
+    // Allow conversion checkbox (only if both volume and dimension are managed)
+    if (canConvert) {
+        const allowConversion = data.allowConversion || false
+        html += `
+            <div class="mb-4">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" name="${prefix}_allowConversion"
+                           class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                           ${allowConversion ? 'checked' : ''}>
+                    <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                    <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                          title="${t('deliveryRules.allowConversionDimensionHelp')}"></span>
+                </label>
+            </div>
+        `
+    }
 
     html += `
          <div class="mb-4">
@@ -566,7 +568,7 @@ export function renderOrderAmountInputs(prefix, data, hideAdvancedSettings = fal
     return html
 }
 
-export function renderCombinedInputs(prefix, data, type, currency = null) {
+export function renderCombinedInputs(prefix, data, type, currency = null, canConvert = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const weightUnits = WEIGHT_UNITS
     const volUnits = type === 'weight_dimension' ? DIMENSION_UNITS : VOLUME_UNITS
@@ -619,21 +621,23 @@ export function renderCombinedInputs(prefix, data, type, currency = null) {
         </div>
     `
 
-    // Allow conversion checkbox
-    const allowConversion = data.allowConversion || false
-    const conversionHelpKey = type === 'weight_dimension' ? 'allowConversionDimensionHelp' : 'allowConversionVolumeHelp'
-    html += `
-        <div class="mb-4">
-            <label class="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" name="${prefix}_allowConversion"
-                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
-                       ${allowConversion ? 'checked' : ''}>
-                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
-                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
-                      title="${t('deliveryRules.' + conversionHelpKey)}"></span>
-            </label>
-        </div>
-    `
+    // Allow conversion checkbox (only if both volume and dimension are managed)
+    if (canConvert) {
+        const allowConversion = data.allowConversion || false
+        const conversionHelpKey = type === 'weight_dimension' ? 'allowConversionDimensionHelp' : 'allowConversionVolumeHelp'
+        html += `
+            <div class="mb-4">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" name="${prefix}_allowConversion"
+                           class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                           ${allowConversion ? 'checked' : ''}>
+                    <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                    <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                          title="${t('deliveryRules.' + conversionHelpKey)}"></span>
+                </label>
+            </div>
+        `
+    }
 
     const valueLabel = getValueLabel(type, 'fixed', 'total', weightUnit, volUnit, currencyCode)
 
@@ -674,7 +678,7 @@ export function renderCombinedInputs(prefix, data, type, currency = null) {
     return html
 }
 
-export function renderVolumePackagesInputs(prefix, data, currency = null) {
+export function renderVolumePackagesInputs(prefix, data, currency = null, canConvert = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const volUnits = VOLUME_UNITS
     const volUnit = data.unit || DEFAULT_VOLUME_UNIT
@@ -716,20 +720,22 @@ export function renderVolumePackagesInputs(prefix, data, currency = null) {
         </div>
     `
 
-    // Allow conversion checkbox
-    const allowConversion = data.allowConversion || false
-    html += `
-        <div class="mb-4">
-            <label class="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" name="${prefix}_allowConversion"
-                       class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
-                       ${allowConversion ? 'checked' : ''}>
-                <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
-                <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
-                      title="${t('deliveryRules.allowConversionVolumeHelp')}"></span>
-            </label>
-        </div>
-    `
+    // Allow conversion checkbox (only if both volume and dimension are managed)
+    if (canConvert) {
+        const allowConversion = data.allowConversion || false
+        html += `
+            <div class="mb-4">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" name="${prefix}_allowConversion"
+                           class="w-4 h-4 rounded border-default accent-[hsl(var(--primary))]"
+                           ${allowConversion ? 'checked' : ''}>
+                    <span class="text-sm secondary-text">${t('deliveryRules.allowConversion')}</span>
+                    <span class="icon icon-help w-3.5 h-3.5 secondary-text opacity-40"
+                          title="${t('deliveryRules.allowConversionVolumeHelp')}"></span>
+                </label>
+            </div>
+        `
+    }
 
     const valueLabel = getCurrencySymbol(currencyCode)
 
@@ -786,7 +792,7 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
 
     // Get preset configuration
     const presetConfig = FEE_CONFIG_PRESETS[preset] || FEE_CONFIG_PRESETS.sellerShipping
-    const effectiveSession = session || Store.state.sessions?.find(s => s.id === Store.state.currentSession)
+    const effectiveSession = session || Store.getCurrentSession()
     const currencyCode = currency || effectiveSession?.currency || DEFAULT_CURRENCY
 
     // Filter available types based on preset and session features
@@ -846,6 +852,9 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
 
     const hideAdvancedSettings = presetConfig.hideAdvancedSettings || false
 
+    // Check if both volume and dimension are managed (needed for allowConversion)
+    const canConvert = effectiveSession?.manageVolume && effectiveSession?.manageDimension
+
     const TYPE_RENDERERS = {
         cumul: () => `<p class="text-sm secondary-text italic">${t('deliveryRules.typeCumul')}</p>`,
         free: () => `<p class="text-sm font-medium card-text italic">${t('deliveryRules.freeDelivery')}</p>`,
@@ -856,10 +865,10 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
         weight: (p, d) => renderTieredInputs(p, d, 'weight', hideAdvancedSettings, currencyCode),
         volume: (p, d) => renderTieredInputs(p, d, 'volume', hideAdvancedSettings, currencyCode),
         order_amount: (p, d) => renderOrderAmountInputs(p, d, hideAdvancedSettings, currencyCode),
-        dimension: (p, d) => renderDimensionInputs(p, d, currencyCode),
-        weight_volume: (p, d) => renderCombinedInputs(p, d, 'weight_volume', currencyCode),
-        weight_dimension: (p, d) => renderCombinedInputs(p, d, 'weight_dimension', currencyCode),
-        volume_packages: (p, d) => renderVolumePackagesInputs(p, d, currencyCode),
+        dimension: (p, d) => renderDimensionInputs(p, d, currencyCode, canConvert),
+        weight_volume: (p, d) => renderCombinedInputs(p, d, 'weight_volume', currencyCode, canConvert),
+        weight_dimension: (p, d) => renderCombinedInputs(p, d, 'weight_dimension', currencyCode, canConvert),
+        volume_packages: (p, d) => renderVolumePackagesInputs(p, d, currencyCode, canConvert),
     }
 
     const renderer = TYPE_RENDERERS[type]

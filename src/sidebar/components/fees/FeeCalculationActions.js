@@ -13,6 +13,7 @@ import {
 } from './FeeCalculationView.js'
 import { getCurrencySymbol } from '../../utils/formatters.js'
 import { StorageService } from '../../utils/StorageService.js'
+import { Store } from '../../state.js'
 
 // ============================================================================
 // EXTRACTION HELPERS
@@ -723,6 +724,10 @@ export async function handleCalculationTypeChange(e) {
         return ''
     }
 
+    // Check if both volume and dimension are managed (needed for allowConversion)
+    const session = Store.getCurrentSession()
+    const canConvert = session?.manageVolume && session?.manageDimension
+
     let newHtml = ''
     if (newType === 'fixed') {
         newHtml = renderFixedInputs(prefix, { type: 'fixed' }, currency)
@@ -736,13 +741,13 @@ export async function handleCalculationTypeChange(e) {
         newHtml = renderOrderAmountInputs(prefix, data, false, currency)
     } else if (newType === 'dimension') {
         const data = { type: newType, unit: getDefaultUnitForType(newType) }
-        newHtml = renderDimensionInputs(prefix, data, currency)
+        newHtml = renderDimensionInputs(prefix, data, currency, canConvert)
     } else if (['weight_volume', 'weight_dimension'].includes(newType)) {
         const data = { type: newType, weightUnit: getDefaultUnitForType('weight'), volUnit: getDefaultUnitForType('volume') }
-        newHtml = renderCombinedInputs(prefix, data, newType, currency)
+        newHtml = renderCombinedInputs(prefix, data, newType, currency, canConvert)
     } else if (newType === 'volume_packages') {
         const data = { type: newType, unit: getDefaultUnitForType('volume') }
-        newHtml = renderVolumePackagesInputs(prefix, data, currency)
+        newHtml = renderVolumePackagesInputs(prefix, data, currency, canConvert)
     } else if (newType === 'cumul') {
         newHtml = `<p class="text-sm secondary-text italic">${t('deliveryRules.typeCumul')}</p>`
     } else if (newType === 'free') {
