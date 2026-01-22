@@ -2,13 +2,14 @@ import { renderProductsView } from './ProductsView.js'
 import * as actions from './ProductsActions.js'
 import { showNewProductModal, showEditProductModal, showDeleteProductModal, showCurrencyConversionModal } from './modals/index.js'
 import { Store } from '../../state.js'
+import { SidebarAPI } from '../../api.js'
 import { t } from '../../../shared/i18n.js'
 import { getForeignCurrencies } from '../../utils/currencyDetection.js'
 import { convertSessionCurrency } from '../../utils/currencyConversion.js'
 import { StorageService } from '../../utils/StorageService.js'
 import { showToast } from '../../utils/toast.js'
 
-export function initProductsPage(app) {
+export async function initProductsPage(app) {
   const session = actions.getSession()
 
   if (!session) {
@@ -16,12 +17,25 @@ export function initProductsPage(app) {
     return
   }
 
-  app.innerHTML = renderProductsView({ session })
-  attachEventListeners(session)
+  // Load optimization state for this session
+  const optimizationState = await actions.loadOptimizationState(session)
+
+  app.innerHTML = renderProductsView({ session, optimizationState })
+  attachEventListeners(session, optimizationState)
 }
 
-function attachEventListeners(session) {
+function attachEventListeners(session, optimizationState) {
   document.getElementById("back-button")?.addEventListener("click", actions.navigateToSessions)
+
+  // View results button (when results exist and session not modified)
+  document.getElementById("view-results-button")?.addEventListener("click", () => {
+    actions.navigateToResults()
+  })
+
+  // History button
+  document.getElementById("history-button")?.addEventListener("click", () => {
+    Store.setState({ currentView: 'history' })
+  })
 
   document.getElementById("new-product-button")?.addEventListener("click", () => {
     showNewProductModal(session)
@@ -127,7 +141,27 @@ function attachEventListeners(session) {
       const result = await actions.optimizeSession(sessionToOptimize)
 
       if (result.success) {
-        actions.showOptimizationResults(result.result)
+        // Save result with session snapshot and currency
+        await SidebarAPI.saveOptimizationResult(
+          session.id,
+          result.result,
+          result.sessionSnapshot,
+          targetCurrency
+        )
+
+        // Navigate to results view
+        Store.setState({
+          currentOptimizationResult: {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            sessionSnapshot: result.sessionSnapshot,
+            result: result.result,
+            currency: targetCurrency
+          },
+          hasOptimizationHistory: false,
+          viewingHistory: false,
+          currentView: 'results'
+        })
       } else {
         showToast(`${t("optimization.failed")}: ${result.error}`, { type: 'error' })
       }

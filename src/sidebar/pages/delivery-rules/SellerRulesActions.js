@@ -223,15 +223,12 @@ export function handleAddForwarderToChain(session, seller) {
         })
 
         // Re-render the forwarder chain section
-        const forwarderChainContainer = document.querySelector('.custom-config-container')
-        if (forwarderChainContainer) {
-            const oldSection = forwarderChainContainer.querySelector('.custom-config-container > div:first-child')
-            if (oldSection) {
-                const newHtml = renderForwarderChainSection(session, rule)
-                const temp = document.createElement('div')
-                temp.innerHTML = newHtml
-                oldSection.replaceWith(temp.firstElementChild)
-            }
+        const oldSection = document.querySelector('.forwarder-chain-section')
+        if (oldSection) {
+            const newHtml = renderForwarderChainSection(session, rule)
+            const temp = document.createElement('div')
+            temp.innerHTML = newHtml
+            oldSection.replaceWith(temp.firstElementChild)
         }
     })
 }
@@ -245,20 +242,17 @@ export function handleMoveForwarderUp(seller, index) {
     if (index === 0 || index >= sorted.length) return
 
     // Swap order values
-    const temp = sorted[index].order
+    const tempOrder = sorted[index].order
     sorted[index].order = sorted[index - 1].order
-    sorted[index - 1].order = temp
+    sorted[index - 1].order = tempOrder
 
     // Re-render the forwarder chain section
-    const forwarderChainContainer = document.querySelector('.custom-config-container')
-    if (forwarderChainContainer) {
-        const oldSection = forwarderChainContainer.querySelector('.custom-config-container > div:first-child')
-        if (oldSection) {
-            const newHtml = renderForwarderChainSection(session, rule)
-            const temp = document.createElement('div')
-            temp.innerHTML = newHtml
-            oldSection.replaceWith(temp.firstElementChild)
-        }
+    const oldSection = document.querySelector('.forwarder-chain-section')
+    if (oldSection) {
+        const newHtml = renderForwarderChainSection(session, rule)
+        const temp = document.createElement('div')
+        temp.innerHTML = newHtml
+        oldSection.replaceWith(temp.firstElementChild)
     }
 }
 
@@ -271,20 +265,17 @@ export function handleMoveForwarderDown(seller, index) {
     if (index < 0 || index >= sorted.length - 1) return
 
     // Swap order values
-    const temp = sorted[index].order
+    const tempOrder = sorted[index].order
     sorted[index].order = sorted[index + 1].order
-    sorted[index + 1].order = temp
+    sorted[index + 1].order = tempOrder
 
     // Re-render the forwarder chain section
-    const forwarderChainContainer = document.querySelector('.custom-config-container')
-    if (forwarderChainContainer) {
-        const oldSection = forwarderChainContainer.querySelector('.custom-config-container > div:first-child')
-        if (oldSection) {
-            const newHtml = renderForwarderChainSection(session, rule)
-            const temp = document.createElement('div')
-            temp.innerHTML = newHtml
-            oldSection.replaceWith(temp.firstElementChild)
-        }
+    const oldSection = document.querySelector('.forwarder-chain-section')
+    if (oldSection) {
+        const newHtml = renderForwarderChainSection(session, rule)
+        const temp = document.createElement('div')
+        temp.innerHTML = newHtml
+        oldSection.replaceWith(temp.firstElementChild)
     }
 }
 
@@ -306,15 +297,12 @@ export function handleRemoveForwarder(seller, index) {
     })
 
     // Re-render the forwarder chain section
-    const forwarderChainContainer = document.querySelector('.custom-config-container')
-    if (forwarderChainContainer) {
-        const oldSection = forwarderChainContainer.querySelector('.custom-config-container > div:first-child')
-        if (oldSection) {
-            const newHtml = renderForwarderChainSection(session, rule)
-            const temp = document.createElement('div')
-            temp.innerHTML = newHtml
-            oldSection.replaceWith(temp.firstElementChild)
-        }
+    const oldSection = document.querySelector('.forwarder-chain-section')
+    if (oldSection) {
+        const newHtml = renderForwarderChainSection(session, rule)
+        const temp = document.createElement('div')
+        temp.innerHTML = newHtml
+        oldSection.replaceWith(temp.firstElementChild)
     }
 }
 

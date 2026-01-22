@@ -142,12 +142,15 @@ const messageHandlers = {
     return optimizeSession(message.sessionData)
   },
 
-  // Open optimization results in a new tab
-  showOptimizationResults: (message) => {
-    browser.tabs.create({
-      url: "results/results.html",
-    })
-    return { success: true }
+  // Optimization results management
+  saveOptimizationResult: async (message) => {
+    return saveOptimizationResult(message.sessionId, message.result, message.sessionSnapshot, message.currency)
+  },
+  getOptimizationResults: async (message) => {
+    return getOptimizationResults(message.sessionId)
+  },
+  getOptimizationHistory: async (message) => {
+    return getOptimizationHistory(message.sessionId)
   },
 }
 
@@ -372,7 +375,7 @@ async function optimizeSession(sessionData) {
   if (!sessionData) return { success: false, error: "Session data not provided" }
 
   try {
-    const response = await fetch("https://your-backend-api.com/optimize", {
+    const response = await fetch("http://localhost:8000/api/v1/optimize", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -380,14 +383,86 @@ async function optimizeSession(sessionData) {
       body: JSON.stringify(sessionData),
     })
 
+    const responseText = await response.text()
+
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
+      // Parse error message from response
+      try {
+        const errorData = JSON.parse(responseText)
+        throw new Error(errorData.detail || `API error: ${response.status}`)
+      } catch (parseError) {
+        throw new Error(`API error ${response.status}: ${responseText.substring(0, 200)}`)
+      }
     }
 
-    const result = await response.json()
-    return { success: true, result }
+    const result = JSON.parse(responseText)
+    const sessionSnapshot = computeSessionSnapshot(sessionData)
+    return { success: true, result, sessionSnapshot }
   } catch (error) {
+    console.error("Optimization error:", error)
     return { success: false, error: error.message }
+  }
+}
+
+// Compute a snapshot of session data for modification detection
+function computeSessionSnapshot(session) {
+  const relevantData = {
+    products: session.products,
+    bundles: session.bundles,
+    alternativeGroups: session.alternativeGroups,
+    deliveryRules: session.deliveryRules,
+    customsCategories: session.customsCategories,
+    forwarders: session.forwarders
+  }
+  return JSON.stringify(relevantData)
+}
+
+// Optimization Results Management
+async function saveOptimizationResult(sessionId, result, sessionSnapshot, currency) {
+  const storage = await browser.storage.local.get("optimizationResults")
+  const results = storage.optimizationResults || {}
+
+  const newResult = {
+    id: Date.now().toString(),
+    timestamp: new Date().toISOString(),
+    sessionSnapshot,
+    result,
+    currency
+  }
+
+  if (!results[sessionId]) {
+    results[sessionId] = { current: null, history: [] }
+  }
+
+  // Move current to history if exists
+  if (results[sessionId].current) {
+    results[sessionId].history.unshift(results[sessionId].current)
+    // Keep max 10 history items
+    results[sessionId].history = results[sessionId].history.slice(0, 10)
+  }
+
+  results[sessionId].current = newResult
+
+  await browser.storage.local.set({ optimizationResults: results })
+  return { success: true, result: newResult }
+}
+
+async function getOptimizationResults(sessionId) {
+  const storage = await browser.storage.local.get("optimizationResults")
+  const results = storage.optimizationResults || {}
+  return {
+    success: true,
+    current: results[sessionId]?.current || null,
+    hasHistory: (results[sessionId]?.history?.length || 0) > 0
+  }
+}
+
+async function getOptimizationHistory(sessionId) {
+  const storage = await browser.storage.local.get("optimizationResults")
+  const results = storage.optimizationResults || {}
+  return {
+    success: true,
+    history: results[sessionId]?.history || []
   }
 }
 

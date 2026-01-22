@@ -60,7 +60,9 @@
         "importFees": "Import Fees",
         "quantity": "Quantity",
         "confirmDelete": "Are you sure you want to delete this product? All associated offers will also be deleted.",
-        "deleteButton": "Delete Product"
+        "deleteButton": "Delete Product",
+        "viewResults": "View Results",
+        "history": "History"
     },
     "offers": {
         "addOffer": "Add Offer",
@@ -356,6 +358,36 @@
         "noProducts": "No products in session",
         "productWithoutOffer": "Product \"{name}\" has no offers and is not in any bundle",
         "missingDeliveryRule": "No delivery rule for seller \"{seller}\""
+    },
+    "results": {
+        "title": "Results",
+        "historical": "Historical",
+        "viewHistory": "View History",
+        "historyTitle": "Optimization History",
+        "noHistory": "No previous results",
+        "totalCost": "Total Cost",
+        "productsCost": "Products",
+        "shippingCost": "Shipping",
+        "insuranceCost": "Insurance",
+        "selectedOffers": "Selected Offers",
+        "selectedBundles": "Selected Bundles",
+        "shippingBreakdown": "Shipping Breakdown",
+        "reOptimize": "Re-Optimize",
+        "qty": "Qty",
+        "packages": "packages",
+        "customsCost": "Customs Duties",
+        "vatCost": "VAT",
+        "forwarderCost": "Forwarder Fees",
+        "customsClearanceFee": "Customs Clearance Fee",
+        "forwarderFeesBreakdown": "Forwarder Fees Breakdown",
+        "forwarderReception": "Reception",
+        "forwarderStorage": "Storage",
+        "forwarderRepackaging": "Repackaging",
+        "forwarderReShipping": "Re-shipping",
+        "forwarderChainDetails": "Forwarder Chain",
+        "defaultVATRate": "Default VAT Rate",
+        "noForwardersUsed": "Direct shipping",
+        "you": "You"
     },
     "attributes": {
         "weight": "Weight",

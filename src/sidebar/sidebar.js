@@ -12,6 +12,8 @@ import { initDeliveryRulesPage } from './pages/delivery-rules/DeliveryRulesPage.
 import { initAlternativesPage } from './pages/alternatives/AlternativesPage.js';
 import { initImportFeesPage } from './pages/import-fees/ImportFeesPage.js';
 import { initForwardersPage } from './pages/forwarders/ForwardersPage.js';
+import { initResultsPage } from './pages/results/ResultsPage.js'
+import { initHistoryPage } from './pages/history/HistoryPage.js';
 
 const app = document.getElementById("app")
 
@@ -82,6 +84,12 @@ function renderApp() {
       break
     case "forwarders":
       initForwardersPage(app)
+      break
+    case "results":
+      initResultsPage(app)
+      break
+    case "history":
+      initHistoryPage(app)
       break
     default:
       initSessionsPage(app)

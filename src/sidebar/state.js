@@ -12,6 +12,9 @@ export const Store = {
     scrapedData: null,
     currency: '€',
     isLoading: false,
+    currentOptimizationResult: null,
+    viewingHistory: false,
+    hasOptimizationHistory: false,
   },
 
   // Subscribers for state changes

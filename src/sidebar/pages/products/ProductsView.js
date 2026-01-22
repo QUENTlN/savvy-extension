@@ -1,6 +1,6 @@
 import { t } from '../../../shared/i18n.js'
 
-export function renderProductsView({ session }) {
+export function renderProductsView({ session, optimizationState = {} }) {
   return `
     <div class="mx-4">
       <!-- Header -->
@@ -55,14 +55,45 @@ export function renderProductsView({ session }) {
       </div>
       ` : ''}
 
+      ${renderOptimizeSection(optimizationState)}
+    </div>
+  `
+}
+
+function renderOptimizeSection(optimizationState) {
+  const { hasResults, isModified, hasHistory } = optimizationState
+
+  if (hasResults && !isModified) {
+    // Show "View Results" button
+    return `
+      <div class="flex space-x-4 my-4">
+        <button id="view-results-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
+          <span class="icon icon-results h-5 w-5"></span>
+          <span class="text-lg font-medium">${t("products.viewResults")}</span>
+        </button>
+        ${hasHistory ? `
+        <button id="history-button" class="flex items-center justify-center cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default" title="${t("products.history")}">
+          <span class="icon icon-history h-5 w-5"></span>
+        </button>
+        ` : ''}
+      </div>
+    `
+  } else {
+    // Show "Optimize" button (with optional history button)
+    return `
       <div class="flex space-x-4 my-4">
         <button id="optimize-button" class="flex-1 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
           <span class="icon icon-optimize h-5 w-5"></span>
           <span class="text-lg font-medium">${t("products.optimize")}</span>
         </button>
+        ${hasHistory ? `
+        <button id="history-button" class="flex items-center justify-center cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default" title="${t("products.history")}">
+          <span class="icon icon-history h-5 w-5"></span>
+        </button>
+        ` : ''}
       </div>
-    </div>
-  `
+    `
+  }
 }
 
 function renderProductCard(product, session) {

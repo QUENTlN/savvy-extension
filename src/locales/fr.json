@@ -60,7 +60,9 @@
         "importFees": "Frais d'importation",
         "quantity": "Quantité",
         "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce produit ? Toutes les offres associées seront également supprimées.",
-        "deleteButton": "Supprimer le produit"
+        "deleteButton": "Supprimer le produit",
+        "viewResults": "Voir les résultats",
+        "history": "Historique"
     },
     "offers": {
         "addOffer": "Ajouter une offre",
@@ -356,6 +358,36 @@
         "noProducts": "Aucun produit dans la session",
         "productWithoutOffer": "Le produit \"{name}\" n'a aucune offre et n'est dans aucun lot",
         "missingDeliveryRule": "Pas de règle de livraison pour le vendeur \"{seller}\""
+    },
+    "results": {
+        "title": "Résultats",
+        "historical": "Historique",
+        "viewHistory": "Voir l'historique",
+        "historyTitle": "Historique des optimisations",
+        "noHistory": "Aucun résultat précédent",
+        "totalCost": "Coût total",
+        "productsCost": "Produits",
+        "shippingCost": "Livraison",
+        "insuranceCost": "Assurance",
+        "selectedOffers": "Offres sélectionnées",
+        "selectedBundles": "Lots sélectionnés",
+        "shippingBreakdown": "Détail des livraisons",
+        "reOptimize": "Ré-optimiser",
+        "qty": "Qté",
+        "packages": "colis",
+        "customsCost": "Droits de douane",
+        "vatCost": "TVA",
+        "forwarderCost": "Frais de transitaire",
+        "customsClearanceFee": "Frais de dédouanement",
+        "forwarderFeesBreakdown": "Détail des frais de transitaire",
+        "forwarderReception": "Réception",
+        "forwarderStorage": "Stockage",
+        "forwarderRepackaging": "Reconditionnement",
+        "forwarderReShipping": "Réexpédition",
+        "forwarderChainDetails": "Chaîne de transitaires",
+        "defaultVATRate": "Taux de TVA par défaut",
+        "noForwardersUsed": "Expédition directe",
+        "you": "Vous"
     },
     "attributes": {
         "weight": "Poids",

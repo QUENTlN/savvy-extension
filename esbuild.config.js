@@ -11,7 +11,6 @@ async function bundleJS(targetBrowser, buildDir) {
   const entryPoints = {
     'sidebar/sidebar.bundle': 'src/sidebar/sidebar.js',
     'popup/popup.bundle': 'src/popup/popup.js',
-    'results/results.bundle': 'src/results/results.js',
   };
 
   // Background script entry point depends on target

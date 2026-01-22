@@ -198,10 +198,27 @@ export const SidebarAPI = {
     })
   },
 
-  showOptimizationResults(result) {
+  saveOptimizationResult(sessionId, result, sessionSnapshot, currency) {
     return browser.runtime.sendMessage({
-      action: "showOptimizationResults",
+      action: "saveOptimizationResult",
+      sessionId,
       result,
+      sessionSnapshot,
+      currency,
+    })
+  },
+
+  getOptimizationResults(sessionId) {
+    return browser.runtime.sendMessage({
+      action: "getOptimizationResults",
+      sessionId,
+    })
+  },
+
+  getOptimizationHistory(sessionId) {
+    return browser.runtime.sendMessage({
+      action: "getOptimizationHistory",
+      sessionId,
     })
   },
 

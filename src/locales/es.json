@@ -60,7 +60,9 @@
         "importFees": "Tasas de importación",
         "quantity": "Cantidad",
         "confirmDelete": "¿Está seguro de que desea eliminar este producto? También se eliminarán todas las ofertas asociadas.",
-        "deleteButton": "Eliminar producto"
+        "deleteButton": "Eliminar producto",
+        "viewResults": "Ver resultados",
+        "history": "Historial"
     },
     "offers": {
         "addOffer": "Agregar oferta",
@@ -356,6 +358,36 @@
         "noProducts": "No hay productos en la sesión",
         "productWithoutOffer": "El producto \"{name}\" no tiene ofertas y no está en ningún paquete",
         "missingDeliveryRule": "No hay regla de entrega para el vendedor \"{seller}\""
+    },
+    "results": {
+        "title": "Resultados",
+        "historical": "Histórico",
+        "viewHistory": "Ver historial",
+        "historyTitle": "Historial de optimizaciones",
+        "noHistory": "Sin resultados anteriores",
+        "totalCost": "Costo total",
+        "productsCost": "Productos",
+        "shippingCost": "Envío",
+        "insuranceCost": "Seguro",
+        "selectedOffers": "Ofertas seleccionadas",
+        "selectedBundles": "Paquetes seleccionados",
+        "shippingBreakdown": "Desglose de envíos",
+        "reOptimize": "Re-optimizar",
+        "qty": "Cant.",
+        "packages": "paquetes",
+        "customsCost": "Derechos de aduana",
+        "vatCost": "IVA",
+        "forwarderCost": "Gastos de transitario",
+        "customsClearanceFee": "Gastos de despacho aduanero",
+        "forwarderFeesBreakdown": "Desglose de gastos de transitario",
+        "forwarderReception": "Recepción",
+        "forwarderStorage": "Almacenamiento",
+        "forwarderRepackaging": "Reempaquetado",
+        "forwarderReShipping": "Reenvío",
+        "forwarderChainDetails": "Cadena de reenviadores",
+        "defaultVATRate": "Tasa de IVA predeterminada",
+        "noForwardersUsed": "Envío directo",
+        "you": "Usted"
     },
     "attributes": {
         "weight": "Peso",

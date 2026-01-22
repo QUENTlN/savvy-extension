@@ -133,7 +133,7 @@ export function renderForwarderChainSection(session, rule) {
     const forwarders = session.forwarders || []
 
     return `
-        <div class="mb-8 p-6 bg-[hsl(var(--muted))]/30 rounded-xl border border-default">
+        <div class="forwarder-chain-section mb-8 p-6 bg-[hsl(var(--muted))]/30 rounded-xl border border-default">
             <h3 class="text-lg font-semibold card-text mb-2">${t("deliveryRules.forwarderChain")}</h3>
             <p class="text-sm secondary-text mb-4">${t("deliveryRules.forwarderChainHelp")}</p>
 

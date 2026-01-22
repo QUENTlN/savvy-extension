@@ -52,6 +52,58 @@ export function optimizeSession(sessionData) {
   return SidebarAPI.optimizeSession(sessionData)
 }
 
-export function showOptimizationResults(result) {
-  return SidebarAPI.showOptimizationResults(result)
+export function navigateToResults() {
+  Store.setState({
+    currentView: 'results',
+    viewingHistory: false
+  })
+}
+
+export async function loadOptimizationState(session) {
+  const response = await SidebarAPI.getOptimizationResults(session.id)
+
+  if (!response.current) {
+    return { hasResults: false, isModified: false, hasHistory: false }
+  }
+
+  // Check if session was modified
+  const currentSnapshot = computeSessionSnapshot(session)
+  const isModified = currentSnapshot !== response.current.sessionSnapshot
+
+  // Store current result in state for later viewing
+  if (!isModified) {
+    Store.setState({
+      currentOptimizationResult: response.current,
+      hasOptimizationHistory: response.hasHistory
+    }, true)
+  } else {
+    Store.setState({
+      hasOptimizationHistory: response.hasHistory
+    }, true)
+  }
+
+  return {
+    hasResults: true,
+    isModified,
+    hasHistory: response.hasHistory
+  }
+}
+
+export async function loadOptimizationHistory() {
+  const session = getSession()
+  if (!session) return []
+  const response = await SidebarAPI.getOptimizationHistory(session.id)
+  return response.history || []
+}
+
+function computeSessionSnapshot(session) {
+  const relevantData = {
+    products: session.products,
+    bundles: session.bundles,
+    alternativeGroups: session.alternativeGroups,
+    deliveryRules: session.deliveryRules,
+    customsCategories: session.customsCategories,
+    forwarders: session.forwarders
+  }
+  return JSON.stringify(relevantData)
 }
