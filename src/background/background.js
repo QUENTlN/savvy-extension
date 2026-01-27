@@ -523,7 +523,8 @@ function createForwarder(sessionId, forwarder) {
         reception: { calculationMethod: { type: 'fixed', amount: 0 } },
         storage: { calculationMethod: { type: 'free' } },
         repackaging: { calculationMethod: { type: 'free' } },
-        reShipping: { calculationMethod: { type: 'fixed', amount: 0 } }
+        reShipping: { calculationMethod: { type: 'fixed', amount: 0 } },
+        consolidationMode: 'single'
       }
     }
 
