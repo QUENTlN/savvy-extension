@@ -288,7 +288,33 @@
         "noFeesConfigured": "No fees configured",
         "allFeesFree": "All fees free",
         "deleteConfirmation": "Are you sure you want to delete {name}?",
-        "deleteWarningUsed": "This forwarder is used in delivery rules. Deleting it will remove it from all seller configurations."
+        "deleteWarningUsed": "This forwarder is used in delivery rules. Deleting it will remove it from all seller configurations.",
+        "billingMode": {
+            "label": "Billing Mode",
+            "perOrder": "Per order",
+            "perIncomingPackage": "Per incoming package",
+            "perOutgoingPackage": "Per outgoing package"
+        },
+        "consolidationMode": {
+            "title": "Consolidation Mode",
+            "description": "How should packages be handled between reception and re-shipping?",
+            "asIs": "Ship as received",
+            "asIsHelp": "Each package from the seller is re-shipped separately. No consolidation.",
+            "asIsNotice": "No repackaging fees are charged when shipping as received.",
+            "consolidate": "Optimal consolidation",
+            "consolidateHelp": "Packages are optimally regrouped using the re-shipping method's package formats.",
+            "consolidateWarning": "Optimal consolidation works best with dimension-based re-shipping methods. With the current method, it will behave like 'Single package'.",
+            "single": "Single package",
+            "singleHelp": "All items are consolidated into a single package before re-shipping."
+        }
+    },
+    "forwarderFees": {
+        "typeFree": "No fee",
+        "typeFreeHelp": "No fee charged",
+        "typeFixed": "Fixed amount",
+        "typeFixedHelp": "Fixed fee regardless of order",
+        "typePercentage": "Percentage",
+        "typePercentageHelp": "Fee as a percentage of order value"
     },
     "scraping": {
         "title": "Add to Product",

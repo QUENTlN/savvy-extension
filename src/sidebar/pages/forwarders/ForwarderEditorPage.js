@@ -15,6 +15,74 @@ import {
   performLiveValidation
 } from '../../components/fees/index.js'
 
+// Bin-packing compatible reShipping types
+const BIN_PACKING_TYPES = ['dimension', 'weight_volume', 'weight_dimension', 'volume_packages']
+
+/**
+ * Handle consolidationMode change
+ * - as_is: disable repackaging billing/calculation fields
+ * - consolidate: show warning if reShipping method is not bin-packing compatible
+ * - single: normal behavior
+ */
+function handleConsolidationModeChange(mode) {
+  const conditionalFields = document.getElementById('repackaging-conditional-fields')
+  const asIsNotice = document.getElementById('as-is-notice')
+  const consolidateWarning = document.getElementById('consolidate-warning')
+
+  if (mode === 'as_is') {
+    // Disable repackaging fields
+    conditionalFields?.classList.add('opacity-50', 'pointer-events-none')
+    asIsNotice?.classList.remove('hidden')
+    consolidateWarning?.classList.add('hidden')
+  } else {
+    // Re-enable repackaging fields
+    conditionalFields?.classList.remove('opacity-50', 'pointer-events-none')
+    asIsNotice?.classList.add('hidden')
+
+    // Validate compatibility if "consolidate"
+    if (mode === 'consolidate') {
+      validateConsolidationWithReShipping()
+    } else {
+      consolidateWarning?.classList.add('hidden')
+    }
+  }
+}
+
+/**
+ * Validate consolidation mode with reShipping type
+ * Shows a warning if consolidate mode is used with a non-bin-packing reShipping method
+ */
+function validateConsolidationWithReShipping() {
+  const consolidationMode = document.querySelector('input[name="consolidationMode"]:checked')?.value
+  const reShippingContainer = document.querySelector('[data-fee-section="reShipping"] .calculation-rules-container')
+  const reShippingType = reShippingContainer?.querySelector('.calculation-type-radio:checked')?.value
+  const warning = document.getElementById('consolidate-warning')
+
+  if (consolidationMode === 'consolidate' && reShippingType && !BIN_PACKING_TYPES.includes(reShippingType)) {
+    warning?.classList.remove('hidden')
+  } else {
+    warning?.classList.add('hidden')
+  }
+}
+
+/**
+ * Setup event listeners for consolidation mode interactions
+ */
+function setupConsolidationModeInteractions(app) {
+  app.addEventListener('change', (e) => {
+    // Handle consolidationMode radio change
+    if (e.target.name === 'consolidationMode') {
+      handleConsolidationModeChange(e.target.value)
+    }
+
+    // Handle reShipping type change - revalidate if in consolidate mode
+    const reShippingContainer = e.target.closest('[data-fee-section="reShipping"]')
+    if (reShippingContainer && e.target.classList.contains('calculation-type-radio')) {
+      validateConsolidationWithReShipping()
+    }
+  })
+}
+
 export function initForwarderEditorPage(app) {
   const session = actions.getSession()
   if (!session) {
@@ -38,6 +106,9 @@ export function initForwarderEditorPage(app) {
 
   // Setup currency change listener
   actions.setupCurrencyChangeListener()
+
+  // Setup consolidation mode interactions
+  setupConsolidationModeInteractions(app)
 
   // Event delegation for change events
   app.addEventListener('change', (e) => {

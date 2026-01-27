@@ -86,27 +86,64 @@ export function getHelpTextForMode(type, tierValueMode) {
 // CALCULATION RULES RENDERERS
 // ============================================================================
 
-export function renderFixedInputs(prefix, data, currency = null) {
+/**
+ * Render simple packing mode selector (2 options: single, perItem)
+ * Used for non-bin-packing methods when forwarders are enabled
+ */
+export function renderSimplePackingModeSelector(prefix, packingMode = 'single') {
+    return `
+        <div class="mb-4">
+            <label class="block text-xs font-semibold secondary-text mb-2 tracking-wide">${t('deliveryRules.packingMode')}</label>
+            <div class="bg-[hsl(var(--muted))] p-1 rounded-lg inline-flex w-full">
+                <label class="flex-1 px-3 py-2 rounded-md text-xs cursor-pointer transition-all text-center ${packingMode === 'perItem' ? 'bg-[hsl(var(--card))] shadow-sm font-medium card-text' : 'secondary-text'}">
+                    <input type="radio" name="${prefix}_packingMode" value="perItem" class="hidden" ${packingMode === 'perItem' ? 'checked' : ''}>
+                    ${t('deliveryRules.packingModePerItem')}
+                </label>
+                <label class="flex-1 px-3 py-2 rounded-md text-xs cursor-pointer transition-all text-center ${packingMode === 'single' ? 'bg-[hsl(var(--card))] shadow-sm font-medium card-text' : 'secondary-text'}">
+                    <input type="radio" name="${prefix}_packingMode" value="single" class="hidden" ${packingMode === 'single' ? 'checked' : ''}>
+                    ${t('deliveryRules.packingModeSingle')}
+                </label>
+            </div>
+            <p class="text-[10px] secondary-text italic mt-2 px-1">
+                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') : t('deliveryRules.packingModeSingleHelp')}
+            </p>
+        </div>
+    `
+}
+
+export function renderFixedInputs(prefix, data, currency = null, showPackingMode = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const currencySymbol = getCurrencySymbol(currencyCode)
-    return `
+    let html = `
         <div class="mb-3">
             <label class="block text-sm font-medium secondary-text mb-1">${t('deliveryRules.amount')} (${currencySymbol})</label>
             <input type="number" step="0.01" class="w-full bg-transparent border border-default rounded px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 name="${prefix}_amount" value="${data.amount || 0}">
         </div>
     `
+
+    if (showPackingMode) {
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single')
+    }
+
+    return html
 }
 
-export function renderPercentageInputs(prefix, data) {
+export function renderPercentageInputs(prefix, data, showPackingMode = false) {
     const ratePercent = formatPercent(data.rate || 0)
-    return `
+    let html = `
         <div class="mb-3">
             <label class="block text-sm font-medium secondary-text mb-1">${t('deliveryRules.pctOrderLabel')}</label>
              <input type="number" step="0.01" class="w-full bg-transparent border border-default rounded px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 name="${prefix}_rate" value="${ratePercent}">
         </div>
     `
+
+    if (showPackingMode) {
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single')
+    }
+
+    return html
 }
 
 export function renderRangeRow(type, prefix, idx, range = {}, tierValueType = 'fixed', tierValueMode = 'perUnit', unit = '', unit2 = '', currency = null) {
@@ -204,7 +241,7 @@ export function renderRangeRow(type, prefix, idx, range = {}, tierValueType = 'f
     `
 }
 
-export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = false, currency = null) {
+export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = false, currency = null, showPackingMode = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const isTiered = data.isTiered || false
     const units = getUnitOptions(type)
@@ -225,6 +262,11 @@ export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = fa
                 </select>
             </div>
         `
+    }
+
+    // Show simple packing mode selector for non-bin-packing methods when forwarders enabled
+    if (showPackingMode) {
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single')
     }
 
     html += `
@@ -460,12 +502,17 @@ export function renderDimensionInputs(prefix, data, currency = null, canConvert 
     return html
 }
 
-export function renderOrderAmountInputs(prefix, data, hideAdvancedSettings = false, currency = null) {
+export function renderOrderAmountInputs(prefix, data, hideAdvancedSettings = false, currency = null, showPackingMode = false) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const tierValueType = data.tierValueType || 'fixed'
     const currencySymbol = getCurrencySymbol(currencyCode)
 
     let html = ''
+
+    // Show simple packing mode selector when forwarders enabled
+    if (showPackingMode) {
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single')
+    }
 
     const valueLabel = tierValueType === 'fixed' ? currencySymbol :
                       tierValueType === 'pctOrder' ? '%commande' :
@@ -802,12 +849,26 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
         presetConfig.includeItem
     ).filter(t => showFreeOption || t !== 'free')
 
+    // Get label context from preset (delivery vs forwarder)
+    const labelContext = presetConfig.labelContext || 'delivery'
+    const labelPrefix = labelContext === 'forwarder' ? 'forwarderFees' : 'deliveryRules'
+
     // Type definitions with labels and help text
+    // For forwarder context, use generic labels instead of delivery-specific ones
     const typeDefinitions = {
         cumul: { label: t('deliveryRules.typeCumul'), help: t('deliveryRules.typeCumulHelp') },
-        free: { label: t('deliveryRules.freeDelivery'), help: t('deliveryRules.freeDeliveryHelp') },
-        fixed: { label: t('deliveryRules.typeFixed'), help: t('deliveryRules.typeFixedHelp') },
-        percentage: { label: t('deliveryRules.typePercentage'), help: t('deliveryRules.typePercentageHelp') },
+        free: {
+            label: labelContext === 'forwarder' ? t('forwarderFees.typeFree') : t('deliveryRules.freeDelivery'),
+            help: labelContext === 'forwarder' ? t('forwarderFees.typeFreeHelp') : t('deliveryRules.freeDeliveryHelp')
+        },
+        fixed: {
+            label: labelContext === 'forwarder' ? t('forwarderFees.typeFixed') : t('deliveryRules.typeFixed'),
+            help: labelContext === 'forwarder' ? t('forwarderFees.typeFixedHelp') : t('deliveryRules.typeFixedHelp')
+        },
+        percentage: {
+            label: labelContext === 'forwarder' ? t('forwarderFees.typePercentage') : t('deliveryRules.typePercentage'),
+            help: labelContext === 'forwarder' ? t('forwarderFees.typePercentageHelp') : t('deliveryRules.typePercentageHelp')
+        },
         quantity: { label: t('deliveryRules.typeQuantity'), help: t('deliveryRules.typeQuantityHelp') },
         distance: { label: t('deliveryRules.typeDistance'), help: t('deliveryRules.typeDistanceHelp') },
         weight: { label: t('deliveryRules.typeWeight'), help: t('deliveryRules.typeWeightHelp') },
@@ -855,16 +916,21 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
     // Check if both volume and dimension are managed (needed for allowConversion)
     const canConvert = effectiveSession?.manageVolume && effectiveSession?.manageDimension
 
+    // Show packingMode selector for simple methods only when forwarders are enabled
+    // and this is the sellerShipping preset (not for forwarder fees)
+    const showPackingMode = effectiveSession?.forwardersEnabled && preset === 'sellerShipping'
+
+    const freeLabel = labelContext === 'forwarder' ? t('forwarderFees.typeFree') : t('deliveryRules.freeDelivery')
     const TYPE_RENDERERS = {
-        cumul: () => `<p class="text-sm secondary-text italic">${t('deliveryRules.typeCumul')}</p>`,
-        free: () => `<p class="text-sm font-medium card-text italic">${t('deliveryRules.freeDelivery')}</p>`,
-        fixed: (p, d) => renderFixedInputs(p, d, currencyCode),
-        percentage: (p, d) => renderPercentageInputs(p, d),
-        quantity: (p, d) => renderTieredInputs(p, d, 'quantity', hideAdvancedSettings, currencyCode),
-        distance: (p, d) => renderTieredInputs(p, d, 'distance', hideAdvancedSettings, currencyCode),
-        weight: (p, d) => renderTieredInputs(p, d, 'weight', hideAdvancedSettings, currencyCode),
-        volume: (p, d) => renderTieredInputs(p, d, 'volume', hideAdvancedSettings, currencyCode),
-        order_amount: (p, d) => renderOrderAmountInputs(p, d, hideAdvancedSettings, currencyCode),
+        cumul: (p, d) => `<p class="text-sm secondary-text italic mb-3">${t('deliveryRules.typeCumul')}</p>` + (showPackingMode ? renderSimplePackingModeSelector(p, d.packingMode || 'single') : ''),
+        free: (p, d) => `<p class="text-sm font-medium card-text italic mb-3">${freeLabel}</p>` + (showPackingMode ? renderSimplePackingModeSelector(p, d.packingMode || 'single') : ''),
+        fixed: (p, d) => renderFixedInputs(p, d, currencyCode, showPackingMode),
+        percentage: (p, d) => renderPercentageInputs(p, d, showPackingMode),
+        quantity: (p, d) => renderTieredInputs(p, d, 'quantity', hideAdvancedSettings, currencyCode, showPackingMode),
+        distance: (p, d) => renderTieredInputs(p, d, 'distance', hideAdvancedSettings, currencyCode, showPackingMode),
+        weight: (p, d) => renderTieredInputs(p, d, 'weight', hideAdvancedSettings, currencyCode, showPackingMode),
+        volume: (p, d) => renderTieredInputs(p, d, 'volume', hideAdvancedSettings, currencyCode, showPackingMode),
+        order_amount: (p, d) => renderOrderAmountInputs(p, d, hideAdvancedSettings, currencyCode, showPackingMode),
         dimension: (p, d) => renderDimensionInputs(p, d, currencyCode, canConvert),
         weight_volume: (p, d) => renderCombinedInputs(p, d, 'weight_volume', currencyCode, canConvert),
         weight_dimension: (p, d) => renderCombinedInputs(p, d, 'weight_dimension', currencyCode, canConvert),

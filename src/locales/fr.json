@@ -288,7 +288,33 @@
         "noFeesConfigured": "Aucun frais configuré",
         "allFeesFree": "Tous les frais gratuits",
         "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer {name} ?",
-        "deleteWarningUsed": "Ce transitaire est utilisé dans les règles de livraison. Le supprimer le retirera de toutes les configurations de vendeurs."
+        "deleteWarningUsed": "Ce transitaire est utilisé dans les règles de livraison. Le supprimer le retirera de toutes les configurations de vendeurs.",
+        "billingMode": {
+            "label": "Mode de facturation",
+            "perOrder": "Par commande",
+            "perIncomingPackage": "Par colis reçu",
+            "perOutgoingPackage": "Par colis consolidé"
+        },
+        "consolidationMode": {
+            "title": "Mode de reconditionnement",
+            "description": "Comment les colis sont-ils traités entre la réception et la réexpédition ?",
+            "asIs": "Envoi tel quel",
+            "asIsHelp": "Chaque colis du vendeur est réexpédié séparément. Pas de consolidation.",
+            "asIsNotice": "Aucun frais de reconditionnement n'est facturé en mode \"Envoi tel quel\".",
+            "consolidate": "Consolidation optimale",
+            "consolidateHelp": "Les colis sont regroupés de manière optimale selon les formats de la méthode de réexpédition.",
+            "consolidateWarning": "La consolidation optimale fonctionne mieux avec les méthodes de réexpédition basées sur les dimensions. Avec la méthode actuelle, elle se comportera comme \"Colis unique\".",
+            "single": "Colis unique",
+            "singleHelp": "Tous les articles sont consolidés dans un seul colis avant réexpédition."
+        }
+    },
+    "forwarderFees": {
+        "typeFree": "Sans frais",
+        "typeFreeHelp": "Aucun frais facturé",
+        "typeFixed": "Montant fixe",
+        "typeFixedHelp": "Frais fixe indépendant de la commande",
+        "typePercentage": "Pourcentage",
+        "typePercentageHelp": "Frais en pourcentage de la valeur de commande"
     },
     "scraping": {
         "title": "Ajouter au produit",

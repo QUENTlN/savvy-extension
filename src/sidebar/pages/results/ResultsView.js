@@ -493,7 +493,7 @@ function renderSellerCard(seller, sellerData, session, currency, groups) {
           return `
                <div class="mt-4 pt-3 border-t border-dashed border-default flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                  <span class="font-medium flex items-center gap-1">
-                   <span class="icon icon-local_shipping h-4 w-4"></span>
+                   <span class="icon icon-forwarding h-4 w-4"></span>
                    ${t("results.forwarderChainDetails")}:
                  </span>
                  <div class="flex items-center gap-1.5 ml-1">

@@ -24,7 +24,22 @@ export function updateForwarder(forwarderId, updatedForwarder) {
 
 export function extractFeeData(prefix) {
   const calculationMethod = extractCalculationRule(prefix, document)
-  return { calculationMethod }
+  const result = { calculationMethod }
+
+  // Extract billing mode for repackaging fees
+  if (prefix === 'repackaging') {
+    const billingModeSelect = document.querySelector(`[name="${prefix}-billingMode"]`)
+    if (billingModeSelect) {
+      result.billingMode = billingModeSelect.value
+    }
+  }
+
+  return result
+}
+
+export function extractConsolidationMode() {
+  const selectedRadio = document.querySelector('input[name="consolidationMode"]:checked')
+  return selectedRadio ? selectedRadio.value : 'single'
 }
 
 export function saveForwarder() {
@@ -43,11 +58,14 @@ export function saveForwarder() {
   const currencySelect = document.getElementById('forwarder-currency')
   const currency = currencySelect ? currencySelect.value : forwarder.currency
 
+  const consolidationMode = extractConsolidationMode()
+
   const fees = {
     reception: extractFeeData('reception'),
     storage: extractFeeData('storage'),
     repackaging: extractFeeData('repackaging'),
-    reShipping: extractFeeData('reShipping')
+    reShipping: extractFeeData('reShipping'),
+    consolidationMode
   }
 
   updateForwarder(forwarder.id, { name, currency, fees }).then(() => {

@@ -34,6 +34,16 @@ export const FEE_CALCULATION_TYPES = {
 }
 
 /**
+ * Label contexts for different fee types
+ * 'delivery' uses shipping-specific labels
+ * 'forwarder' uses generic fee labels
+ */
+export const LABEL_CONTEXTS = {
+    delivery: 'deliveryRules',
+    forwarder: 'forwarderFees',
+}
+
+/**
  * Preset configurations for different contexts
  */
 export const FEE_CONFIG_PRESETS = {
@@ -41,38 +51,44 @@ export const FEE_CONFIG_PRESETS = {
     sellerShipping: {
         availableTypes: ['cumul', 'free', 'fixed', 'percentage', 'quantity', 'distance', 'weight', 'volume', 'order_amount', 'dimension', 'weight_volume', 'weight_dimension', 'volume_packages'],
         includeItem: true,
+        labelContext: 'delivery',
     },
 
     // Full configuration for forwarder re-shipping fees (no 'cumul')
     forwarderReShipping: {
         availableTypes: ['free', 'fixed', 'percentage', 'quantity', 'weight', 'volume', 'dimension', 'weight_volume', 'weight_dimension', 'volume_packages'],
         includeItem: false,
+        labelContext: 'forwarder',
     },
 
     // Simple configuration for reception/repackaging fees
     simpleOnly: {
         availableTypes: ['free', 'fixed', 'percentage'],
         includeItem: false,
+        labelContext: 'forwarder',
     },
 
-    // Reception fees with quantity support
+    // Reception fees with quantity, weight, and volume support
     receptionWithQuantity: {
-        availableTypes: ['free', 'fixed', 'percentage', 'quantity'],
+        availableTypes: ['free', 'fixed', 'percentage', 'quantity', 'weight', 'volume'],
         includeItem: false,
+        labelContext: 'forwarder',
     },
 
     // Storage fees with dimension and volume support (no advanced settings)
     storageWithDimensionVolume: {
-        availableTypes: ['free', 'fixed', 'percentage', 'dimension', 'volume'],
+        availableTypes: ['free', 'fixed', 'percentage', 'weight', 'volume', 'order_amount', 'dimension', 'weight_volume', 'weight_dimension', 'volume_packages'],
         includeItem: false,
         hideAdvancedSettings: true,
+        labelContext: 'forwarder',
     },
 
-    // Repackaging fees with quantity, weight, and volume (no advanced settings)
+    // Repackaging fees with all methods (no advanced settings)
     repackagingWithAdvanced: {
-        availableTypes: ['free', 'fixed', 'percentage', 'quantity', 'weight', 'volume'],
+        availableTypes: ['free', 'fixed', 'percentage', 'quantity', 'weight', 'volume', 'order_amount', 'dimension', 'weight_volume', 'weight_dimension', 'volume_packages'],
         includeItem: false,
         hideAdvancedSettings: true,
+        labelContext: 'forwarder',
     },
 }
 

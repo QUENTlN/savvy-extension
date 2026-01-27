@@ -288,7 +288,33 @@
         "noFeesConfigured": "No hay tarifas configuradas",
         "allFeesFree": "Todas las tarifas gratuitas",
         "deleteConfirmation": "¿Está seguro de que desea eliminar {name}?",
-        "deleteWarningUsed": "Este reenviador se utiliza en las reglas de entrega. Eliminarlo lo quitará de todas las configuraciones de vendedores."
+        "deleteWarningUsed": "Este reenviador se utiliza en las reglas de entrega. Eliminarlo lo quitará de todas las configuraciones de vendedores.",
+        "billingMode": {
+            "label": "Modo de facturación",
+            "perOrder": "Por pedido",
+            "perIncomingPackage": "Por paquete recibido",
+            "perOutgoingPackage": "Por paquete consolidado"
+        },
+        "consolidationMode": {
+            "title": "Modo de consolidación",
+            "description": "¿Cómo se manejan los paquetes entre la recepción y el reenvío?",
+            "asIs": "Enviar tal cual",
+            "asIsHelp": "Cada paquete del vendedor se reenvía por separado. Sin consolidación.",
+            "asIsNotice": "No se cobran tarifas de reempaquetado cuando se envía tal cual.",
+            "consolidate": "Consolidación óptima",
+            "consolidateHelp": "Los paquetes se reagrupan de manera óptima según los formatos del método de reenvío.",
+            "consolidateWarning": "La consolidación óptima funciona mejor con métodos de reenvío basados en dimensiones. Con el método actual, se comportará como 'Paquete único'.",
+            "single": "Paquete único",
+            "singleHelp": "Todos los artículos se consolidan en un solo paquete antes del reenvío."
+        }
+    },
+    "forwarderFees": {
+        "typeFree": "Sin cargos",
+        "typeFreeHelp": "Sin cargos aplicados",
+        "typeFixed": "Monto fijo",
+        "typeFixedHelp": "Cargo fijo independiente del pedido",
+        "typePercentage": "Porcentaje",
+        "typePercentageHelp": "Cargo como porcentaje del valor del pedido"
     },
     "scraping": {
         "title": "Agregar al producto",

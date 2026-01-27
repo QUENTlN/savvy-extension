@@ -9,7 +9,8 @@ import {
     renderDimensionInputs,
     renderCombinedInputs,
     renderVolumePackagesInputs,
-    renderRangeRow
+    renderRangeRow,
+    renderSimplePackingModeSelector
 } from './FeeCalculationView.js'
 import { getCurrencySymbol } from '../../utils/formatters.js'
 import { StorageService } from '../../utils/StorageService.js'
@@ -48,6 +49,12 @@ export function extractCalculationRule(prefix, container) {
     const type = typeRadio ? typeRadio.value : 'fixed'
 
     const rule = { type }
+
+    // Extract packingMode for all types (it may or may not be present depending on forwardersEnabled)
+    const packingModeRadio = container.querySelector(`input[name="${prefix}_packingMode"]:checked`)
+    if (packingModeRadio) {
+        rule.packingMode = packingModeRadio.value
+    }
 
     if (type === 'fixed') {
         const amountInput = container.querySelector(`input[name="${prefix}_amount"]`)
@@ -728,17 +735,22 @@ export async function handleCalculationTypeChange(e) {
     const session = Store.getCurrentSession()
     const canConvert = session?.manageVolume && session?.manageDimension
 
+    // Determine if we should show packingMode selector (for sellerShipping with forwarders enabled)
+    // Check if this is a seller shipping context by looking at the prefix
+    const isSellerShipping = prefix.includes('seller') || prefix.includes('global') || prefix.includes('group')
+    const showPackingMode = session?.forwardersEnabled && isSellerShipping
+
     let newHtml = ''
     if (newType === 'fixed') {
-        newHtml = renderFixedInputs(prefix, { type: 'fixed' }, currency)
+        newHtml = renderFixedInputs(prefix, { type: 'fixed' }, currency, showPackingMode)
     } else if (newType === 'percentage') {
-        newHtml = renderPercentageInputs(prefix, { type: 'percentage' })
+        newHtml = renderPercentageInputs(prefix, { type: 'percentage' }, showPackingMode)
     } else if (['quantity', 'distance', 'weight', 'volume'].includes(newType)) {
         const data = { type: newType, unit: getDefaultUnitForType(newType) }
-        newHtml = renderTieredInputs(prefix, data, newType, false, currency)
+        newHtml = renderTieredInputs(prefix, data, newType, false, currency, showPackingMode)
     } else if (newType === 'order_amount') {
         const data = { type: newType }
-        newHtml = renderOrderAmountInputs(prefix, data, false, currency)
+        newHtml = renderOrderAmountInputs(prefix, data, false, currency, showPackingMode)
     } else if (newType === 'dimension') {
         const data = { type: newType, unit: getDefaultUnitForType(newType) }
         newHtml = renderDimensionInputs(prefix, data, currency, canConvert)
@@ -749,9 +761,15 @@ export async function handleCalculationTypeChange(e) {
         const data = { type: newType, unit: getDefaultUnitForType('volume') }
         newHtml = renderVolumePackagesInputs(prefix, data, currency, canConvert)
     } else if (newType === 'cumul') {
-        newHtml = `<p class="text-sm secondary-text italic">${t('deliveryRules.typeCumul')}</p>`
+        newHtml = `<p class="text-sm secondary-text italic mb-3">${t('deliveryRules.typeCumul')}</p>`
+        if (showPackingMode) {
+            newHtml += renderSimplePackingModeSelector(prefix, 'single')
+        }
     } else if (newType === 'free') {
-        newHtml = `<p class="text-sm font-medium card-text italic">${t('deliveryRules.freeDelivery')}</p>`
+        newHtml = `<p class="text-sm font-medium card-text italic mb-3">${t('deliveryRules.freeDelivery')}</p>`
+        if (showPackingMode) {
+            newHtml += renderSimplePackingModeSelector(prefix, 'single')
+        }
     }
 
     inputsContainer.innerHTML = newHtml
@@ -767,20 +785,25 @@ export function handleTieredToggle(e) {
 
     const data = extractCalculationRule(prefix, container)
     const type = data.type
-    
+
     // Dimension type doesn't support toggle anymore - always uses ranges
     if (type === 'dimension') {
         return
     }
-    
+
     data.isTiered = element.classList.contains('is-tiered-toggle') ? (element.value === 'tiered') : element.checked
 
     const inputsContainer = container.querySelector('.calculation-inputs')
 
+    // Determine if we should show packingMode selector
+    const session = Store.getCurrentSession()
+    const isSellerShipping = prefix.includes('seller') || prefix.includes('global') || prefix.includes('group')
+    const showPackingMode = session?.forwardersEnabled && isSellerShipping
+
     if (['weight_volume', 'weight_dimension'].includes(type)) {
         inputsContainer.innerHTML = renderCombinedInputs(prefix, data, type, currency)
     } else {
-        inputsContainer.innerHTML = renderTieredInputs(prefix, data, type, false, currency)
+        inputsContainer.innerHTML = renderTieredInputs(prefix, data, type, false, currency, showPackingMode)
     }
 }
 
@@ -793,8 +816,13 @@ export function handleUnitChange(e, container) {
 
     const inputsContainer = container.querySelector('.calculation-inputs')
 
+    // Determine if we should show packingMode selector
+    const session = Store.getCurrentSession()
+    const isSellerShipping = prefix.includes('seller') || prefix.includes('global') || prefix.includes('group')
+    const showPackingMode = session?.forwardersEnabled && isSellerShipping
+
     if (!data.isTiered && ['distance', 'weight', 'volume'].includes(type)) {
-        inputsContainer.innerHTML = renderTieredInputs(prefix, data, type, false, currency)
+        inputsContainer.innerHTML = renderTieredInputs(prefix, data, type, false, currency, showPackingMode)
     } else if (data.isTiered) {
         updateValueLabels(container, prefix, type, data, currency)
     }
