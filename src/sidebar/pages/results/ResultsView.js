@@ -588,7 +588,8 @@ function renderOfferRow(offer, session, currency, columns) {
   }
 
   const rowTotal = productPrice + shippingCost + insurance + customs + forwarder
-  const offerUrl = originalOffer?.url
+  // Use affiliated_url from API if available, fallback to url from API, then original offer
+  const offerUrl = offer.affiliated_url || offer.url || originalOffer?.url
 
   const customsTooltip = getCustomsBreakdownTooltip(offer.costs?.customs, currency)
   const forwarderTooltip = getForwarderBreakdownTooltip(offer.costs?.forwarder, currency)
@@ -648,9 +649,12 @@ function renderBundleRow(bundle, session, currency, columns) {
   const customsTooltip = getCustomsBreakdownTooltip(bundle.costs?.customs, currency)
   const forwarderTooltip = getForwarderBreakdownTooltip(bundle.costs?.forwarder, currency)
 
+  // Use affiliated_url from API if available, fallback to url from API, then original bundle
+  const bundleUrl = bundle.affiliated_url || bundle.url || originalBundle?.url
+
   return renderTableRow({
     name: `${originalBundle?.name || t("results.bundle")}: ${productNames}`,
-    url: originalBundle?.url,
+    url: bundleUrl,
     quantity: bundle.quantity,
     price: productPrice,
     shipping: shippingCost,
@@ -790,7 +794,8 @@ function renderOfferItem(offer, session, currency) {
   }
 
   const showQty = session.manageQuantity
-  const offerUrl = originalOffer?.url || ''
+  // Use affiliated_url from API if available, fallback to url from API, then original offer
+  const offerUrl = offer.affiliated_url || offer.url || originalOffer?.url || ''
 
   const details = []
   if (showQty) details.push(`${t("results.qty")}: ${offer.quantity}`)
@@ -829,7 +834,8 @@ function renderBundleItem(bundle, session, currency) {
   }
 
   const showQty = session.manageQuantity
-  const bundleUrl = bundleObj?.url || ''
+  // Use affiliated_url from API if available, fallback to url from API, then original bundle
+  const bundleUrl = bundle.affiliated_url || bundle.url || bundleObj?.url || ''
 
   // Get product names in bundle
   const productNames = productIds.map(pid => {
