@@ -383,7 +383,9 @@
         "success": "Optimización exitosa",
         "noProducts": "No hay productos en la sesión",
         "productWithoutOffer": "El producto \"{name}\" no tiene ofertas y no está en ningún paquete",
-        "missingDeliveryRule": "No hay regla de entrega para el vendedor \"{seller}\""
+        "missingDeliveryRule": "No hay regla de entrega para el vendedor \"{seller}\"",
+        "quotaRemaining": "{remaining}/{limit} optimizaciones restantes",
+        "quotaWarning": "Atención: {remaining}/{limit} optimizaciones restantes"
     },
     "results": {
         "title": "Resultados",

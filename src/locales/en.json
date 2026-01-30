@@ -383,7 +383,9 @@
         "success": "Optimization successful",
         "noProducts": "No products in session",
         "productWithoutOffer": "Product \"{name}\" has no offers and is not in any bundle",
-        "missingDeliveryRule": "No delivery rule for seller \"{seller}\""
+        "missingDeliveryRule": "No delivery rule for seller \"{seller}\"",
+        "quotaRemaining": "{remaining}/{limit} optimizations remaining",
+        "quotaWarning": "Warning: {remaining}/{limit} optimizations remaining"
     },
     "results": {
         "title": "Results",

@@ -1,6 +1,6 @@
 import { t } from '../../../shared/i18n.js'
 
-export function renderProductsView({ session, optimizationState = {} }) {
+export function renderProductsView({ session, optimizationState = {}, rateLimit = null }) {
   return `
     <div class="mx-4">
       <!-- Header -->
@@ -55,13 +55,20 @@ export function renderProductsView({ session, optimizationState = {} }) {
       </div>
       ` : ''}
 
-      ${renderOptimizeSection(optimizationState)}
+      ${renderOptimizeSection(optimizationState, rateLimit)}
     </div>
   `
 }
 
-function renderOptimizeSection(optimizationState) {
+function renderOptimizeSection(optimizationState, rateLimit) {
   const { hasResults, isModified, hasHistory } = optimizationState
+
+  // Render rate limit indicator if available
+  const rateLimitIndicator = rateLimit && rateLimit.remaining !== null
+    ? `<div class="text-center mt-2 text-sm muted-text">
+        ${t("optimization.quotaRemaining").replace("{remaining}", rateLimit.remaining).replace("{limit}", rateLimit.limit)}
+       </div>`
+    : ''
 
   if (hasResults && !isModified) {
     // Show "View Results" button
@@ -77,6 +84,7 @@ function renderOptimizeSection(optimizationState) {
         </button>
         ` : ''}
       </div>
+      ${rateLimitIndicator}
     `
   } else {
     // Show "Optimize" button (with optional history button)
@@ -92,6 +100,7 @@ function renderOptimizeSection(optimizationState) {
         </button>
         ` : ''}
       </div>
+      ${rateLimitIndicator}
     `
   }
 }

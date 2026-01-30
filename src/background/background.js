@@ -1,6 +1,30 @@
 import { browser } from '../shared/browser.js';
 import { knownParsers as defaultKnownParsers } from '../shared/config/knownParsers.js';
 
+// Client fingerprint for rate limiting (cached)
+let clientFingerprint = null;
+
+// Collects browser fingerprint data (sent in clear for server validation)
+function collectFingerprintData() {
+  return {
+    ua: navigator.userAgent,
+    lang: navigator.language,
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+    platform: navigator.platform,
+    cores: navigator.hardwareConcurrency || 0
+  };
+}
+
+function getClientFingerprint() {
+  if (!clientFingerprint) {
+    const data = collectFingerprintData();
+    // Encode as base64 for transmission
+    clientFingerprint = btoa(JSON.stringify(data));
+  }
+  return clientFingerprint;
+}
+
 let sessions = []
 let currentSession = null
 let parsers = defaultKnownParsers
@@ -379,11 +403,30 @@ async function optimizeSession(sessionData) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Client-Fingerprint": getClientFingerprint(),
       },
       body: JSON.stringify(sessionData),
     })
 
     const responseText = await response.text()
+
+    // Handle rate limiting
+    if (response.status === 429) {
+      try {
+        const errorData = JSON.parse(responseText)
+        return {
+          success: false,
+          error: errorData.detail || "Daily limit reached. Please try again tomorrow.",
+          rateLimited: true
+        }
+      } catch {
+        return {
+          success: false,
+          error: "Daily limit reached. Please try again tomorrow.",
+          rateLimited: true
+        }
+      }
+    }
 
     if (!response.ok) {
       // Parse error message from response
@@ -397,7 +440,15 @@ async function optimizeSession(sessionData) {
 
     const result = JSON.parse(responseText)
     const sessionSnapshot = computeSessionSnapshot(sessionData)
-    return { success: true, result, sessionSnapshot }
+
+    // Extract rate limit info from headers
+    const rateLimit = {
+      limit: parseInt(response.headers.get("X-RateLimit-Limit")) || null,
+      remaining: parseInt(response.headers.get("X-RateLimit-Remaining")) || null,
+      reset: parseInt(response.headers.get("X-RateLimit-Reset")) || null,
+    }
+
+    return { success: true, result, sessionSnapshot, rateLimit }
   } catch (error) {
     console.error("Optimization error:", error)
     return { success: false, error: error.message }

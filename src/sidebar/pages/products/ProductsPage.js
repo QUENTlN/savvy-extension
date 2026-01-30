@@ -20,7 +20,10 @@ export async function initProductsPage(app) {
   // Load optimization state for this session
   const optimizationState = await actions.loadOptimizationState(session)
 
-  app.innerHTML = renderProductsView({ session, optimizationState })
+  // Get rate limit from state
+  const rateLimit = Store.state.rateLimit
+
+  app.innerHTML = renderProductsView({ session, optimizationState, rateLimit })
   attachEventListeners(session, optimizationState)
 }
 
@@ -149,8 +152,8 @@ function attachEventListeners(session, optimizationState) {
           targetCurrency
         )
 
-        // Navigate to results view
-        Store.setState({
+        // Store rate limit info if available
+        const stateUpdate = {
           currentOptimizationResult: {
             id: Date.now().toString(),
             timestamp: new Date().toISOString(),
@@ -161,7 +164,25 @@ function attachEventListeners(session, optimizationState) {
           hasOptimizationHistory: false,
           viewingHistory: false,
           currentView: 'results'
-        })
+        }
+
+        if (result.rateLimit && result.rateLimit.remaining !== null) {
+          stateUpdate.rateLimit = result.rateLimit
+          // Show remaining quota toast
+          const remaining = result.rateLimit.remaining
+          const limit = result.rateLimit.limit
+          if (remaining <= 5) {
+            showToast(
+              t("optimization.quotaWarning")
+                .replace("{remaining}", remaining)
+                .replace("{limit}", limit),
+              { type: remaining === 0 ? 'warning' : 'info', duration: 5000 }
+            )
+          }
+        }
+
+        // Navigate to results view
+        Store.setState(stateUpdate)
       } else {
         showToast(`${t("optimization.failed")}: ${result.error}`, { type: 'error' })
       }

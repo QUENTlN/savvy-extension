@@ -15,6 +15,7 @@ export const Store = {
     currentOptimizationResult: null,
     viewingHistory: false,
     hasOptimizationHistory: false,
+    rateLimit: null, // { limit, remaining, reset }
   },
 
   // Subscribers for state changes
