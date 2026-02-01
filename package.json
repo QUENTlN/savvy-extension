@@ -1,6 +1,7 @@
 {
   "name": "buy-cheap",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "node build.js --browser=firefox",
@@ -9,7 +10,11 @@
     "build:chrome": "NODE_ENV=production node build.js --browser=chrome",
     "watch:firefox": "node build.js --watch --browser=firefox",
     "watch:chrome": "node build.js --watch --browser=chrome",
-    "clean": "rimraf build"
+    "clean": "rimraf build",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.{js,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{js,css,html}\""
   },
   "repository": {
     "type": "git",
@@ -29,6 +34,10 @@
     "postcss": "^8.5.3"
   },
   "devDependencies": {
-    "esbuild": "^0.27.2"
+    "esbuild": "^0.27.2",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2"
   }
 }
