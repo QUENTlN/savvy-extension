@@ -48,10 +48,6 @@ async function initializeDefaults(offer) {
     const el = document.getElementById("offer-dimension-unit")
     if (el) el.value = defaults.dimensionUnit
   }
-  if (!offer.distanceUnit) {
-    const el = document.getElementById("offer-distance-unit")
-    if (el) el.value = defaults.distanceUnit
-  }
 }
 
 async function saveOffer(modal, offer, session, product, isOriginallyBundle) {
@@ -191,11 +187,6 @@ function buildSaveData(formData, session) {
     if (formData.width) data.width = formData.width
     if (formData.height) data.height = formData.height
     data.dimensionUnit = formData.dimensionUnit
-  }
-
-  if (formData.distance) {
-    data.distance = formData.distance
-    data.distanceUnit = formData.distanceUnit
   }
 
   return data

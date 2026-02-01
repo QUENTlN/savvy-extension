@@ -49,7 +49,9 @@ export function renderGroupItem(session, seller, group, gIdx, safeSellerId, getS
                  ${renderCalculationRules(`group_${safeSellerId}_${gIdx}`, group.calculationMethod || { type: 'fixed' }, {
                     preset: 'sellerShipping',
                     session: session,
-                    currency: rule.currency || session.currency || DEFAULT_CURRENCY
+                    currency: rule.currency || session.currency || DEFAULT_CURRENCY,
+                    distanceValue: group.distance,
+                    distanceUnit: group.distanceUnit
                 })}
             </div>
         </div>
@@ -244,7 +246,9 @@ export function renderGlobalCalculationSection(rule, safeSellerId, session) {
                 preset: 'sellerShipping',
                 session: session,
                 showFreeOption: false,
-                currency: rule.currency || session.currency || DEFAULT_CURRENCY
+                currency: rule.currency || session.currency || DEFAULT_CURRENCY,
+                distanceValue: rule.distance,
+                distanceUnit: rule.distanceUnit
             })}
         </div>
     `

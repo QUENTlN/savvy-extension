@@ -89,23 +89,37 @@ export function getHelpTextForMode(type, tierValueMode) {
 /**
  * Render simple packing mode selector (2 options: single, perItem)
  * Used for non-bin-packing methods when forwarders are enabled
+ * @param {string} context - 'distance' for distance-specific labels, 'default' otherwise
  */
-export function renderSimplePackingModeSelector(prefix, packingMode = 'single') {
+export function renderSimplePackingModeSelector(prefix, packingMode = 'single', context = 'default') {
+    const perItemLabel = context === 'distance'
+        ? t('deliveryRules.distancePackingModePerItem')
+        : t('deliveryRules.packingModePerItem')
+    const singleLabel = context === 'distance'
+        ? t('deliveryRules.distancePackingModeSingle')
+        : t('deliveryRules.packingModeSingle')
+    const perItemHelp = context === 'distance'
+        ? t('deliveryRules.distancePackingModePerItemHelp')
+        : t('deliveryRules.packingModePerItemHelp')
+    const singleHelp = context === 'distance'
+        ? t('deliveryRules.distancePackingModeSingleHelp')
+        : t('deliveryRules.packingModeSingleHelp')
+
     return `
         <div class="mb-4">
             <label class="block text-xs font-semibold secondary-text mb-2 tracking-wide">${t('deliveryRules.packingMode')}</label>
             <div class="bg-[hsl(var(--muted))] p-1 rounded-lg inline-flex w-full">
                 <label class="flex-1 px-3 py-2 rounded-md text-xs cursor-pointer transition-all text-center ${packingMode === 'perItem' ? 'bg-[hsl(var(--card))] shadow-sm font-medium card-text' : 'secondary-text'}">
                     <input type="radio" name="${prefix}_packingMode" value="perItem" class="hidden" ${packingMode === 'perItem' ? 'checked' : ''}>
-                    ${t('deliveryRules.packingModePerItem')}
+                    ${perItemLabel}
                 </label>
                 <label class="flex-1 px-3 py-2 rounded-md text-xs cursor-pointer transition-all text-center ${packingMode === 'single' ? 'bg-[hsl(var(--card))] shadow-sm font-medium card-text' : 'secondary-text'}">
                     <input type="radio" name="${prefix}_packingMode" value="single" class="hidden" ${packingMode === 'single' ? 'checked' : ''}>
-                    ${t('deliveryRules.packingModeSingle')}
+                    ${singleLabel}
                 </label>
             </div>
             <p class="text-[10px] secondary-text italic mt-2 px-1">
-                ${packingMode === 'perItem' ? t('deliveryRules.packingModePerItemHelp') : t('deliveryRules.packingModeSingleHelp')}
+                ${packingMode === 'perItem' ? perItemHelp : singleHelp}
             </p>
         </div>
     `
@@ -241,7 +255,7 @@ export function renderRangeRow(type, prefix, idx, range = {}, tierValueType = 'f
     `
 }
 
-export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = false, currency = null, showPackingMode = false) {
+export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = false, currency = null, showPackingMode = false, distanceConfig = null) {
     const currencyCode = currency || DEFAULT_CURRENCY
     const isTiered = data.isTiered || false
     const units = getUnitOptions(type)
@@ -264,9 +278,22 @@ export function renderTieredInputs(prefix, data, type, hideAdvancedSettings = fa
         `
     }
 
-    // Show simple packing mode selector for non-bin-packing methods when forwarders enabled
-    if (showPackingMode) {
-        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single')
+    // For distance type, show the distance from warehouse input right after unit selector
+    if (type === 'distance') {
+        const distValue = distanceConfig?.value ?? ''
+        html += `
+            <div class="mb-4">
+                <label class="block text-xs font-semibold secondary-text mb-1 tracking-wide">${t('deliveryRules.distanceFromWarehouse')}</label>
+                <input type="number" step="0.1" min="0" name="${prefix}_distanceValue"
+                    class="w-full bg-[hsl(var(--card))] border border-default rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none transition-colors"
+                    value="${distValue}" placeholder="0">
+            </div>
+        `
+        // Always show packing mode for distance (single = one shipment, perItem = separate shipments)
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single', 'distance')
+    } else if (showPackingMode) {
+        // Show simple packing mode selector for other methods when forwarders enabled
+        html += renderSimplePackingModeSelector(prefix, data.packingMode || 'single', 'default')
     }
 
     html += `
@@ -830,6 +857,8 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
         session = null,
         showFreeOption = true,
         currency = null,
+        distanceValue = null,
+        distanceUnit = null,
     } = config
 
     if (!ruleData) ruleData = { type: 'fixed' }
@@ -921,13 +950,16 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
     const showPackingMode = effectiveSession?.forwardersEnabled && preset === 'sellerShipping'
 
     const freeLabel = labelContext === 'forwarder' ? t('forwarderFees.typeFree') : t('deliveryRules.freeDelivery')
+    // Build distanceConfig for the distance method (always create it)
+    const distanceConfig = { value: distanceValue ?? '', unit: distanceUnit ?? 'km' }
+
     const TYPE_RENDERERS = {
         cumul: (p, d) => `<p class="text-sm secondary-text italic mb-3">${t('deliveryRules.typeCumul')}</p>` + (showPackingMode ? renderSimplePackingModeSelector(p, d.packingMode || 'single') : ''),
         free: (p, d) => `<p class="text-sm font-medium card-text italic mb-3">${freeLabel}</p>` + (showPackingMode ? renderSimplePackingModeSelector(p, d.packingMode || 'single') : ''),
         fixed: (p, d) => renderFixedInputs(p, d, currencyCode, showPackingMode),
         percentage: (p, d) => renderPercentageInputs(p, d, showPackingMode),
         quantity: (p, d) => renderTieredInputs(p, d, 'quantity', hideAdvancedSettings, currencyCode, showPackingMode),
-        distance: (p, d) => renderTieredInputs(p, d, 'distance', hideAdvancedSettings, currencyCode, showPackingMode),
+        distance: (p, d) => renderTieredInputs(p, d, 'distance', hideAdvancedSettings, currencyCode, showPackingMode, distanceConfig),
         weight: (p, d) => renderTieredInputs(p, d, 'weight', hideAdvancedSettings, currencyCode, showPackingMode),
         volume: (p, d) => renderTieredInputs(p, d, 'volume', hideAdvancedSettings, currencyCode, showPackingMode),
         order_amount: (p, d) => renderOrderAmountInputs(p, d, hideAdvancedSettings, currencyCode, showPackingMode),

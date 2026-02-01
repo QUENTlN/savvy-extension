@@ -1,6 +1,6 @@
 import { t } from '../../../../shared/i18n.js'
 import { CURRENCIES } from '../../../../shared/config/currencies.js'
-import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS, DISTANCE_UNITS, DEFAULT_WEIGHT_UNIT, DEFAULT_VOLUME_UNIT, DEFAULT_DIMENSION_UNIT, DEFAULT_DISTANCE_UNIT } from '../../../../shared/config/units.js'
+import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS, DEFAULT_WEIGHT_UNIT, DEFAULT_VOLUME_UNIT, DEFAULT_DIMENSION_UNIT } from '../../../../shared/config/units.js'
 
 /**
  * Renders a unified offer form for both Pages and Bundles.
@@ -73,8 +73,6 @@ export function renderOfferFormView({ offer = null, session, product = null, scr
         ${session.manageVolume ? renderVolumeField(data, product, isBundle) : ''}
 
         ${session.manageDimension ? renderDimensionField(data, product, isBundle) : ''}
-
-        ${session.manageDistance ? renderDistanceField(data) : ''}
 
         <div class="flex justify-end space-x-4">
           <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
@@ -353,23 +351,3 @@ function renderDimensionField(data, product, isBundle) {
   `
 }
 
-function renderDistanceField(data) {
-  return `
-    <div class="mb-6">
-      <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.distance")}</label>
-      <div class="flex space-x-2">
-        <input
-          type="number"
-          id="offer-distance"
-          value="${data.distance || ''}"
-          step="0.01"
-          min="0"
-          class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-        <select id="offer-distance-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-          ${DISTANCE_UNITS.map(u => `<option value="${u.value}" ${(data.distanceUnit || DEFAULT_DISTANCE_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
-        </select>
-      </div>
-    </div>
-  `
-}

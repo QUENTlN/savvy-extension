@@ -345,6 +345,17 @@ export function saveSellerRules(seller, safeSellerId, session) {
 
         if (currentRule.billingMethod === 'global') {
             currentRule.calculationMethod = extractCalculationRule(`global_${safeSellerId}`, document)
+
+            // Extract distance from calculation method form (only shown when type='distance')
+            const globalDistanceInput = document.querySelector(`[name="global_${safeSellerId}_distanceValue"]`)
+            const globalDistanceUnitSelect = document.querySelector(`[name="global_${safeSellerId}_unit"]`)
+            if (globalDistanceInput && globalDistanceInput.value) {
+                const distance = parseFloat(globalDistanceInput.value)
+                if (!isNaN(distance) && distance >= 0) {
+                    currentRule.distance = distance
+                    currentRule.distanceUnit = globalDistanceUnitSelect?.value || 'km'
+                }
+            }
         } else if (currentRule.billingMethod === 'groups') {
             currentRule.groups = []
             document.querySelectorAll('.group-item').forEach((groupDiv, idx) => {
@@ -358,6 +369,17 @@ export function saveSellerRules(seller, safeSellerId, session) {
                     name,
                     productIds,
                     calculationMethod: calcMethod
+                }
+
+                // Extract distance from calculation method form (only shown when type='distance')
+                const groupDistanceInput = groupDiv.querySelector(`[name="group_${safeSellerId}_${idx}_distanceValue"]`)
+                const groupDistanceUnitSelect = groupDiv.querySelector(`[name="group_${safeSellerId}_${idx}_unit"]`)
+                if (groupDistanceInput && groupDistanceInput.value) {
+                    const distance = parseFloat(groupDistanceInput.value)
+                    if (!isNaN(distance) && distance >= 0) {
+                        group.distance = distance
+                        group.distanceUnit = groupDistanceUnitSelect?.value || 'km'
+                    }
                 }
 
                 // Only save threshold if checkbox is checked (checkbox state deduced from threshold existence)

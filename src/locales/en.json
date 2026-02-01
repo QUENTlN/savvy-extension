@@ -261,7 +261,12 @@
         "allowConversion": "Allow automatic conversion",
         "allowConversionEnabled": "Automatic conversion enabled",
         "allowConversionDimensionHelp": "If a product has only volume, compare with package capacity (L×W×H).",
-        "allowConversionVolumeHelp": "If a product has only dimensions, calculate its volume (L×W×H/1000 liters)."
+        "allowConversionVolumeHelp": "If a product has only dimensions, calculate its volume (L×W×H/1000 liters).",
+        "distanceFromWarehouse": "Distance from warehouse",
+        "distancePackingModePerItem": "Separate shipments",
+        "distancePackingModeSingle": "Single shipment",
+        "distancePackingModePerItemHelp": "Each item is shipped separately (distance × quantity)",
+        "distancePackingModeSingleHelp": "All items are shipped together (distance counted once)"
     },
     "importFees": {
         "subtitle": "Configure VAT and customs duty rates for imported products."

@@ -261,7 +261,12 @@
         "allowConversion": "Permitir conversión automática",
         "allowConversionEnabled": "Conversión automática activada",
         "allowConversionDimensionHelp": "Si un producto solo tiene volumen, comparar con la capacidad del paquete (L×A×H).",
-        "allowConversionVolumeHelp": "Si un producto solo tiene dimensiones, calcular su volumen (L×A×H/1000 litros)."
+        "allowConversionVolumeHelp": "Si un producto solo tiene dimensiones, calcular su volumen (L×A×H/1000 litros).",
+        "distanceFromWarehouse": "Distancia desde el almacén",
+        "distancePackingModePerItem": "Envíos separados",
+        "distancePackingModeSingle": "Envío único",
+        "distancePackingModePerItemHelp": "Cada artículo se envía por separado (distancia × cantidad)",
+        "distancePackingModeSingleHelp": "Todos los artículos se envían juntos (distancia contada una vez)"
     },
     "importFees": {
         "subtitle": "Gestione las tasas de importación para productos internacionales"

@@ -110,16 +110,6 @@ export function collectOfferFormData(session) {
     }
   }
 
-  // Distance
-  if (session.manageDistance) {
-    const distance = parseFloat(document.getElementById("offer-distance")?.value)
-    const distanceUnit = document.getElementById("offer-distance-unit")?.value
-    if (!isNaN(distance) && distance > 0) {
-      data.distance = distance
-      data.distanceUnit = distanceUnit
-    }
-  }
-
   return data
 }
 
