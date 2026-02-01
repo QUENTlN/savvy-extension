@@ -1,6 +1,6 @@
-import { t } from '../../../shared/i18n.js'
-import { getUniqueSellers, getRule } from '../../utils/sellers.js'
-import { renderSellerRecapCard } from './components/SellerRecapCard.js'
+import { t } from "../../../shared/i18n.js";
+import { getUniqueSellers, getRule } from "../../utils/sellers.js";
+import { renderSellerRecapCard } from "./components/SellerRecapCard.js";
 
 export function renderDeliveryRulesView({ session }) {
   return `
@@ -19,11 +19,13 @@ export function renderDeliveryRulesView({ session }) {
 
       <div class="space-y-4 seller-settings">
         <h3 class="text-lg font-semibold card-text mb-2 px-1">${t("deliveryRules.sellerRules")}</h3>
-        ${getUniqueSellers(session).map(seller => {
-          const rule = getRule(session, seller)
-          return renderSellerRecapCard(session, seller, rule)
-        }).join('')}
+        ${getUniqueSellers(session)
+          .map((seller) => {
+            const rule = getRule(session, seller);
+            return renderSellerRecapCard(session, seller, rule);
+          })
+          .join("")}
       </div>
     </div>
-  `
+  `;
 }

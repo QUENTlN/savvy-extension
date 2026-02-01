@@ -1,6 +1,13 @@
-import { t } from '../../../../shared/i18n.js'
-import { CURRENCIES } from '../../../../shared/config/currencies.js'
-import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS, DEFAULT_WEIGHT_UNIT, DEFAULT_VOLUME_UNIT, DEFAULT_DIMENSION_UNIT } from '../../../../shared/config/units.js'
+import { t } from "../../../../shared/i18n.js";
+import { CURRENCIES } from "../../../../shared/config/currencies.js";
+import {
+  WEIGHT_UNITS,
+  VOLUME_UNITS,
+  DIMENSION_UNITS,
+  DEFAULT_WEIGHT_UNIT,
+  DEFAULT_VOLUME_UNIT,
+  DEFAULT_DIMENSION_UNIT,
+} from "../../../../shared/config/units.js";
 
 /**
  * Renders a unified offer form for both Pages and Bundles.
@@ -13,43 +20,44 @@ import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS, DEFAULT_WEIGHT_UNIT, DEFAU
  * @returns {string} HTML content
  */
 export function renderOfferFormView({ offer = null, session, product = null, scrapedData = null }) {
-  const isEdit = !!offer
-  const isBundle = isEdit && offer.products && offer.products.length > 0
-  const hasKnownParser = scrapedData?.hasKnownParser
+  const isEdit = !!offer;
+  const isBundle = isEdit && offer.products && offer.products.length > 0;
+  const hasKnownParser = scrapedData?.hasKnownParser;
 
   // Determine title
-  let title
+  let title;
   if (isEdit) {
-    title = isBundle ? t("bundles.editBundle") : t("offers.editPage")
+    title = isBundle ? t("bundles.editBundle") : t("offers.editPage");
   } else {
-    title = t("modals.addOfferFor") + " " + (product?.name || "")
+    title = t("modals.addOfferFor") + " " + (product?.name || "");
   }
 
   // Source data for form values
-  const data = offer || scrapedData || {}
+  const data = offer || scrapedData || {};
 
   // For new offers with scraped data, only use values if parser is known
   const getValue = (field) => {
-    if (isEdit) return data[field] || ""
-    if (scrapedData && hasKnownParser) return scrapedData[field] || ""
-    return ""
-  }
+    if (isEdit) return data[field] || "";
+    if (scrapedData && hasKnownParser) return scrapedData[field] || "";
+    return "";
+  };
 
   // Currency handling
   const getCurrency = () => {
-    if (isEdit) return offer.currency || ""
-    if (scrapedData) return scrapedData.currency || ""
-    return ""
-  }
+    if (isEdit) return offer.currency || "";
+    if (scrapedData) return scrapedData.currency || "";
+    return "";
+  };
 
   return `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-medium card-text mb-4">${title}</h3>
 
-        ${!isEdit && !hasKnownParser ?
-          `<p class="text-sm muted-text mb-4">${t("modals.noKnownParser")}</p>`
-          : ''
+        ${
+          !isEdit && !hasKnownParser
+            ? `<p class="text-sm muted-text mb-4">${t("modals.noKnownParser")}</p>`
+            : ""
         }
 
         ${renderBundleToggle(isEdit, isBundle)}
@@ -64,15 +72,15 @@ export function renderOfferFormView({ offer = null, session, product = null, scr
 
         ${renderSellerField(getValue("seller"))}
 
-        ${session.importFeesEnabled ? renderCustomsCategoryField(session, data.customsCategoryId) : ''}
+        ${session.importFeesEnabled ? renderCustomsCategoryField(session, data.customsCategoryId) : ""}
 
-        ${session.manageQuantity !== false ? renderQuantityFields(data) : ''}
+        ${session.manageQuantity !== false ? renderQuantityFields(data) : ""}
 
-        ${session.manageWeight ? renderWeightField(data, product, isBundle) : ''}
+        ${session.manageWeight ? renderWeightField(data, product, isBundle) : ""}
 
-        ${session.manageVolume ? renderVolumeField(data, product, isBundle) : ''}
+        ${session.manageVolume ? renderVolumeField(data, product, isBundle) : ""}
 
-        ${session.manageDimension ? renderDimensionField(data, product, isBundle) : ''}
+        ${session.manageDimension ? renderDimensionField(data, product, isBundle) : ""}
 
         <div class="flex justify-end space-x-4">
           <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
@@ -82,12 +90,12 @@ export function renderOfferFormView({ offer = null, session, product = null, scr
         </div>
       </div>
     </div>
-  `
+  `;
 }
 
 function renderBundleToggle(isEdit, isBundle) {
   // For editing bundles, always show product selection (no toggle needed)
-  if (isEdit && isBundle) return ''
+  if (isEdit && isBundle) return "";
 
   return `
     <div class="mb-6">
@@ -100,36 +108,37 @@ function renderBundleToggle(isEdit, isBundle) {
       </div>
       <p class="mt-1 text-sm muted-text">${t("modals.bundleExplanation")}</p>
     </div>
-  `
+  `;
 }
 
 function renderProductSelection(session, product, offer, isEdit, isBundle) {
   // Determine which products are checked and their quantities
-  const checkedProducts = new Map()
+  const checkedProducts = new Map();
 
   if (isBundle && offer?.products) {
     // Editing a bundle: use bundle's product list
-    offer.products.forEach(bp => {
-      checkedProducts.set(bp.productId, bp.quantity || 1)
-    })
+    offer.products.forEach((bp) => {
+      checkedProducts.set(bp.productId, bp.quantity || 1);
+    });
   } else if (product) {
     // New offer or editing page: current product is pre-checked
-    checkedProducts.set(product.id, 1)
+    checkedProducts.set(product.id, 1);
   }
 
   // Display style: visible for bundles, hidden otherwise (toggle controls)
-  const displayStyle = isBundle ? 'block' : 'none'
+  const displayStyle = isBundle ? "block" : "none";
 
   return `
     <div id="product-selection" class="mb-6" style="display: ${displayStyle};">
       <label class="block text-sm font-medium secondary-text mb-2">${t("modals.selectProductsInBundle")}</label>
       <div class="space-y-2">
-        ${session.products.map(p => {
-          const isChecked = checkedProducts.has(p.id)
-          const quantity = checkedProducts.get(p.id) || 1
-          const isCurrentProduct = product && p.id === product.id && !isEdit
+        ${session.products
+          .map((p) => {
+            const isChecked = checkedProducts.has(p.id);
+            const quantity = checkedProducts.get(p.id) || 1;
+            const isCurrentProduct = product && p.id === product.id && !isEdit;
 
-          return `
+            return `
             <div class="flex items-center space-x-2">
               <input type="checkbox"
                 id="product-${p.id}"
@@ -139,22 +148,27 @@ function renderProductSelection(session, product, offer, isEdit, isBundle) {
                 class="bundle-product-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary"
               >
               <label for="product-${p.id}" class="flex-1 text-sm secondary-text">${p.name}</label>
-              ${session.manageQuantity !== false ? `
+              ${
+                session.manageQuantity !== false
+                  ? `
               <input type="number"
                 id="product-qty-${p.id}"
                 min="1"
                 step="1"
                 value="${quantity}"
-                class="bundle-product-qty w-20 px-2 py-1 border border-default input-bg card-text rounded text-sm ${isChecked ? '' : 'hidden'}"
+                class="bundle-product-qty w-20 px-2 py-1 border border-default input-bg card-text rounded text-sm ${isChecked ? "" : "hidden"}"
                 placeholder="${t("modals.qtyPlaceholder")}"
               >
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
-          `
-        }).join('')}
+          `;
+          })
+          .join("")}
       </div>
     </div>
-  `
+  `;
 }
 
 function renderUrlField(url) {
@@ -169,7 +183,7 @@ function renderUrlField(url) {
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
     </div>
-  `
+  `;
 }
 
 function renderPriceFields(getValue) {
@@ -206,7 +220,7 @@ function renderPriceFields(getValue) {
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
     </div>
-  `
+  `;
 }
 
 function renderCurrencyField(currency) {
@@ -217,10 +231,10 @@ function renderCurrencyField(currency) {
         id="offer-currency"
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
-        ${CURRENCIES.map(c => `<option value="${c.code}" ${currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join('')}
+        ${CURRENCIES.map((c) => `<option value="${c.code}" ${currency === c.code ? "selected" : ""}>${c.label} - ${c.symbol}</option>`).join("")}
       </select>
     </div>
-  `
+  `;
 }
 
 function renderSellerField(seller) {
@@ -235,7 +249,7 @@ function renderSellerField(seller) {
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
     </div>
-  `
+  `;
 }
 
 function renderCustomsCategoryField(session, customsCategoryId) {
@@ -250,10 +264,10 @@ function renderCustomsCategoryField(session, customsCategoryId) {
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <option value="">${t("modals.noCustomsDuties")}</option>
-        ${(session.customsCategories || []).map(cat => `<option value="${cat.id}" ${customsCategoryId === cat.id ? 'selected' : ''}>${cat.name}</option>`).join('')}
+        ${(session.customsCategories || []).map((cat) => `<option value="${cat.id}" ${customsCategoryId === cat.id ? "selected" : ""}>${cat.name}</option>`).join("")}
       </select>
     </div>
-  `
+  `;
 }
 
 function renderQuantityFields(data) {
@@ -284,13 +298,12 @@ function renderQuantityFields(data) {
       >
       <p class="mt-1 text-sm muted-text">${t("modals.maxPerPurchaseHelp")}</p>
     </div>
-  `
+  `;
 }
 
 function renderWeightField(data, product, isBundle) {
-  const placeholder = !isBundle && product?.weight
-    ? product.weight + ' ' + (product.weightUnit || '')
-    : ''
+  const placeholder =
+    !isBundle && product?.weight ? product.weight + " " + (product.weightUnit || "") : "";
 
   return `
     <div class="mb-6">
@@ -299,55 +312,53 @@ function renderWeightField(data, product, isBundle) {
         <input
           type="number"
           id="offer-weight"
-          value="${data.weight || ''}"
+          value="${data.weight || ""}"
           placeholder="${placeholder}"
           step="0.01"
           min="0"
           class="flex-1 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
         <select id="offer-weight-unit" class="px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-          ${WEIGHT_UNITS.map(u => `<option value="${u.value}" ${(data.weightUnit || product?.weightUnit || DEFAULT_WEIGHT_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          ${WEIGHT_UNITS.map((u) => `<option value="${u.value}" ${(data.weightUnit || product?.weightUnit || DEFAULT_WEIGHT_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join("")}
         </select>
       </div>
     </div>
-  `
+  `;
 }
 
 function renderVolumeField(data, product, isBundle) {
-  const placeholder = !isBundle && product?.volume
-    ? product.volume + ' ' + (product.volumeUnit || '')
-    : ''
+  const placeholder =
+    !isBundle && product?.volume ? product.volume + " " + (product.volumeUnit || "") : "";
 
   return `
     <div class="mb-6">
       <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
       <div id="offer-volume-input" class="flex space-x-2">
-        <input type="number" id="offer-volume-single" value="${data.volume || ''}" placeholder="${placeholder}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        <input type="number" id="offer-volume-single" value="${data.volume || ""}" placeholder="${placeholder}" step="0.01" min="0" class="flex-1 min-w-0 px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
         <select id="offer-volume-unit" class="max-w-[50%] px-2 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary truncate">
-          ${VOLUME_UNITS.map(u => `<option value="${u.value}" ${(data.volumeUnit || product?.volumeUnit || DEFAULT_VOLUME_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+          ${VOLUME_UNITS.map((u) => `<option value="${u.value}" ${(data.volumeUnit || product?.volumeUnit || DEFAULT_VOLUME_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join("")}
         </select>
       </div>
     </div>
-  `
+  `;
 }
 
 function renderDimensionField(data, product, isBundle) {
-  const lengthPlaceholder = !isBundle && product?.length ? product.length : ''
-  const widthPlaceholder = !isBundle && product?.width ? product.width : ''
-  const heightPlaceholder = !isBundle && product?.height ? product.height : ''
+  const lengthPlaceholder = !isBundle && product?.length ? product.length : "";
+  const widthPlaceholder = !isBundle && product?.width ? product.width : "";
+  const heightPlaceholder = !isBundle && product?.height ? product.height : "";
 
   return `
     <div class="mb-6">
       <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
       <select id="offer-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-        ${DIMENSION_UNITS.map(u => `<option value="${u.value}" ${(data.dimensionUnit || product?.dimensionUnit || DEFAULT_DIMENSION_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join('')}
+        ${DIMENSION_UNITS.map((u) => `<option value="${u.value}" ${(data.dimensionUnit || product?.dimensionUnit || DEFAULT_DIMENSION_UNIT) === u.value ? "selected" : ""}>${t("attributes.units." + u.value)} (${u.label})</option>`).join("")}
       </select>
       <div class="grid grid-cols-3 gap-2">
-        <input type="number" id="offer-dim-length" value="${data.length || ''}" placeholder="${lengthPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-        <input type="number" id="offer-dim-width" value="${data.width || ''}" placeholder="${widthPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-        <input type="number" id="offer-dim-height" value="${data.height || ''}" placeholder="${heightPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        <input type="number" id="offer-dim-length" value="${data.length || ""}" placeholder="${lengthPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        <input type="number" id="offer-dim-width" value="${data.width || ""}" placeholder="${widthPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        <input type="number" id="offer-dim-height" value="${data.height || ""}" placeholder="${heightPlaceholder}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
       </div>
     </div>
-  `
+  `;
 }
-

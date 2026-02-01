@@ -1,8 +1,8 @@
-import { t } from '../../../shared/i18n.js'
-import { renderForwarderCard } from './components/ForwarderCard.js'
+import { t } from "../../../shared/i18n.js";
+import { renderForwarderCard } from "./components/ForwarderCard.js";
 
 export function renderForwardersView({ session }) {
-  const forwarders = session.forwarders || []
+  const forwarders = session.forwarders || [];
 
   return `
     <div class="mx-4">
@@ -27,15 +27,19 @@ export function renderForwardersView({ session }) {
       </div>
 
       <!-- Forwarders List -->
-      ${forwarders.length === 0 ? `
+      ${
+        forwarders.length === 0
+          ? `
         <div class="text-center py-12">
           <p class="text-lg secondary-text italic">${t("forwarders.noForwarders")}</p>
         </div>
-      ` : `
+      `
+          : `
         <div class="space-y-4">
-          ${forwarders.map(forwarder => renderForwarderCard(forwarder)).join('')}
+          ${forwarders.map((forwarder) => renderForwarderCard(forwarder)).join("")}
         </div>
-      `}
+      `
+      }
     </div>
-  `
+  `;
 }

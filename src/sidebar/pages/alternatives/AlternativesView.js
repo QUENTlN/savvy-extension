@@ -1,7 +1,7 @@
-import { t } from '../../../shared/i18n.js'
+import { t } from "../../../shared/i18n.js";
 
 export function renderAlternativesView({ session }) {
-  const groups = session.alternativeGroups || []
+  const groups = session.alternativeGroups || [];
 
   return `
     <div class="mx-4">
@@ -16,7 +16,7 @@ export function renderAlternativesView({ session }) {
       </div>
 
       <div class="space-y-4">
-        ${groups.length > 0 ? groups.map(group => renderGroupCard(session, group)).join('') : `<div class="text-center muted-text py-8">${t("alternatives.noGroups")}</div>`}
+        ${groups.length > 0 ? groups.map((group) => renderGroupCard(session, group)).join("") : `<div class="text-center muted-text py-8">${t("alternatives.noGroups")}</div>`}
       </div>
 
       <button id="new-group-button" class="w-full mt-6 flex items-center justify-center space-x-2 cursor-pointer primary-bg primary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm">
@@ -24,7 +24,7 @@ export function renderAlternativesView({ session }) {
         <span class="text-lg font-medium">${t("alternatives.newGroup")}</span>
       </button>
     </div>
-  `
+  `;
 }
 
 function renderGroupCard(session, group) {
@@ -34,16 +34,28 @@ function renderGroupCard(session, group) {
         <div class="flex-1 min-w-0 mr-4">
           <h2 class="text-xl font-medium card-text truncate">${group.name}</h2>
           <div class="mt-2 space-y-1">
-            ${group.options.map((opt, idx) => `
+            ${group.options
+              .map(
+                (opt, idx) => `
               <div class="text-sm muted-text">
                 <span class="font-medium">${t("alternatives.option")} ${idx + 1}:</span>
-                ${opt.products ? opt.products.map(p => {
-                  const prod = session.products.find(product => product.id === p.productId)
-                  const qty = p.quantity > 1 ? ` (×${p.quantity})` : ''
-                  return prod ? `${prod.name}${qty}` : t("offers.noProducts")
-                }).join(' + ') : t("offers.noProducts")}
+                ${
+                  opt.products
+                    ? opt.products
+                        .map((p) => {
+                          const prod = session.products.find(
+                            (product) => product.id === p.productId
+                          );
+                          const qty = p.quantity > 1 ? ` (×${p.quantity})` : "";
+                          return prod ? `${prod.name}${qty}` : t("offers.noProducts");
+                        })
+                        .join(" + ")
+                    : t("offers.noProducts")
+                }
               </div>
-            `).join('')}
+            `
+              )
+              .join("")}
           </div>
         </div>
         <div class="flex space-x-2 flex-shrink-0">
@@ -56,5 +68,5 @@ function renderGroupCard(session, group) {
         </div>
       </div>
     </div>
-  `
+  `;
 }

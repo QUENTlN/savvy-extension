@@ -1,4 +1,4 @@
-import { t } from '../../../shared/i18n.js'
+import { t } from "../../../shared/i18n.js";
 
 export function renderSessionsView({ sessions }) {
   return `
@@ -18,7 +18,7 @@ export function renderSessionsView({ sessions }) {
 
       <!-- Session Cards -->
       <div class="space-y-4">
-        ${sessions.map(session => renderSessionCard(session)).join('')}
+        ${sessions.map((session) => renderSessionCard(session)).join("")}
       </div>
 
       <!-- New Session Button -->
@@ -27,7 +27,7 @@ export function renderSessionsView({ sessions }) {
         <span class="text-lg font-medium">${t("sessions.createNew")}</span>
       </button>
     </div>
-  `
+  `;
 }
 
 function renderSessionCard(session) {
@@ -51,5 +51,5 @@ function renderSessionCard(session) {
         </div>
       </div>
     </div>
-  `
+  `;
 }

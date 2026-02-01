@@ -1,4 +1,4 @@
-import { deepCloneSession } from './sessionHelpers.js'
+import { deepCloneSession } from "./sessionHelpers.js";
 
 /**
  * Converts a single monetary value
@@ -7,9 +7,9 @@ import { deepCloneSession } from './sessionHelpers.js'
  * @returns {number} Converted amount (in target currency)
  */
 function convertAmount(amount, rate) {
-  if (amount === null || amount === undefined || amount === '') return amount
+  if (amount === null || amount === undefined || amount === "") return amount;
   // Rate format: "1 EUR = X USD", so to convert USD to EUR: amount / rate
-  return parseFloat((parseFloat(amount) / rate).toFixed(2))
+  return parseFloat((parseFloat(amount) / rate).toFixed(2));
 }
 
 /**
@@ -19,26 +19,26 @@ function convertAmount(amount, rate) {
  * @returns {Object} Converted calculation method
  */
 function convertCalculationMethod(calculationMethod, rate) {
-  if (!calculationMethod) return calculationMethod
+  if (!calculationMethod) return calculationMethod;
 
-  const converted = { ...calculationMethod }
+  const converted = { ...calculationMethod };
 
   // Fixed amount
   if (converted.amount !== undefined) {
-    converted.amount = convertAmount(converted.amount, rate)
+    converted.amount = convertAmount(converted.amount, rate);
   }
 
   // Tiered ranges
   if (converted.ranges && Array.isArray(converted.ranges)) {
-    converted.ranges = converted.ranges.map(range => ({
+    converted.ranges = converted.ranges.map((range) => ({
       ...range,
       min: convertAmount(range.min, rate),
       max: range.max ? convertAmount(range.max, rate) : null,
-      value: convertAmount(range.value, rate)
-    }))
+      value: convertAmount(range.value, rate),
+    }));
   }
 
-  return converted
+  return converted;
 }
 
 /**
@@ -50,21 +50,21 @@ function convertCalculationMethod(calculationMethod, rate) {
  */
 function convertItem(item, rates, targetCurrency) {
   if (!item.currency || item.currency === targetCurrency) {
-    return item // Already in target currency
+    return item; // Already in target currency
   }
 
-  const rate = rates[item.currency]
+  const rate = rates[item.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${item.currency}`)
+    throw new Error(`No conversion rate provided for ${item.currency}`);
   }
 
-  const converted = { ...item }
-  converted.price = convertAmount(item.price, rate)
-  converted.shippingPrice = convertAmount(item.shippingPrice, rate)
-  converted.insurancePrice = convertAmount(item.insurancePrice, rate)
-  converted.currency = targetCurrency
+  const converted = { ...item };
+  converted.price = convertAmount(item.price, rate);
+  converted.shippingPrice = convertAmount(item.shippingPrice, rate);
+  converted.insurancePrice = convertAmount(item.insurancePrice, rate);
+  converted.currency = targetCurrency;
 
-  return converted
+  return converted;
 }
 
 /**
@@ -76,36 +76,36 @@ function convertItem(item, rates, targetCurrency) {
  */
 function convertDeliveryRule(rule, rates, targetCurrency) {
   if (!rule.currency || rule.currency === targetCurrency) {
-    return rule
+    return rule;
   }
 
-  const rate = rates[rule.currency]
+  const rate = rates[rule.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${rule.currency}`)
+    throw new Error(`No conversion rate provided for ${rule.currency}`);
   }
 
-  const converted = { ...rule }
+  const converted = { ...rule };
 
   // Global thresholds and fees
-  converted.globalFreeShippingThreshold = convertAmount(rule.globalFreeShippingThreshold, rate)
-  converted.customsClearanceFee = convertAmount(rule.customsClearanceFee, rate)
+  converted.globalFreeShippingThreshold = convertAmount(rule.globalFreeShippingThreshold, rate);
+  converted.customsClearanceFee = convertAmount(rule.customsClearanceFee, rate);
 
   // Calculation method
   if (rule.calculationMethod) {
-    converted.calculationMethod = convertCalculationMethod(rule.calculationMethod, rate)
+    converted.calculationMethod = convertCalculationMethod(rule.calculationMethod, rate);
   }
 
   // Groups
   if (rule.groups && Array.isArray(rule.groups)) {
-    converted.groups = rule.groups.map(group => ({
+    converted.groups = rule.groups.map((group) => ({
       ...group,
       freeShippingThreshold: convertAmount(group.freeShippingThreshold, rate),
-      calculationMethod: convertCalculationMethod(group.calculationMethod, rate)
-    }))
+      calculationMethod: convertCalculationMethod(group.calculationMethod, rate),
+    }));
   }
 
-  converted.currency = targetCurrency
-  return converted
+  converted.currency = targetCurrency;
+  return converted;
 }
 
 /**
@@ -117,15 +117,15 @@ function convertDeliveryRule(rule, rates, targetCurrency) {
  */
 function convertForwarder(forwarder, rates, targetCurrency) {
   if (!forwarder.currency || forwarder.currency === targetCurrency) {
-    return forwarder
+    return forwarder;
   }
 
-  const rate = rates[forwarder.currency]
+  const rate = rates[forwarder.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${forwarder.currency}`)
+    throw new Error(`No conversion rate provided for ${forwarder.currency}`);
   }
 
-  const converted = { ...forwarder }
+  const converted = { ...forwarder };
 
   if (forwarder.fees) {
     converted.fees = {
@@ -133,31 +133,31 @@ function convertForwarder(forwarder, rates, targetCurrency) {
         calculationMethod: convertCalculationMethod(
           forwarder.fees.reception?.calculationMethod,
           rate
-        )
+        ),
       },
       storage: {
         calculationMethod: convertCalculationMethod(
           forwarder.fees.storage?.calculationMethod,
           rate
-        )
+        ),
       },
       repackaging: {
         calculationMethod: convertCalculationMethod(
           forwarder.fees.repackaging?.calculationMethod,
           rate
-        )
+        ),
       },
       reShipping: {
         calculationMethod: convertCalculationMethod(
           forwarder.fees.reShipping?.calculationMethod,
           rate
-        )
-      }
-    }
+        ),
+      },
+    };
   }
 
-  converted.currency = targetCurrency
-  return converted
+  converted.currency = targetCurrency;
+  return converted;
 }
 
 /**
@@ -169,37 +169,35 @@ function convertForwarder(forwarder, rates, targetCurrency) {
  * @returns {Object} Deep-cloned session with all values converted
  */
 export function convertSessionCurrency(session, rates, targetCurrency) {
-  const convertedSession = deepCloneSession(session)
+  const convertedSession = deepCloneSession(session);
 
   // Convert offers
-  convertedSession.products?.forEach(product => {
+  convertedSession.products?.forEach((product) => {
     if (product.offers) {
-      product.offers = product.offers.map(offer =>
-        convertItem(offer, rates, targetCurrency)
-      )
+      product.offers = product.offers.map((offer) => convertItem(offer, rates, targetCurrency));
     }
-  })
+  });
 
   // Convert bundles
   if (convertedSession.bundles) {
-    convertedSession.bundles = convertedSession.bundles.map(bundle =>
+    convertedSession.bundles = convertedSession.bundles.map((bundle) =>
       convertItem(bundle, rates, targetCurrency)
-    )
+    );
   }
 
   // Convert delivery rules
   if (convertedSession.deliveryRules) {
-    convertedSession.deliveryRules = convertedSession.deliveryRules.map(rule =>
+    convertedSession.deliveryRules = convertedSession.deliveryRules.map((rule) =>
       convertDeliveryRule(rule, rates, targetCurrency)
-    )
+    );
   }
 
   // Convert forwarders
   if (convertedSession.forwarders) {
-    convertedSession.forwarders = convertedSession.forwarders.map(forwarder =>
+    convertedSession.forwarders = convertedSession.forwarders.map((forwarder) =>
       convertForwarder(forwarder, rates, targetCurrency)
-    )
+    );
   }
 
-  return convertedSession
+  return convertedSession;
 }

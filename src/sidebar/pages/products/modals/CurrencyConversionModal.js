@@ -1,8 +1,8 @@
-import { t } from '../../../../shared/i18n.js'
-import { createModal } from '../../../utils/createModal.js'
-import { clearAllErrors, showFieldError, clearFieldError } from '../../../modals.js'
-import { getCurrencySymbol } from '../../../utils/formatters.js'
-import { CURRENCIES } from '../../../../shared/config/currencies.js'
+import { t } from "../../../../shared/i18n.js";
+import { createModal } from "../../../utils/createModal.js";
+import { clearAllErrors, showFieldError, clearFieldError } from "../../../modals.js";
+import { getCurrencySymbol } from "../../../utils/formatters.js";
+import { CURRENCIES } from "../../../../shared/config/currencies.js";
 
 /**
  * Renders the currency conversion form
@@ -11,16 +11,17 @@ import { CURRENCIES } from '../../../../shared/config/currencies.js'
  * @returns {string} HTML string
  */
 function renderCurrencyConversionForm(foreignCurrencies, targetCurrency) {
-  const targetSymbol = getCurrencySymbol(targetCurrency)
-  const target = CURRENCIES.find(c => c.code === targetCurrency)
-  const targetLabel = target?.label || targetCurrency
-  const targetCode = target?.code || targetCurrency
+  const targetSymbol = getCurrencySymbol(targetCurrency);
+  const target = CURRENCIES.find((c) => c.code === targetCurrency);
+  const targetLabel = target?.label || targetCurrency;
+  const targetCode = target?.code || targetCurrency;
 
-  const fieldsHtml = foreignCurrencies.map(currencyCode => {
-    const symbol = getCurrencySymbol(currencyCode)
-    const label = CURRENCIES.find(c => c.code === currencyCode)?.label || currencyCode
+  const fieldsHtml = foreignCurrencies
+    .map((currencyCode) => {
+      const symbol = getCurrencySymbol(currencyCode);
+      const label = CURRENCIES.find((c) => c.code === currencyCode)?.label || currencyCode;
 
-    return `
+      return `
       <div class="group p-4 rounded-2xl secondary-bg border border-default focus-within:ring-2 focus-within:ring-primary focus-within:card-bg transition-all">
         <div class="grid grid-cols-[30px_1fr] items-center gap-3">
           <div class="text-left">
@@ -48,8 +49,9 @@ function renderCurrencyConversionForm(foreignCurrencies, targetCurrency) {
           </div>
         </div>
       </div>
-    `
-  }).join('')
+    `;
+    })
+    .join("");
 
   return `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
@@ -87,7 +89,7 @@ function renderCurrencyConversionForm(foreignCurrencies, targetCurrency) {
         </div>
       </div>
     </div>
-  `
+  `;
 }
 
 /**
@@ -97,26 +99,23 @@ function renderCurrencyConversionForm(foreignCurrencies, targetCurrency) {
  * @returns {boolean} True if all rates are valid
  */
 function validateConversionRates(modal, foreignCurrencies) {
-  clearAllErrors(modal)
+  clearAllErrors(modal);
 
-  let isValid = true
+  let isValid = true;
 
-  foreignCurrencies.forEach(currencyCode => {
-    const input = modal.querySelector(`#rate-${currencyCode}`)
-    const value = parseFloat(input.value)
+  foreignCurrencies.forEach((currencyCode) => {
+    const input = modal.querySelector(`#rate-${currencyCode}`);
+    const value = parseFloat(input.value);
 
     if (!input.value || isNaN(value) || value <= 0) {
-      showFieldError(
-        `rate-${currencyCode}`,
-        t("currencyConversion.invalidRate")
-      )
-      isValid = false
+      showFieldError(`rate-${currencyCode}`, t("currencyConversion.invalidRate"));
+      isValid = false;
     } else {
-      clearFieldError(`rate-${currencyCode}`)
+      clearFieldError(`rate-${currencyCode}`);
     }
-  })
+  });
 
-  return isValid
+  return isValid;
 }
 
 /**
@@ -126,14 +125,14 @@ function validateConversionRates(modal, foreignCurrencies) {
  * @returns {Object} Map of currency code to conversion rate
  */
 function collectConversionRates(modal, foreignCurrencies) {
-  const rates = {}
+  const rates = {};
 
-  foreignCurrencies.forEach(currencyCode => {
-    const input = modal.querySelector(`#rate-${currencyCode}`)
-    rates[currencyCode] = parseFloat(input.value)
-  })
+  foreignCurrencies.forEach((currencyCode) => {
+    const input = modal.querySelector(`#rate-${currencyCode}`);
+    rates[currencyCode] = parseFloat(input.value);
+  });
 
-  return rates
+  return rates;
 }
 
 /**
@@ -144,24 +143,24 @@ function collectConversionRates(modal, foreignCurrencies) {
  */
 export function showCurrencyConversionModal(foreignCurrencies, targetCurrency) {
   return new Promise((resolve) => {
-    const content = renderCurrencyConversionForm(foreignCurrencies, targetCurrency)
+    const content = renderCurrencyConversionForm(foreignCurrencies, targetCurrency);
 
     const { modal, closeModal } = createModal(content, {
       onSave: () => {
         if (!validateConversionRates(modal, foreignCurrencies)) {
-          return false // Keep modal open
+          return false; // Keep modal open
         }
 
-        const rates = collectConversionRates(modal, foreignCurrencies)
-        resolve(rates)
-        return true
+        const rates = collectConversionRates(modal, foreignCurrencies);
+        resolve(rates);
+        return true;
       },
       onClose: () => {
-        resolve(null) // User cancelled
+        resolve(null); // User cancelled
       },
       autoFocus: true,
       escapeToClose: true,
-      enterToSave: true
-    })
-  })
+      enterToSave: true,
+    });
+  });
 }

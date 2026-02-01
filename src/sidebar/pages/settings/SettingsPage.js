@@ -1,14 +1,14 @@
-import { renderSettingsView } from './SettingsView.js'
-import * as actions from './SettingsActions.js'
+import { renderSettingsView } from "./SettingsView.js";
+import * as actions from "./SettingsActions.js";
 
 export async function initSettingsPage(app) {
-  const settings = await actions.getSettings()
-  app.innerHTML = renderSettingsView({ settings })
-  attachEventListeners()
+  const settings = await actions.getSettings();
+  app.innerHTML = renderSettingsView({ settings });
+  attachEventListeners();
 }
 
 function attachEventListeners() {
-  document.getElementById("back-button")?.addEventListener("click", actions.navigateBack)
+  document.getElementById("back-button")?.addEventListener("click", actions.navigateBack);
 
   document.getElementById("save-settings-button")?.addEventListener("click", async () => {
     const settingsData = {
@@ -18,9 +18,9 @@ function attachEventListeners() {
       defaultWeightUnit: document.getElementById("default-weight-unit").value,
       defaultVolumeUnit: document.getElementById("default-volume-unit").value,
       defaultDimensionUnit: document.getElementById("default-dimension-unit").value,
-      defaultDistanceUnit: document.getElementById("default-distance-unit").value
-    }
+      defaultDistanceUnit: document.getElementById("default-distance-unit").value,
+    };
 
-    await actions.saveSettings(settingsData)
-  })
+    await actions.saveSettings(settingsData);
+  });
 }

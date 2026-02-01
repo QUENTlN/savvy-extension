@@ -3,11 +3,11 @@
 export function getTierType(container) {
   const prefix = container.dataset.prefix;
   const typeRadio = container.querySelector(`input[name="${prefix}_type"]:checked`);
-  return typeRadio ? typeRadio.value : 'quantity';
+  return typeRadio ? typeRadio.value : "quantity";
 }
 
 export function requiresInteger(type) {
-  return type === 'quantity';
+  return type === "quantity";
 }
 
 export function getMinValueForFirstTier(type) {
@@ -20,7 +20,7 @@ export function parseTierRange(row, type) {
   const valueInput = row.querySelector('input[name$="_value"]');
 
   let maxValue = null;
-  if (maxInput && maxInput.value !== '') {
+  if (maxInput && maxInput.value !== "") {
     const parsed = parseFloat(maxInput.value);
     maxValue = !isNaN(parsed) ? parsed : null;
   }
@@ -33,14 +33,14 @@ export function parseTierRange(row, type) {
     value: valueInput ? parseFloat(valueInput.value) || 0 : 0,
     minInput: minInput,
     maxInput: maxInput,
-    valueInput: valueInput
+    valueInput: valueInput,
   };
 }
 
 export function getAllTierRanges(container, type) {
-  const rangesContainer = container.querySelector('.ranges-container');
+  const rangesContainer = container.querySelector(".ranges-container");
   if (!rangesContainer) return [];
 
-  const rows = Array.from(rangesContainer.querySelectorAll('.range-row'));
-  return rows.map(row => parseTierRange(row, type));
+  const rows = Array.from(rangesContainer.querySelectorAll(".range-row"));
+  return rows.map((row) => parseTierRange(row, type));
 }

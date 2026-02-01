@@ -39,8 +39,7 @@ export let knownParsers = {
     },
     seller: {
       strategy: "domainNameAndSeller",
-      selector:
-        ".x-sellercard-atf__info__about-seller > a:nth-child(1) > span:nth-child(1)",
+      selector: ".x-sellercard-atf__info__about-seller > a:nth-child(1) > span:nth-child(1)",
     },
   },
   "neokyo.com": {
@@ -78,7 +77,8 @@ export let knownParsers = {
     },
     insurancePrice: {
       strategy: "extractPrice",
-      selector: "#pdp-section-warranties-list > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)",
+      selector:
+        "#pdp-section-warranties-list > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)",
     },
     currency: {
       strategy: "extractCurrency",
@@ -89,6 +89,4 @@ export let knownParsers = {
     },
   },
   // Add more known parsers here
-}
-
-
+};

@@ -1,19 +1,19 @@
 // Thin client for talking to the background script from the sidebar.
 // All runtime messages should go through this module.
 
-import { browser } from '../shared/browser.js';
+import { browser } from "../shared/browser.js";
 
 export const SidebarAPI = {
   // Sessions
   getSessions() {
-    return browser.runtime.sendMessage({ action: "getSessions" })
+    return browser.runtime.sendMessage({ action: "getSessions" });
   },
 
   createSession(session) {
     return browser.runtime.sendMessage({
       action: "createSession",
       session,
-    })
+    });
   },
 
   updateSession(sessionId, updatedSession) {
@@ -21,21 +21,21 @@ export const SidebarAPI = {
       action: "updateSession",
       sessionId,
       updatedSession,
-    })
+    });
   },
 
   deleteSession(sessionId) {
     return browser.runtime.sendMessage({
       action: "deleteSession",
       sessionId,
-    })
+    });
   },
 
   setCurrentSession(sessionId) {
     return browser.runtime.sendMessage({
       action: "setCurrentSession",
       sessionId,
-    })
+    });
   },
 
   // Products
@@ -44,7 +44,7 @@ export const SidebarAPI = {
       action: "createProduct",
       sessionId,
       product,
-    })
+    });
   },
 
   deleteProduct(sessionId, productId) {
@@ -52,7 +52,7 @@ export const SidebarAPI = {
       action: "deleteProduct",
       sessionId,
       productId,
-    })
+    });
   },
 
   // Offers
@@ -62,7 +62,7 @@ export const SidebarAPI = {
       sessionId,
       productId,
       offer,
-    })
+    });
   },
 
   deleteOffer(sessionId, productId, offerId) {
@@ -71,7 +71,7 @@ export const SidebarAPI = {
       sessionId,
       productId,
       offerId,
-    })
+    });
   },
 
   updateOffer(sessionId, productId, offerId, updatedOffer) {
@@ -81,7 +81,7 @@ export const SidebarAPI = {
       productId,
       offerId,
       updatedOffer,
-    })
+    });
   },
 
   // Bundles
@@ -90,7 +90,7 @@ export const SidebarAPI = {
       action: "createBundle",
       sessionId,
       bundle,
-    })
+    });
   },
 
   updateBundle(sessionId, bundleId, updatedBundle) {
@@ -99,7 +99,7 @@ export const SidebarAPI = {
       sessionId,
       bundleId,
       updatedBundle,
-    })
+    });
   },
 
   deleteBundle(sessionId, bundleId) {
@@ -107,7 +107,7 @@ export const SidebarAPI = {
       action: "deleteBundle",
       sessionId,
       bundleId,
-    })
+    });
   },
 
   // Alternatives
@@ -116,7 +116,7 @@ export const SidebarAPI = {
       action: "createAlternativeGroup",
       sessionId,
       group,
-    })
+    });
   },
 
   updateAlternativeGroup(sessionId, groupId, updatedGroup) {
@@ -125,7 +125,7 @@ export const SidebarAPI = {
       sessionId,
       groupId,
       updatedGroup,
-    })
+    });
   },
 
   deleteAlternativeGroup(sessionId, groupId) {
@@ -133,7 +133,7 @@ export const SidebarAPI = {
       action: "deleteAlternativeGroup",
       sessionId,
       groupId,
-    })
+    });
   },
 
   // Customs Categories
@@ -143,7 +143,7 @@ export const SidebarAPI = {
       sessionId,
       category,
       defaultVAT,
-    })
+    });
   },
 
   updateCustomsCategory(sessionId, categoryId, updatedCategory, defaultVAT) {
@@ -153,7 +153,7 @@ export const SidebarAPI = {
       categoryId,
       updatedCategory,
       defaultVAT,
-    })
+    });
   },
 
   deleteCustomsCategory(sessionId, categoryId) {
@@ -161,7 +161,7 @@ export const SidebarAPI = {
       action: "deleteCustomsCategory",
       sessionId,
       categoryId,
-    })
+    });
   },
 
   // Forwarders
@@ -170,7 +170,7 @@ export const SidebarAPI = {
       action: "createForwarder",
       sessionId,
       forwarder,
-    })
+    });
   },
 
   updateForwarder(sessionId, forwarderId, updatedForwarder) {
@@ -179,7 +179,7 @@ export const SidebarAPI = {
       sessionId,
       forwarderId,
       updatedForwarder,
-    })
+    });
   },
 
   deleteForwarder(sessionId, forwarderId) {
@@ -187,7 +187,7 @@ export const SidebarAPI = {
       action: "deleteForwarder",
       sessionId,
       forwarderId,
-    })
+    });
   },
 
   // Optimization
@@ -195,7 +195,7 @@ export const SidebarAPI = {
     return browser.runtime.sendMessage({
       action: "optimizeSession",
       sessionData,
-    })
+    });
   },
 
   saveOptimizationResult(sessionId, result, sessionSnapshot, currency) {
@@ -205,21 +205,21 @@ export const SidebarAPI = {
       result,
       sessionSnapshot,
       currency,
-    })
+    });
   },
 
   getOptimizationResults(sessionId) {
     return browser.runtime.sendMessage({
       action: "getOptimizationResults",
       sessionId,
-    })
+    });
   },
 
   getOptimizationHistory(sessionId) {
     return browser.runtime.sendMessage({
       action: "getOptimizationHistory",
       sessionId,
-    })
+    });
   },
 
   // Scraping
@@ -227,8 +227,6 @@ export const SidebarAPI = {
     return browser.runtime.sendMessage({
       action: "scrapePage",
       tabId,
-    })
+    });
   },
-}
-
-
+};

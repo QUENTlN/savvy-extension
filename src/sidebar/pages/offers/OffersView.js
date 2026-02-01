@@ -1,6 +1,6 @@
-import { t } from '../../../shared/i18n.js'
-import { formatNumber, getCurrencySymbol } from '../../utils/formatters.js'
-import { DEFAULT_CURRENCY } from '../../../shared/config/currencies.js'
+import { t } from "../../../shared/i18n.js";
+import { formatNumber, getCurrencySymbol } from "../../utils/formatters.js";
+import { DEFAULT_CURRENCY } from "../../../shared/config/currencies.js";
 
 export function renderOffersView({ session, product }) {
   return `
@@ -17,12 +17,17 @@ export function renderOffersView({ session, product }) {
 
       <!-- Offers List -->
       <div class="space-y-4">
-        ${product.offers.length > 0 || (session.bundles && session.bundles.some(b => b.products && b.products.some(bp => bp.productId === product.id)))
-          ? `
-            ${product.offers.map(offer => renderOfferCard(offer)).join('')}
+        ${
+          product.offers.length > 0 ||
+          (session.bundles &&
+            session.bundles.some(
+              (b) => b.products && b.products.some((bp) => bp.productId === product.id)
+            ))
+            ? `
+            ${product.offers.map((offer) => renderOfferCard(offer)).join("")}
             ${renderBundleCards(session, product)}
             `
-          : `<div class="card-bg rounded-xl shadow-md p-6 muted-text text-center">${t("offers.noOffers")}</div>`
+            : `<div class="card-bg rounded-xl shadow-md p-6 muted-text text-center">${t("offers.noOffers")}</div>`
         }
       </div>
 
@@ -32,12 +37,12 @@ export function renderOffersView({ session, product }) {
         <span class="text-lg font-medium">${t("offers.addOffer")}</span>
       </button>
     </div>
-  `
+  `;
 }
 
 function renderOfferCard(offer) {
   // Fallback to default currency if offer doesn't have one
-  const currency = offer.currency || DEFAULT_CURRENCY
+  const currency = offer.currency || DEFAULT_CURRENCY;
 
   return `
     <div class="card-bg rounded-xl shadow-md p-4">
@@ -47,9 +52,9 @@ function renderOfferCard(offer) {
           <div class="mt-1 space-y-1">
             <p class="muted-text">${t("offers.price")}: ${formatPrice(offer.price, currency)}</p>
             <p class="muted-text">${t("offers.shipping")}: ${formatPrice(offer.shippingPrice, currency)}</p>
-            ${offer.insurancePrice > 0 ? `<p class="muted-text">${t("offers.insurance")}: ${formatNumber(offer.insurancePrice)} ${getCurrencySymbol(currency)}</p>` : ''}
-            ${offer.itemsPerPurchase && offer.itemsPerPurchase > 1 ? `<p class="muted-text">${t("offers.qtyPerPurchase")}: ${offer.itemsPerPurchase}</p>` : ''}
-            ${offer.maxPerPurchase ? `<p class="muted-text">${t("offers.maxPurchases")}: ${offer.maxPerPurchase}</p>` : ''}
+            ${offer.insurancePrice > 0 ? `<p class="muted-text">${t("offers.insurance")}: ${formatNumber(offer.insurancePrice)} ${getCurrencySymbol(currency)}</p>` : ""}
+            ${offer.itemsPerPurchase && offer.itemsPerPurchase > 1 ? `<p class="muted-text">${t("offers.qtyPerPurchase")}: ${offer.itemsPerPurchase}</p>` : ""}
+            ${offer.maxPerPurchase ? `<p class="muted-text">${t("offers.maxPurchases")}: ${offer.maxPerPurchase}</p>` : ""}
           </div>
         </div>
         <div class="flex items-start space-x-2">
@@ -65,21 +70,22 @@ function renderOfferCard(offer) {
         </div>
       </div>
     </div>
-  `
+  `;
 }
 
 function renderBundleCards(session, product) {
-  if (!session.bundles) return ''
+  if (!session.bundles) return "";
 
-  const productBundles = session.bundles.filter(b =>
-    b.products && b.products.some(bp => bp.productId === product.id)
-  )
+  const productBundles = session.bundles.filter(
+    (b) => b.products && b.products.some((bp) => bp.productId === product.id)
+  );
 
-  return productBundles.map(bundle => {
-    // Fallback to default currency if bundle doesn't have one
-    const currency = bundle.currency || DEFAULT_CURRENCY
+  return productBundles
+    .map((bundle) => {
+      // Fallback to default currency if bundle doesn't have one
+      const currency = bundle.currency || DEFAULT_CURRENCY;
 
-    return `
+      return `
     <div class="secondary-bg border border-default rounded-xl shadow-md p-4">
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0 mr-4">
@@ -90,17 +96,22 @@ function renderBundleCards(session, product) {
           <div class="mt-1 space-y-1">
             <p class="muted-text">${t("offers.price")}: ${formatPrice(bundle.price, currency)}</p>
             <p class="muted-text">${t("offers.shipping")}: ${formatPrice(bundle.shippingPrice, currency)}</p>
-            ${bundle.itemsPerPurchase && bundle.itemsPerPurchase > 1 ? `<p class="muted-text">${t("offers.qtyPerPurchase")}: ${bundle.itemsPerPurchase}</p>` : ''}
-            ${bundle.maxPerPurchase ? `<p class="muted-text">${t("offers.maxPurchases")}: ${bundle.maxPerPurchase}</p>` : ''}
+            ${bundle.itemsPerPurchase && bundle.itemsPerPurchase > 1 ? `<p class="muted-text">${t("offers.qtyPerPurchase")}: ${bundle.itemsPerPurchase}</p>` : ""}
+            ${bundle.maxPerPurchase ? `<p class="muted-text">${t("offers.maxPurchases")}: ${bundle.maxPerPurchase}</p>` : ""}
             <div class="mt-2">
               <p class="text-sm font-medium secondary-text">${t("offers.productsInBundle")}:</p>
               <ul class="mt-1 space-y-1">
-                ${bundle.products && bundle.products.length > 0
-                  ? bundle.products.map(bp => {
-                      const prod = session.products.find(p => p.id === bp.productId)
-                      return prod ? `<li class="text-sm muted-text">• ${prod.name} ${(session.manageQuantity !== false && bp.quantity > 1) ? `(x${bp.quantity})` : ''}</li>` : ''
-                    }).join('')
-                  : `<li class="text-sm muted-text">${t("offers.noProducts")}</li>`
+                ${
+                  bundle.products && bundle.products.length > 0
+                    ? bundle.products
+                        .map((bp) => {
+                          const prod = session.products.find((p) => p.id === bp.productId);
+                          return prod
+                            ? `<li class="text-sm muted-text">• ${prod.name} ${session.manageQuantity !== false && bp.quantity > 1 ? `(x${bp.quantity})` : ""}</li>`
+                            : "";
+                        })
+                        .join("")
+                    : `<li class="text-sm muted-text">${t("offers.noProducts")}</li>`
                 }
               </ul>
             </div>
@@ -119,15 +130,18 @@ function renderBundleCards(session, product) {
         </div>
       </div>
     </div>
-  `
-  }).join('')
+  `;
+    })
+    .join("");
 }
 
 function formatPrice(price, currency) {
-  if (price === undefined || price === null || price === "") return t("offers.na")
+  if (price === undefined || price === null || price === "") return t("offers.na");
   try {
-    return Number(price) === 0 ? t("offers.free") : `${formatNumber(price)} ${getCurrencySymbol(currency)}`
+    return Number(price) === 0
+      ? t("offers.free")
+      : `${formatNumber(price)} ${getCurrencySymbol(currency)}`;
   } catch (e) {
-    return `${price} ${getCurrencySymbol(currency)}`
+    return `${price} ${getCurrencySymbol(currency)}`;
   }
 }

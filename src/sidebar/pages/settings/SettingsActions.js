@@ -1,10 +1,10 @@
-import { browser } from '../../../shared/browser.js'
-import { Store } from '../../state.js'
-import { CURRENCIES } from '../../../shared/config/currencies.js'
-import { setLanguage, getCurrentLanguage } from '../../../shared/i18n.js'
+import { browser } from "../../../shared/browser.js";
+import { Store } from "../../state.js";
+import { CURRENCIES } from "../../../shared/config/currencies.js";
+import { setLanguage, getCurrentLanguage } from "../../../shared/i18n.js";
 
 export function navigateBack() {
-  Store.setState({ currentView: 'sessions' })
+  Store.setState({ currentView: "sessions" });
 }
 
 export async function getSettings() {
@@ -15,8 +15,8 @@ export async function getSettings() {
     "defaultWeightUnit",
     "defaultVolumeUnit",
     "defaultDimensionUnit",
-    "defaultDistanceUnit"
-  ])
+    "defaultDistanceUnit",
+  ]);
 }
 
 export async function saveSettings(settingsData) {
@@ -27,8 +27,8 @@ export async function saveSettings(settingsData) {
     defaultWeightUnit,
     defaultVolumeUnit,
     defaultDimensionUnit,
-    defaultDistanceUnit
-  } = settingsData
+    defaultDistanceUnit,
+  } = settingsData;
 
   await browser.storage.local.set({
     darkMode,
@@ -37,25 +37,25 @@ export async function saveSettings(settingsData) {
     defaultWeightUnit,
     defaultVolumeUnit,
     defaultDimensionUnit,
-    defaultDistanceUnit
-  })
+    defaultDistanceUnit,
+  });
 
   // Update currency in Store
-  const c = CURRENCIES.find(curr => curr.code === currency)
-  if (c) Store.setState({ currency: c.symbol }, true)
+  const c = CURRENCIES.find((curr) => curr.code === currency);
+  if (c) Store.setState({ currency: c.symbol }, true);
 
   // Apply dark mode
   if (darkMode) {
-    document.documentElement.classList.add("dark")
+    document.documentElement.classList.add("dark");
   } else {
-    document.documentElement.classList.remove("dark")
+    document.documentElement.classList.remove("dark");
   }
 
   // Apply language change if needed
   if (language !== getCurrentLanguage()) {
-    await setLanguage(language)
+    await setLanguage(language);
   }
 
   // Navigate back to sessions
-  Store.setState({ currentView: 'sessions' })
+  Store.setState({ currentView: "sessions" });
 }

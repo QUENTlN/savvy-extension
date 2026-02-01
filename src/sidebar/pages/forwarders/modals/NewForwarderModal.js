@@ -1,11 +1,11 @@
-import { t } from '../../../../shared/i18n.js'
-import { Store } from '../../../state.js'
-import * as actions from '../ForwardersActions.js'
-import { setupAutoFocus, setupEscapeKey, setupEnterKey } from '../../../modals.js'
-import { validateRequiredField, clearAllErrors } from '../../../modals.js'
+import { t } from "../../../../shared/i18n.js";
+import { Store } from "../../../state.js";
+import * as actions from "../ForwardersActions.js";
+import { setupAutoFocus, setupEscapeKey, setupEnterKey } from "../../../modals.js";
+import { validateRequiredField, clearAllErrors } from "../../../modals.js";
 
 export function showNewForwarderModal() {
-  const modal = document.createElement("div")
+  const modal = document.createElement("div");
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg p-6 w-full max-w-md">
@@ -29,41 +29,41 @@ export function showNewForwarderModal() {
         </div>
       </div>
     </div>
-  `
+  `;
 
-  document.body.appendChild(modal)
+  document.body.appendChild(modal);
 
-  setupAutoFocus(modal)
-  setupEscapeKey(modal, closeModal)
-  setupEnterKey(modal, saveModal)
+  setupAutoFocus(modal);
+  setupEscapeKey(modal, closeModal);
+  setupEnterKey(modal, saveModal);
 
   function closeModal() {
-    clearAllErrors(modal)
-    document.body.removeChild(modal)
+    clearAllErrors(modal);
+    document.body.removeChild(modal);
   }
 
   function saveModal() {
     // Validate
-    if (!validateRequiredField('forwarder-name', t("forwarders.forwarderName"))) return
+    if (!validateRequiredField("forwarder-name", t("forwarders.forwarderName"))) return;
 
     // Get data
-    const name = document.getElementById('forwarder-name').value.trim()
+    const name = document.getElementById("forwarder-name").value.trim();
 
     // Create forwarder
-    const forwarder = { name }
+    const forwarder = { name };
 
     actions.createForwarder(forwarder).then(() => {
       // Navigate to editor to configure fees
-      const session = actions.getSession()
-      const newForwarder = session.forwarders[session.forwarders.length - 1]
-      actions.navigateToEditor(newForwarder.id)
-      closeModal()
-    })
+      const session = actions.getSession();
+      const newForwarder = session.forwarders[session.forwarders.length - 1];
+      actions.navigateToEditor(newForwarder.id);
+      closeModal();
+    });
   }
 
   modal.querySelector("#modalOverlay").addEventListener("click", (e) => {
-    if (e.target.id === "modalOverlay") closeModal()
-  })
-  modal.querySelector("#cancel-button").addEventListener("click", closeModal)
-  modal.querySelector("#save-button").addEventListener("click", saveModal)
+    if (e.target.id === "modalOverlay") closeModal();
+  });
+  modal.querySelector("#cancel-button").addEventListener("click", closeModal);
+  modal.querySelector("#save-button").addEventListener("click", saveModal);
 }

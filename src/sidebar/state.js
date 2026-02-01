@@ -5,12 +5,12 @@ export const Store = {
   state: {
     sessions: [],
     currentSession: null,
-    currentView: 'sessions',
-    currentRulesView: 'list',
+    currentView: "sessions",
+    currentRulesView: "list",
     currentSellerEditing: null,
     currentProduct: null,
     scrapedData: null,
-    currency: '€',
+    currency: "€",
     isLoading: false,
     currentOptimizationResult: null,
     viewingHistory: false,
@@ -29,7 +29,7 @@ export const Store = {
    * @returns {Object|undefined} Session object
    */
   getSession(id) {
-    return this.state.sessions.find(s => s.id === (id || this.state.currentSession));
+    return this.state.sessions.find((s) => s.id === (id || this.state.currentSession));
   },
 
   /**
@@ -39,7 +39,7 @@ export const Store = {
    */
   getProduct(productId) {
     const session = this.getSession();
-    return session?.products?.find(p => p.id === productId);
+    return session?.products?.find((p) => p.id === productId);
   },
 
   /**
@@ -106,7 +106,7 @@ export const Store = {
   subscribe(listener) {
     this.listeners.push(listener);
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      this.listeners = this.listeners.filter((l) => l !== listener);
     };
   },
 
@@ -114,7 +114,7 @@ export const Store = {
    * Notify all listeners of state change
    */
   notify() {
-    this.listeners.forEach(listener => listener(this.state));
+    this.listeners.forEach((listener) => listener(this.state));
   },
 
   /**
@@ -122,9 +122,12 @@ export const Store = {
    * @param {Object} data - Initial data { sessions, currentSession }
    */
   init(data) {
-    this.setState({
-      sessions: data.sessions || [],
-      currentSession: data.currentSession || null,
-    }, true);
-  }
+    this.setState(
+      {
+        sessions: data.sessions || [],
+        currentSession: data.currentSession || null,
+      },
+      true
+    );
+  },
 };

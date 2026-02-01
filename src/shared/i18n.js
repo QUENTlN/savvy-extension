@@ -1,6 +1,6 @@
 // i18n system for the browser extension
-import { browser } from './browser.js';
-import { LANGUAGES, DEFAULT_LANGUAGE } from './config/languages.js';
+import { browser } from "./browser.js";
+import { LANGUAGES, DEFAULT_LANGUAGE } from "./config/languages.js";
 
 let currentLanguage = DEFAULT_LANGUAGE;
 let translations = {};
@@ -19,7 +19,7 @@ export async function initI18n(language) {
     } else {
       // Detect browser locale
       const browserLang = navigator.language.split("-")[0]; // e.g., 'en-US' -> 'en'
-      const supportedLangs = LANGUAGES.map(l => l.code);
+      const supportedLangs = LANGUAGES.map((l) => l.code);
       language = supportedLangs.includes(browserLang) ? browserLang : DEFAULT_LANGUAGE;
     }
   }
@@ -63,7 +63,7 @@ export function t(key, params = {}) {
   // Navigate nested object using dot notation
   const keys = key.split(".");
   let value = translations;
-  
+
   for (const k of keys) {
     if (value && typeof value === "object" && k in value) {
       value = value[k];
@@ -73,20 +73,20 @@ export function t(key, params = {}) {
       return key;
     }
   }
-  
+
   // If value is not a string, return key
   if (typeof value !== "string") {
     console.warn(`Translation value is not a string: ${key}`);
     return key;
   }
-  
+
   // Interpolate parameters
   let result = value;
   for (const [param, paramValue] of Object.entries(params)) {
     const regex = new RegExp(`{{${param}}}`, "g");
     result = result.replace(regex, paramValue);
   }
-  
+
   return result;
 }
 

@@ -1,5 +1,5 @@
-import { t } from '../../../shared/i18n.js'
-import { formatCurrency } from '../../utils/formatters.js'
+import { t } from "../../../shared/i18n.js";
+import { formatCurrency } from "../../utils/formatters.js";
 
 export function renderHistoryView({ history, session }) {
   return `
@@ -18,27 +18,31 @@ export function renderHistoryView({ history, session }) {
 
       <!-- History List -->
       <div class="mt-4">
-        ${history.length === 0 ? `
+        ${
+          history.length === 0
+            ? `
           <div class="card-bg rounded-xl p-6 text-center">
             <p class="muted-text">${t("results.noHistory")}</p>
           </div>
-        ` : `
+        `
+            : `
           <div class="space-y-3">
-            ${history.map((item, index) => renderHistoryItem(item, index)).join('')}
+            ${history.map((item, index) => renderHistoryItem(item, index)).join("")}
           </div>
-        `}
+        `
+        }
       </div>
     </div>
-  `
+  `;
 }
 
 function renderHistoryItem(item, index) {
-  const data = item.result
-  const currency = item.currency || 'EUR'
+  const data = item.result;
+  const currency = item.currency || "EUR";
 
   // v2.0 API format: data.meta.status, data.totals.grand_total
-  const status = data.meta?.status ?? data.status
-  const totalCost = data.totals?.grand_total ?? data.total_cost ?? 0
+  const status = data.meta?.status ?? data.status;
+  const totalCost = data.totals?.grand_total ?? data.total_cost ?? 0;
 
   return `
     <div class="card-bg rounded-lg p-3 cursor-pointer hover:opacity-80 transition-opacity history-item" data-index="${index}">
@@ -52,19 +56,19 @@ function renderHistoryItem(item, index) {
         </span>
       </div>
     </div>
-  `
+  `;
 }
 
 function getStatusClass(status) {
   switch (status) {
-    case 'OPTIMAL':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-    case 'FEASIBLE':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-    case 'INFEASIBLE':
-    case 'ERROR':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+    case "OPTIMAL":
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    case "FEASIBLE":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+    case "INFEASIBLE":
+    case "ERROR":
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+      return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
   }
 }

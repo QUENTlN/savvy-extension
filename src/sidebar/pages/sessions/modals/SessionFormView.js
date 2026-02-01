@@ -1,4 +1,4 @@
-import { t } from '../../../../shared/i18n.js'
+import { t } from "../../../../shared/i18n.js";
 
 /**
  * Renders a session form view for both creating and editing sessions.
@@ -7,30 +7,30 @@ import { t } from '../../../../shared/i18n.js'
  * @returns {string} HTML string
  */
 export function renderSessionFormView(session = null) {
-  const isEdit = !!session
-  const prefix = isEdit ? 'edit-' : ''
+  const isEdit = !!session;
+  const prefix = isEdit ? "edit-" : "";
 
-  const title = isEdit ? t("sessions.editSession") : t("sessions.newSession")
-  const name = session?.name || ''
-  const namePlaceholder = isEdit ? '' : t("sessions.enterSessionName")
+  const title = isEdit ? t("sessions.editSession") : t("sessions.newSession");
+  const name = session?.name || "";
+  const namePlaceholder = isEdit ? "" : t("sessions.enterSessionName");
 
-  const manageQuantity = session ? session.manageQuantity !== false : false
-  const importFeesEnabled = session?.importFeesEnabled || false
-  const forwardersEnabled = session?.forwardersEnabled || false
-  const manageWeight = session?.manageWeight || false
-  const manageVolume = session?.manageVolume || false
-  const manageDimension = session?.manageDimension || false
-  const manageDistance = session?.manageDistance || false
+  const manageQuantity = session ? session.manageQuantity !== false : false;
+  const importFeesEnabled = session?.importFeesEnabled || false;
+  const forwardersEnabled = session?.forwardersEnabled || false;
+  const manageWeight = session?.manageWeight || false;
+  const manageVolume = session?.manageVolume || false;
+  const manageDimension = session?.manageDimension || false;
+  const manageDistance = session?.manageDistance || false;
 
   const renderToggle = (id, label, checked) => `
     <div class="mb-6 flex items-center justify-between">
       <label for="${prefix}${id}" class="text-sm font-medium secondary-text">${label}</label>
       <label class="relative inline-flex items-center cursor-pointer">
-        <input type="checkbox" id="${prefix}${id}" class="sr-only peer" ${checked ? 'checked' : ''}>
+        <input type="checkbox" id="${prefix}${id}" class="sr-only peer" ${checked ? "checked" : ""}>
         <div class="toggle-switch"></div>
       </label>
     </div>
-  `
+  `;
 
   return `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
@@ -43,18 +43,18 @@ export function renderSessionFormView(session = null) {
             type="text"
             id="${prefix}session-name"
             value="${name}"
-            ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ''}
+            ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ""}
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
         </div>
 
-        ${renderToggle('manage-quantity', t("sessions.manageQuantities"), manageQuantity)}
-        ${renderToggle('import-fees-enabled', t("sessions.ImportFeesManagement"), importFeesEnabled)}
-        ${renderToggle('forwarders-enabled', t("sessions.forwardersManagement"), forwardersEnabled)}
-        ${renderToggle('manage-weight', t("sessions.manageWeight"), manageWeight)}
-        ${renderToggle('manage-volume', t("sessions.manageVolume"), manageVolume)}
-        ${renderToggle('manage-dimension', t("sessions.manageDimension"), manageDimension)}
-        ${renderToggle('manage-distance', t("sessions.manageDistance"), manageDistance)}
+        ${renderToggle("manage-quantity", t("sessions.manageQuantities"), manageQuantity)}
+        ${renderToggle("import-fees-enabled", t("sessions.ImportFeesManagement"), importFeesEnabled)}
+        ${renderToggle("forwarders-enabled", t("sessions.forwardersManagement"), forwardersEnabled)}
+        ${renderToggle("manage-weight", t("sessions.manageWeight"), manageWeight)}
+        ${renderToggle("manage-volume", t("sessions.manageVolume"), manageVolume)}
+        ${renderToggle("manage-dimension", t("sessions.manageDimension"), manageDimension)}
+        ${renderToggle("manage-distance", t("sessions.manageDistance"), manageDistance)}
 
         <div class="flex justify-end space-x-4">
           <button id="cancel-button" class="px-4 py-2 secondary-text font-medium hover:secondary-bg cursor-pointer rounded">${t("common.cancel")}</button>
@@ -64,7 +64,7 @@ export function renderSessionFormView(session = null) {
         </div>
       </div>
     </div>
-  `
+  `;
 }
 
 /**
@@ -73,7 +73,7 @@ export function renderSessionFormView(session = null) {
  * @returns {Object} Session form data
  */
 export function collectSessionFormData(isEdit = false) {
-  const prefix = isEdit ? 'edit-' : ''
+  const prefix = isEdit ? "edit-" : "";
 
   return {
     name: document.getElementById(`${prefix}session-name`).value.trim(),
@@ -83,6 +83,6 @@ export function collectSessionFormData(isEdit = false) {
     manageWeight: document.getElementById(`${prefix}manage-weight`).checked,
     manageVolume: document.getElementById(`${prefix}manage-volume`).checked,
     manageDimension: document.getElementById(`${prefix}manage-dimension`).checked,
-    manageDistance: document.getElementById(`${prefix}manage-distance`).checked
-  }
+    manageDistance: document.getElementById(`${prefix}manage-distance`).checked,
+  };
 }

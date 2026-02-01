@@ -5,5 +5,5 @@
  */
 export function deepCloneSession(session) {
   // Use JSON parse/stringify for deep clone
-  return JSON.parse(JSON.stringify(session))
+  return JSON.parse(JSON.stringify(session));
 }

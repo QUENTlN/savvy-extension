@@ -1,5 +1,5 @@
-import { t } from '../../../shared/i18n.js'
-import { formatPercent } from '../../utils/formatters.js'
+import { t } from "../../../shared/i18n.js";
+import { formatPercent } from "../../utils/formatters.js";
 
 export function renderImportFeesView({ session }) {
   return `
@@ -22,7 +22,7 @@ export function renderImportFeesView({ session }) {
         <input
           type="number"
           id="default-vat"
-          value="${session.defaultVAT ? formatPercent(session.defaultVAT) : ''}"
+          value="${session.defaultVAT ? formatPercent(session.defaultVAT) : ""}"
           step="0.01"
           min="0"
           max="100"
@@ -34,9 +34,13 @@ export function renderImportFeesView({ session }) {
       <div class="mb-6 card-bg rounded-xl shadow-md p-6 border border-default">
         <h3 class="text-lg font-medium card-text mb-3">${t("deliveryRules.productCategories")}</h3>
 
-        ${(session.customsCategories && session.customsCategories.length > 0) ? `
+        ${
+          session.customsCategories && session.customsCategories.length > 0
+            ? `
         <div class="space-y-2 mb-4">
-          ${session.customsCategories.map(cat => `
+          ${session.customsCategories
+            .map(
+              (cat) => `
             <div class="flex items-center justify-between p-3 secondary-bg rounded-lg border border-default">
               <div class="flex-1">
                 <p class="font-medium card-text">${cat.name}</p>
@@ -54,11 +58,15 @@ export function renderImportFeesView({ session }) {
                 </button>
               </div>
             </div>
-          `).join('')}
+          `
+            )
+            .join("")}
         </div>
-        ` : `
+        `
+            : `
         <p class="text-sm muted-text mb-4">${t("deliveryRules.noCategoriesYet")}</p>
-        `}
+        `
+        }
 
         <button id="add-category-btn" class="w-full flex items-center justify-center space-x-2 cursor-pointer secondary-bg secondary-text px-4 py-3 rounded-xl hover:opacity-90 transition-colors duration-200 shadow-sm border border-default">
           <span class="icon icon-plus h-5 w-5"></span>
@@ -70,5 +78,5 @@ export function renderImportFeesView({ session }) {
         <span class="text-lg font-medium">${t("common.save")}</span>
       </button>
     </div>
-  `
+  `;
 }

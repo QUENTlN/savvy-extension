@@ -1,6 +1,6 @@
-import { t } from '../../../../shared/i18n.js'
-import * as actions from '../AlternativesActions.js'
-import { showConfirmationModal } from '../../../utils/index.js'
+import { t } from "../../../../shared/i18n.js";
+import * as actions from "../AlternativesActions.js";
+import { showConfirmationModal } from "../../../utils/index.js";
 
 export function showDeleteAlternativeGroupModal(groupId) {
   showConfirmationModal({
@@ -8,7 +8,7 @@ export function showDeleteAlternativeGroupModal(groupId) {
     message: t("alternatives.confirmDelete"),
     confirmText: t("alternatives.deleteButton"),
     onConfirm: async () => {
-      await actions.deleteAlternativeGroup(groupId)
-    }
-  })
+      await actions.deleteAlternativeGroup(groupId);
+    },
+  });
 }

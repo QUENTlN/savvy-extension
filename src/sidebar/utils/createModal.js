@@ -1,4 +1,4 @@
-import { setupAutoFocus, setupEscapeKey, setupEnterKey, clearAllErrors } from '../modals.js'
+import { setupAutoFocus, setupEscapeKey, setupEnterKey, clearAllErrors } from "../modals.js";
 
 /**
  * Creates and displays a modal dialog with common functionality.
@@ -19,58 +19,58 @@ export function createModal(content, options = {}) {
   const {
     onSave,
     onClose,
-    saveButtonId = 'save-button',
-    cancelButtonId = 'cancel-button',
+    saveButtonId = "save-button",
+    cancelButtonId = "cancel-button",
     autoFocus = true,
     escapeToClose = true,
     enterToSave = true,
-    clickOutsideToClose = true
-  } = options
+    clickOutsideToClose = true,
+  } = options;
 
-  const modal = document.createElement('div')
-  modal.className = 'modal'
-  modal.innerHTML = content
-  document.body.appendChild(modal)
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.innerHTML = content;
+  document.body.appendChild(modal);
 
   const closeModal = () => {
-    clearAllErrors(modal)
-    if (onClose) onClose()
+    clearAllErrors(modal);
+    if (onClose) onClose();
     if (document.body.contains(modal)) {
-      document.body.removeChild(modal)
+      document.body.removeChild(modal);
     }
-  }
+  };
 
   const handleSave = async () => {
     if (onSave) {
-      const result = await onSave()
+      const result = await onSave();
       if (result !== false) {
-        closeModal()
+        closeModal();
       }
     }
-  }
+  };
 
   if (autoFocus) {
-    setupAutoFocus(modal)
+    setupAutoFocus(modal);
   }
 
   if (escapeToClose) {
-    setupEscapeKey(modal, closeModal)
+    setupEscapeKey(modal, closeModal);
   }
 
   if (enterToSave && onSave) {
-    setupEnterKey(modal, handleSave)
+    setupEnterKey(modal, handleSave);
   }
 
   if (clickOutsideToClose) {
-    modal.querySelector('#modalOverlay')?.addEventListener('click', closeModal)
-    modal.querySelector('#modalContent')?.addEventListener('click', e => e.stopPropagation())
+    modal.querySelector("#modalOverlay")?.addEventListener("click", closeModal);
+    modal.querySelector("#modalContent")?.addEventListener("click", (e) => e.stopPropagation());
   }
 
-  modal.querySelector(`#${cancelButtonId}`)?.addEventListener('click', closeModal)
+  modal.querySelector(`#${cancelButtonId}`)?.addEventListener("click", closeModal);
 
   if (onSave) {
-    modal.querySelector(`#${saveButtonId}`)?.addEventListener('click', handleSave)
+    modal.querySelector(`#${saveButtonId}`)?.addEventListener("click", handleSave);
   }
 
-  return { modal, closeModal }
+  return { modal, closeModal };
 }

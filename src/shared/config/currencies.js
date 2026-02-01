@@ -106,7 +106,7 @@ export const CURRENCIES = [
   { code: "VEF", label: "Venezuela Bolívar", symbol: "Bs" },
   { code: "VND", label: "Viet Nam Dong", symbol: "₫" },
   { code: "YER", label: "Yemen Rial", symbol: "﷼" },
-  { code: "ZWD", label: "Zimbabwe Dollar", symbol: "Z$" }
+  { code: "ZWD", label: "Zimbabwe Dollar", symbol: "Z$" },
 ];
 
 export const DEFAULT_CURRENCY = "EUR";

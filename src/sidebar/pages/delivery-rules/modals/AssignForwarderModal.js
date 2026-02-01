@@ -1,16 +1,20 @@
-import { t } from '../../../../shared/i18n.js'
-import { setupEscapeKey, setupEnterKey, setupAutoFocus } from '../../../modals.js'
-import { showToast } from '../../../utils/toast.js'
+import { t } from "../../../../shared/i18n.js";
+import { setupEscapeKey, setupEnterKey, setupAutoFocus } from "../../../modals.js";
+import { showToast } from "../../../utils/toast.js";
 
 export function showAssignForwarderModal(session, onSelect) {
-  const forwarders = session.forwarders || []
+  const forwarders = session.forwarders || [];
 
   if (forwarders.length === 0) {
-    showToast(t("deliveryRules.noForwardersAvailable") || "No forwarders available. Please create forwarders first.", { type: 'error' })
-    return
+    showToast(
+      t("deliveryRules.noForwardersAvailable") ||
+        "No forwarders available. Please create forwarders first.",
+      { type: "error" }
+    );
+    return;
   }
 
-  const modal = document.createElement("div")
+  const modal = document.createElement("div");
   modal.innerHTML = `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div id="modalContent" class="card-bg rounded-lg shadow-lg p-6 w-full max-w-md">
@@ -20,9 +24,13 @@ export function showAssignForwarderModal(session, onSelect) {
           <label class="block text-sm font-medium secondary-text mb-2">${t("forwarders.forwarderName")}</label>
           <select id="forwarder-select" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
             <option value="">-- ${t("deliveryRules.selectForwarder")} --</option>
-            ${forwarders.map(f => `
+            ${forwarders
+              .map(
+                (f) => `
               <option value="${f.id}">${f.name}</option>
-            `).join('')}
+            `
+              )
+              .join("")}
           </select>
         </div>
 
@@ -36,35 +44,37 @@ export function showAssignForwarderModal(session, onSelect) {
         </div>
       </div>
     </div>
-  `
+  `;
 
-  document.body.appendChild(modal)
+  document.body.appendChild(modal);
 
-  setupAutoFocus(modal)
-  setupEscapeKey(modal, closeModal)
+  setupAutoFocus(modal);
+  setupEscapeKey(modal, closeModal);
 
   function closeModal() {
-    document.body.removeChild(modal)
+    document.body.removeChild(modal);
   }
 
   function addForwarder() {
-    const select = document.getElementById('forwarder-select')
-    const forwarderId = select.value
+    const select = document.getElementById("forwarder-select");
+    const forwarderId = select.value;
 
     if (!forwarderId) {
-      showToast(t("deliveryRules.pleaseSelectForwarder") || "Please select a forwarder", { type: 'error' })
-      return
+      showToast(t("deliveryRules.pleaseSelectForwarder") || "Please select a forwarder", {
+        type: "error",
+      });
+      return;
     }
 
-    onSelect(forwarderId)
-    closeModal()
+    onSelect(forwarderId);
+    closeModal();
   }
 
-  setupEnterKey(modal, addForwarder)
+  setupEnterKey(modal, addForwarder);
 
   modal.querySelector("#modalOverlay").addEventListener("click", (e) => {
-    if (e.target.id === "modalOverlay") closeModal()
-  })
-  modal.querySelector("#cancel-button").addEventListener("click", closeModal)
-  modal.querySelector("#add-button").addEventListener("click", addForwarder)
+    if (e.target.id === "modalOverlay") closeModal();
+  });
+  modal.querySelector("#cancel-button").addEventListener("click", closeModal);
+  modal.querySelector("#add-button").addEventListener("click", addForwarder);
 }

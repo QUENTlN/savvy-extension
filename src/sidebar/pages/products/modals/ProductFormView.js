@@ -1,5 +1,5 @@
-import { t } from '../../../../shared/i18n.js'
-import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS } from '../../../../shared/config/units.js'
+import { t } from "../../../../shared/i18n.js";
+import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS } from "../../../../shared/config/units.js";
 
 /**
  * Renders a product form view for both creating and editing products.
@@ -11,36 +11,41 @@ import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS } from '../../../../shared/
  * @param {boolean} [options.hasAlternativeGroupWarning=false] - Whether to show alternative group warning
  * @returns {string} HTML string
  */
-export function renderProductFormView({ product = null, session, products = [], hasAlternativeGroupWarning = false }) {
-  const isEdit = !!product
+export function renderProductFormView({
+  product = null,
+  session,
+  products = [],
+  hasAlternativeGroupWarning = false,
+}) {
+  const isEdit = !!product;
 
-  const title = isEdit ? t("products.editProduct") : t("products.newProduct")
-  const name = product?.name || ''
-  const namePlaceholder = isEdit ? '' : t("modals.enterProductName")
-  const quantity = product?.quantity || 1
-  const weight = product?.weight ?? ''
-  const volume = product?.volume ?? ''
-  const length = product?.length ?? ''
-  const width = product?.width ?? ''
-  const height = product?.height ?? ''
-  const compatHelpKey = isEdit ? "modals.compatibilityHelpEdit" : "modals.compatibilityHelp"
+  const title = isEdit ? t("products.editProduct") : t("products.newProduct");
+  const name = product?.name || "";
+  const namePlaceholder = isEdit ? "" : t("modals.enterProductName");
+  const quantity = product?.quantity || 1;
+  const weight = product?.weight ?? "";
+  const volume = product?.volume ?? "";
+  const length = product?.length ?? "";
+  const width = product?.width ?? "";
+  const height = product?.height ?? "";
+  const compatHelpKey = isEdit ? "modals.compatibilityHelpEdit" : "modals.compatibilityHelp";
 
   // For edit, exclude the current product from compatibility list
-  const compatibleProducts = isEdit
-    ? products.filter(p => p.id !== product.id)
-    : products
+  const compatibleProducts = isEdit ? products.filter((p) => p.id !== product.id) : products;
 
   const renderUnitOptions = (units, selectedUnit) => {
-    return units.map(u => {
-      const selected = selectedUnit === u.value ? 'selected' : ''
-      return `<option value="${u.value}" ${selected}>${t("attributes.units." + u.value)} (${u.label})</option>`
-    }).join('')
-  }
+    return units
+      .map((u) => {
+        const selected = selectedUnit === u.value ? "selected" : "";
+        return `<option value="${u.value}" ${selected}>${t("attributes.units." + u.value)} (${u.label})</option>`;
+      })
+      .join("");
+  };
 
   const isCompatChecked = (productId) => {
-    if (!isEdit || !product.limitedCompatibilityWith) return false
-    return product.limitedCompatibilityWith.includes(productId)
-  }
+    if (!isEdit || !product.limitedCompatibilityWith) return false;
+    return product.limitedCompatibilityWith.includes(productId);
+  };
 
   return `
     <div id="modalOverlay" class="fixed w-full h-full inset-0 bg-black/50 flex justify-center items-center z-50">
@@ -53,12 +58,14 @@ export function renderProductFormView({ product = null, session, products = [], 
             type="text"
             id="product-name"
             value="${name}"
-            ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ''}
+            ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ""}
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
         </div>
 
-        ${session.manageQuantity !== false ? `
+        ${
+          session.manageQuantity !== false
+            ? `
         <div class="mb-6">
           <label for="product-quantity" class="block text-sm font-medium secondary-text mb-1">${t("modals.quantityNeeded")}</label>
           <input
@@ -71,9 +78,13 @@ export function renderProductFormView({ product = null, session, products = [], 
           >
           <p class="mt-1 text-sm muted-text">${t("modals.howManyNeeded")}</p>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${session.manageWeight ? `
+        ${
+          session.manageWeight
+            ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.weight")}</label>
           <div class="flex space-x-2">
@@ -91,9 +102,13 @@ export function renderProductFormView({ product = null, session, products = [], 
             </select>
           </div>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${session.manageVolume ? `
+        ${
+          session.manageVolume
+            ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.volume")}</label>
           <div id="product-volume-input" class="flex space-x-2">
@@ -111,9 +126,13 @@ export function renderProductFormView({ product = null, session, products = [], 
             </select>
           </div>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${session.manageDimension ? `
+        ${
+          session.manageDimension
+            ? `
         <div class="mb-6">
           <label class="block text-sm font-medium secondary-text mb-1">${t("attributes.dimension")}</label>
           <select id="product-dimension-unit" class="w-full px-4 py-2 mb-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
@@ -125,16 +144,22 @@ export function renderProductFormView({ product = null, session, products = [], 
             <input type="number" id="product-dim-height" value="${height}" placeholder="${t("attributes.height")}" step="0.01" min="0" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
           </div>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${hasAlternativeGroupWarning ? `
+        ${
+          hasAlternativeGroupWarning
+            ? `
           <div class="mb-6 secondary-bg border border-default rounded-lg p-3">
             <div class="flex">
               <span class="icon icon-warning h-5 w-5 muted-text mr-2 flex-shrink-0"></span>
               <p class="text-sm secondary-text">${t("modals.alternativeGroupWarning")}</p>
             </div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
         <div class="mb-6">
           <button id="toggle-compatibility" class="text-sm secondary-text hover:opacity-80 font-medium flex items-center cursor-pointer">
@@ -148,12 +173,16 @@ export function renderProductFormView({ product = null, session, products = [], 
           <p class="mt-1 text-sm muted-text">${t(compatHelpKey)}</p>
 
           <div id="compatible-products-list" class="mt-3 space-y-2" style="max-height:220px; overflow:auto;">
-            ${compatibleProducts.map(p => `
+            ${compatibleProducts
+              .map(
+                (p) => `
               <div class="flex items-center">
-                <input type="checkbox" id="compat-${p.id}" value="${p.id}" class="compat-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary" ${isCompatChecked(p.id) ? 'checked' : ''}>
+                <input type="checkbox" id="compat-${p.id}" value="${p.id}" class="compat-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary" ${isCompatChecked(p.id) ? "checked" : ""}>
                 <label for="compat-${p.id}" class="ml-2 text-sm secondary-text">${p.name}</label>
               </div>
-            `).join('')}
+            `
+              )
+              .join("")}
           </div>
         </div>
 
@@ -165,5 +194,5 @@ export function renderProductFormView({ product = null, session, products = [], 
         </div>
       </div>
     </div>
-  `
+  `;
 }
