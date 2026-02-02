@@ -13,6 +13,7 @@ import { getForeignCurrencies } from "../../utils/currencyDetection.js";
 import { convertSessionCurrency } from "../../utils/currencyConversion.js";
 import { StorageService } from "../../utils/StorageService.js";
 import { showToast } from "../../utils/toast.js";
+import { ErrorHandler } from "../../../shared/errors/index.js";
 
 export async function initProductsPage(app) {
   const session = actions.getSession();
@@ -201,11 +202,17 @@ function attachEventListeners(session, _optimizationState) {
         // Navigate to results view
         Store.setState(stateUpdate);
       } else {
-        showToast(`${t("optimization.failed")}: ${result.error}`, { type: "error" });
+        // Use ErrorHandler for failed optimization
+        const toastType = result.rateLimited ? "warning" : "error";
+        showToast(`${t("optimization.failed")}: ${result.error}`, { type: toastType });
       }
     } catch (error) {
-      console.error("Optimization error:", error);
-      showToast(`${t("optimization.failed")}: ${error.message}`, { type: "error" });
+      // Use ErrorHandler for centralized error handling
+      ErrorHandler.handle(error, {
+        showToast,
+        t,
+        fallbackMessage: t("optimization.failed"),
+      });
     }
   });
 

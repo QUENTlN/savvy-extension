@@ -1,5 +1,6 @@
 import { browser } from "../shared/browser.js";
 import { knownParsers as defaultKnownParsers } from "../shared/config/knownParsers.js";
+import { AppError, APIError, ErrorHandler } from "../shared/errors/index.js";
 
 // Client fingerprint for rate limiting (cached)
 let clientFingerprint = null;
@@ -419,8 +420,10 @@ function scrapePage(tabId) {
 async function optimizeSession(sessionData) {
   if (!sessionData) return { success: false, error: "Session data not provided" };
 
+  const url = "http://localhost:8000/api/v1/optimize";
+
   try {
-    const response = await fetch("http://localhost:8000/api/v1/optimize", {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -431,32 +434,17 @@ async function optimizeSession(sessionData) {
 
     const responseText = await response.text();
 
-    // Handle rate limiting
-    if (response.status === 429) {
-      try {
-        const errorData = JSON.parse(responseText);
-        return {
-          success: false,
-          error: errorData.detail || "Daily limit reached. Please try again tomorrow.",
-          rateLimited: true,
-        };
-      } catch {
-        return {
-          success: false,
-          error: "Daily limit reached. Please try again tomorrow.",
-          rateLimited: true,
-        };
-      }
-    }
-
+    // Handle non-OK responses with typed errors
     if (!response.ok) {
-      // Parse error message from response
-      try {
-        const errorData = JSON.parse(responseText);
-        throw new Error(errorData.detail || `API error: ${response.status}`);
-      } catch {
-        throw new Error(`API error ${response.status}: ${responseText.substring(0, 200)}`);
-      }
+      const apiError = await APIError.fromResponse(response, url, responseText);
+      ErrorHandler.log(apiError);
+
+      return {
+        success: false,
+        error: apiError.message,
+        rateLimited: apiError.rateLimited,
+        errorCode: apiError.code,
+      };
     }
 
     const result = JSON.parse(responseText);
@@ -471,8 +459,15 @@ async function optimizeSession(sessionData) {
 
     return { success: true, result, sessionSnapshot, rateLimit };
   } catch (error) {
-    console.error("Optimization error:", error);
-    return { success: false, error: error.message };
+    // Handle network errors and other exceptions
+    if (AppError.isAppError(error)) {
+      ErrorHandler.log(error);
+      return { success: false, error: error.message, errorCode: error.code };
+    }
+
+    const networkError = APIError.networkError(error, url);
+    ErrorHandler.log(networkError);
+    return { success: false, error: networkError.message, errorCode: networkError.code };
   }
 }
 

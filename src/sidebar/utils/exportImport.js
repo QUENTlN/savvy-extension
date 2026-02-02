@@ -3,6 +3,7 @@ import { t } from "../../shared/i18n.js";
 import { Store } from "../state.js";
 import { SidebarAPI } from "../api.js";
 import { showToast } from "./toast.js";
+import { ValidationError, ErrorHandler } from "../../shared/errors/index.js";
 
 export function exportSession(session) {
   const dataStr =
@@ -27,11 +28,19 @@ export function importSession() {
     reader.onload = (readerEvent) => {
       try {
         const content = readerEvent.target.result;
-        const sessionData = JSON.parse(content);
+        let sessionData;
+
+        try {
+          sessionData = JSON.parse(content);
+        } catch (parseError) {
+          throw ValidationError.invalidJSON(parseError);
+        }
 
         if (!sessionData.name || !Array.isArray(sessionData.products)) {
-          showToast(t("sessions.invalidFormat"), { type: "error" });
-          return;
+          throw ValidationError.invalidFormat("Session must have name and products array", {
+            hasName: !!sessionData.name,
+            hasProducts: Array.isArray(sessionData.products),
+          });
         }
 
         // Check for name collision
@@ -58,7 +67,11 @@ export function importSession() {
           Store.sync(SidebarAPI.updateSession(newSessionId, updatedSession));
         });
       } catch (err) {
-        showToast("Error parsing session file: " + err.message, { type: "error" });
+        ErrorHandler.handle(err, {
+          showToast,
+          t,
+          fallbackMessage: t("sessions.invalidFormat"),
+        });
       }
     };
   };

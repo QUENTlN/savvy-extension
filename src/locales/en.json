@@ -476,5 +476,25 @@
             "duplicateRange": "Duplicate range detected",
             "fixErrorsBeforeSaving": "Please fix all validation errors before saving"
         }
+    },
+    "errors": {
+        "API_001": "Network error. Please check your connection and try again.",
+        "API_429": "Daily limit reached. Please try again tomorrow.",
+        "API_400": "Invalid request: {message}",
+        "API_500": "Server error. Please try again later.",
+        "API_408": "Request timed out. Please try again.",
+        "VAL_001": "{field} is required",
+        "VAL_002": "{field} must be a valid number",
+        "VAL_003": "Invalid JSON format",
+        "VAL_004": "Invalid format: {message}",
+        "STR_001": "Failed to read data from storage",
+        "STR_002": "Failed to save data to storage",
+        "STR_003": "Storage quota exceeded. Please delete some sessions.",
+        "SCR_001": "Could not find element on page",
+        "SCR_002": "Failed to parse page content",
+        "I18N_001": "Missing translation: {key}",
+        "I18N_002": "Invalid language: {locale}",
+        "CNV_001": "No conversion rate provided for {currency}",
+        "CNV_002": "Invalid amount for conversion"
     }
 }

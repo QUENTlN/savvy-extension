@@ -1,0 +1,35 @@
+/**
+ * Error codes for the application
+ * Organized by category with unique prefixes
+ */
+export const ERROR_CODES = {
+  // API errors (API_xxx)
+  API_NETWORK_ERROR: "API_001",
+  API_RATE_LIMITED: "API_429",
+  API_BAD_REQUEST: "API_400",
+  API_SERVER_ERROR: "API_500",
+  API_TIMEOUT: "API_408",
+
+  // Validation errors (VAL_xxx)
+  VALIDATION_REQUIRED: "VAL_001",
+  VALIDATION_INVALID_NUMBER: "VAL_002",
+  VALIDATION_INVALID_JSON: "VAL_003",
+  VALIDATION_INVALID_FORMAT: "VAL_004",
+
+  // Storage errors (STR_xxx)
+  STORAGE_READ_ERROR: "STR_001",
+  STORAGE_WRITE_ERROR: "STR_002",
+  STORAGE_QUOTA_EXCEEDED: "STR_003",
+
+  // Scraping errors (SCR_xxx)
+  SCRAPING_SELECTOR_NOT_FOUND: "SCR_001",
+  SCRAPING_PARSE_ERROR: "SCR_002",
+
+  // i18n errors (I18N_xxx)
+  I18N_MISSING_KEY: "I18N_001",
+  I18N_INVALID_LOCALE: "I18N_002",
+
+  // Conversion errors (CNV_xxx)
+  CONVERSION_MISSING_RATE: "CNV_001",
+  CONVERSION_INVALID_AMOUNT: "CNV_002",
+};

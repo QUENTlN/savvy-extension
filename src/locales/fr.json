@@ -476,5 +476,25 @@
             "duplicateRange": "Plage en double détectée",
             "fixErrorsBeforeSaving": "Veuillez corriger toutes les erreurs de validation avant d'enregistrer"
         }
+    },
+    "errors": {
+        "API_001": "Erreur réseau. Veuillez vérifier votre connexion et réessayer.",
+        "API_429": "Limite quotidienne atteinte. Veuillez réessayer demain.",
+        "API_400": "Requête invalide : {message}",
+        "API_500": "Erreur serveur. Veuillez réessayer plus tard.",
+        "API_408": "Délai d'attente dépassé. Veuillez réessayer.",
+        "VAL_001": "{field} est requis",
+        "VAL_002": "{field} doit être un nombre valide",
+        "VAL_003": "Format JSON invalide",
+        "VAL_004": "Format invalide : {message}",
+        "STR_001": "Impossible de lire les données du stockage",
+        "STR_002": "Impossible de sauvegarder les données",
+        "STR_003": "Quota de stockage dépassé. Veuillez supprimer des sessions.",
+        "SCR_001": "Élément introuvable sur la page",
+        "SCR_002": "Impossible d'analyser le contenu de la page",
+        "I18N_001": "Traduction manquante : {key}",
+        "I18N_002": "Langue invalide : {locale}",
+        "CNV_001": "Aucun taux de conversion fourni pour {currency}",
+        "CNV_002": "Montant invalide pour la conversion"
     }
 }

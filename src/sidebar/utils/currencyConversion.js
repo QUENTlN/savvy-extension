@@ -1,4 +1,5 @@
 import { deepCloneSession } from "./sessionHelpers.js";
+import { ConversionError } from "../../shared/errors/index.js";
 
 /**
  * Converts a single monetary value
@@ -55,7 +56,7 @@ function convertItem(item, rates, targetCurrency) {
 
   const rate = rates[item.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${item.currency}`);
+    throw ConversionError.missingRate(item.currency);
   }
 
   const converted = { ...item };
@@ -81,7 +82,7 @@ function convertDeliveryRule(rule, rates, targetCurrency) {
 
   const rate = rates[rule.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${rule.currency}`);
+    throw ConversionError.missingRate(rule.currency);
   }
 
   const converted = { ...rule };
@@ -122,7 +123,7 @@ function convertForwarder(forwarder, rates, targetCurrency) {
 
   const rate = rates[forwarder.currency];
   if (!rate) {
-    throw new Error(`No conversion rate provided for ${forwarder.currency}`);
+    throw ConversionError.missingRate(forwarder.currency);
   }
 
   const converted = { ...forwarder };

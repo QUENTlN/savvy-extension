@@ -476,5 +476,25 @@
             "duplicateRange": "Rango duplicado detectado",
             "fixErrorsBeforeSaving": "Por favor corrija todos los errores de validación antes de guardar"
         }
+    },
+    "errors": {
+        "API_001": "Error de red. Por favor, verifique su conexión e inténtelo de nuevo.",
+        "API_429": "Límite diario alcanzado. Por favor, inténtelo mañana.",
+        "API_400": "Solicitud inválida: {message}",
+        "API_500": "Error del servidor. Por favor, inténtelo más tarde.",
+        "API_408": "Tiempo de espera agotado. Por favor, inténtelo de nuevo.",
+        "VAL_001": "{field} es obligatorio",
+        "VAL_002": "{field} debe ser un número válido",
+        "VAL_003": "Formato JSON inválido",
+        "VAL_004": "Formato inválido: {message}",
+        "STR_001": "No se pudieron leer los datos del almacenamiento",
+        "STR_002": "No se pudieron guardar los datos",
+        "STR_003": "Cuota de almacenamiento excedida. Por favor, elimine algunas sesiones.",
+        "SCR_001": "No se encontró el elemento en la página",
+        "SCR_002": "No se pudo analizar el contenido de la página",
+        "I18N_001": "Traducción faltante: {key}",
+        "I18N_002": "Idioma inválido: {locale}",
+        "CNV_001": "No se proporcionó tasa de conversión para {currency}",
+        "CNV_002": "Cantidad inválida para conversión"
     }
 }
