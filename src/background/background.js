@@ -160,7 +160,7 @@ const messageHandlers = {
   getKnownParsers: () => ({ knownParsers: parsers }),
 
   // Actions
-  scrapePage: (message, sender) => {
+  scrapePage: (message, _sender) => {
     scrapePage(message.tabId);
     // No response expected by caller
     return undefined;
@@ -454,7 +454,7 @@ async function optimizeSession(sessionData) {
       try {
         const errorData = JSON.parse(responseText);
         throw new Error(errorData.detail || `API error: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`API error ${response.status}: ${responseText.substring(0, 200)}`);
       }
     }

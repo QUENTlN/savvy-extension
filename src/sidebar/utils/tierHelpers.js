@@ -14,7 +14,7 @@ export function getMinValueForFirstTier(type) {
   return requiresInteger(type) ? 1 : 0;
 }
 
-export function parseTierRange(row, type) {
+export function parseTierRange(row, _type) {
   const minInput = row.querySelector('input[name$="_min"]');
   const maxInput = row.querySelector('input[name$="_max"]');
   const valueInput = row.querySelector('input[name$="_value"]');

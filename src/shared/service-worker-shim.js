@@ -90,7 +90,7 @@
         },
       };
       return;
-    } catch (e) {
+    } catch {
       // If for some reason wrapping fails, we silently ignore
     }
   }

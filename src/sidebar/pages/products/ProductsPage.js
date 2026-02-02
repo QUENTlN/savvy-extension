@@ -32,7 +32,7 @@ export async function initProductsPage(app) {
   attachEventListeners(session, optimizationState);
 }
 
-function attachEventListeners(session, optimizationState) {
+function attachEventListeners(session, _optimizationState) {
   document.getElementById("back-button")?.addEventListener("click", actions.navigateToSessions);
 
   // View results button (when results exist and session not modified)

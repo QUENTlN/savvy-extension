@@ -1,5 +1,4 @@
 import { t } from "../../../../shared/i18n.js";
-import { Store } from "../../../state.js";
 import * as actions from "../ForwardersActions.js";
 import { setupAutoFocus, setupEscapeKey, setupEnterKey } from "../../../modals.js";
 import { validateRequiredField, clearAllErrors } from "../../../modals.js";

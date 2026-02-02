@@ -239,7 +239,7 @@ export function getMinValueForFirstTier(type) {
   return requiresInteger(type) ? 1 : 0;
 }
 
-export function parseTierRange(row, type) {
+export function parseTierRange(row, _type) {
   const minInput = row.querySelector('input[name$="_min"]');
   const maxInput = row.querySelector('input[name$="_max"]');
   const valueInput = row.querySelector('input[name$="_value"]');
@@ -482,7 +482,7 @@ export function validateLastTierInfinity(ranges, severity = "error") {
   return true;
 }
 
-export function validateAtLeastOneTier(ranges, container, severity = "error") {
+export function validateAtLeastOneTier(ranges, container, _severity = "error") {
   if (ranges.length === 0) {
     const rangesContainer = container.querySelector(".ranges-container");
     if (rangesContainer) {
@@ -828,7 +828,6 @@ export function handleTieredToggle(e) {
 }
 
 export function handleUnitChange(e, container) {
-  const select = e.target;
   const prefix = container.dataset.prefix;
   const data = extractCalculationRule(prefix, container);
   const type = data.type;

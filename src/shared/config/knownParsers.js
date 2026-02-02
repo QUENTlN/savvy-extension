@@ -1,6 +1,6 @@
 // Default configuration for known parsers used by the scraper content script.
 
-export let knownParsers = {
+export const knownParsers = {
   amazon: {
     price: {
       strategy: "extractPrice",

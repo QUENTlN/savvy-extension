@@ -25,7 +25,7 @@ export async function showEditProductModal(product, session) {
     hasAlternativeGroupWarning,
   });
 
-  const { modal, closeModal } = createModal(content, {
+  const { modal } = createModal(content, {
     onSave: async () => {
       clearAllErrors(modal);
 

@@ -41,7 +41,7 @@ async function init() {
   });
 
   // Listen for messages from background script
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  browser.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     if (message.action === "scrapedData") {
       browser.windows.getCurrent().then((currentWindow) => {
         browser.windows.getLastFocused().then((focusedWindow) => {

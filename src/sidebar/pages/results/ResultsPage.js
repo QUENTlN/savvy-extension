@@ -17,7 +17,7 @@ export function initResultsPage(app) {
   attachEventListeners(session);
 }
 
-function attachEventListeners(session) {
+function attachEventListeners(_session) {
   document.getElementById("back-button")?.addEventListener("click", actions.navigateToProducts);
 
   document.getElementById("history-button")?.addEventListener("click", () => {

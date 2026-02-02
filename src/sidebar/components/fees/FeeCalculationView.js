@@ -37,7 +37,7 @@ export function getValueLabel(
   tierValueType,
   tierValueMode,
   unit = "",
-  unit2 = "",
+  _unit2 = "",
   currency = null
 ) {
   const isPerUnit = tierValueMode === "perUnit";
@@ -978,7 +978,6 @@ export function renderCalculationRules(prefix, ruleData, config = {}) {
 
   // Get label context from preset (delivery vs forwarder)
   const labelContext = presetConfig.labelContext || "delivery";
-  const labelPrefix = labelContext === "forwarder" ? "forwarderFees" : "deliveryRules";
 
   // Type definitions with labels and help text
   // For forwarder context, use generic labels instead of delivery-specific ones

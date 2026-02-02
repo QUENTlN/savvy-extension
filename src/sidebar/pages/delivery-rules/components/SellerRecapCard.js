@@ -1,5 +1,4 @@
 import { t } from "../../../../shared/i18n.js";
-import { Store } from "../../../state.js";
 import { formatPercent, formatNumber, getCurrencySymbol } from "../../../utils/formatters.js";
 import { DEFAULT_CURRENCY } from "../../../../shared/config/currencies.js";
 
@@ -59,7 +58,7 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
 
       // Helper to format value display
       const getValueDisplay = (val) => {
-        let value = val || 0;
+        const value = val || 0;
         return `${formatNumber(value)} ${getCurrencySymbol(currency)}`;
       };
 
@@ -147,7 +146,7 @@ function renderCalcMethodDetails(calcMethod, currency, indent = false) {
 
         // Helper to format value display
         const getValueDisplay = (val) => {
-          let value = val || 0;
+          const value = val || 0;
           let valueDisplay = "";
           if (tierValueType === "fixed") {
             valueDisplay = `${formatNumber(value)} ${getCurrencySymbol(currency)}`;

@@ -120,7 +120,7 @@ export function collectOfferFormData(session) {
  * @param {Object} session - Session with settings
  * @returns {boolean} True if form is valid
  */
-export function validateOfferForm(modal, session) {
+export function validateOfferForm(modal, _session) {
   clearAllErrors(modal);
 
   // URL is required
@@ -148,7 +148,6 @@ export function validateOfferForm(modal, session) {
   }
 
   // Check product selection if in bundle mode
-  const isBundleToggle = document.getElementById("is-bundle");
   const productSelection = document.getElementById("product-selection");
 
   if (productSelection && productSelection.style.display !== "none") {

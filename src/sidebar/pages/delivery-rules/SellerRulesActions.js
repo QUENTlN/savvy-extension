@@ -21,7 +21,6 @@ import {
   handleRemoveRange,
   handlePackingModeChange,
 } from "../../components/fees/index.js";
-import { CURRENCIES } from "../../../shared/config/currencies.js";
 
 // Re-export event handlers for use in SellerRulesPage
 export {

@@ -51,7 +51,7 @@ export function openInNewTab(url) {
   if (url) {
     try {
       browser.tabs.create({ url });
-    } catch (err) {
+    } catch {
       window.open(url, "_blank", "noopener");
     }
   }

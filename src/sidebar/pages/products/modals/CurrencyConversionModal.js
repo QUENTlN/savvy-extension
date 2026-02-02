@@ -145,7 +145,7 @@ export function showCurrencyConversionModal(foreignCurrencies, targetCurrency) {
   return new Promise((resolve) => {
     const content = renderCurrencyConversionForm(foreignCurrencies, targetCurrency);
 
-    const { modal, closeModal } = createModal(content, {
+    const { modal } = createModal(content, {
       onSave: () => {
         if (!validateConversionRates(modal, foreignCurrencies)) {
           return false; // Keep modal open

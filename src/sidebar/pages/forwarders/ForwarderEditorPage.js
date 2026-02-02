@@ -1,7 +1,6 @@
 import * as actions from "./ForwarderEditorActions.js";
 import { renderForwarderEditorView } from "./ForwarderEditorView.js";
 import { Store } from "../../state.js";
-import { t } from "../../../shared/i18n.js";
 import {
   handleCalculationTypeChange,
   handleTieredToggle,

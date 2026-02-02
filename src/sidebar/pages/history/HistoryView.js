@@ -1,7 +1,7 @@
 import { t } from "../../../shared/i18n.js";
 import { formatCurrency } from "../../utils/formatters.js";
 
-export function renderHistoryView({ history, session }) {
+export function renderHistoryView({ history, session: _session }) {
   return `
     <div class="mx-4">
       <!-- Header -->

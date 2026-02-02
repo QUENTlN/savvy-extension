@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const postcss = require('postcss');
 const tailwindcss = require('@tailwindcss/postcss');
-const { bundleJS } = require('./esbuild.config');
+const { bundleJS } = require('./esbuild.config.cjs');
 
 // Paths
 

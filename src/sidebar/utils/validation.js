@@ -253,7 +253,7 @@ export function validateLastTierInfinity(ranges, severity = "error") {
 /**
  * Validate at least one tier exists
  */
-export function validateAtLeastOneTier(ranges, container, severity = "error") {
+export function validateAtLeastOneTier(ranges, container, _severity = "error") {
   if (ranges.length === 0) {
     const rangesContainer = container.querySelector(".ranges-container");
     if (rangesContainer) {

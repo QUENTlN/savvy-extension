@@ -141,7 +141,7 @@ function formatPrice(price, currency) {
     return Number(price) === 0
       ? t("offers.free")
       : `${formatNumber(price)} ${getCurrencySymbol(currency)}`;
-  } catch (e) {
+  } catch {
     return `${price} ${getCurrencySymbol(currency)}`;
   }
 }

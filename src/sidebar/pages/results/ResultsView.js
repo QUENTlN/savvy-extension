@@ -378,8 +378,8 @@ function renderSellerCard(seller, sellerData, session, currency, groups) {
   let forwarderTotal = 0;
   let totalQuantity = 0;
 
-  let totalCustomsDetail = { duties: 0, vat: 0, clearance: 0 };
-  let totalForwarderDetail = { reception: 0, storage: 0, repackaging: 0, reshipping: 0 };
+  const totalCustomsDetail = { duties: 0, vat: 0, clearance: 0 };
+  const totalForwarderDetail = { reception: 0, storage: 0, repackaging: 0, reshipping: 0 };
 
   let showInsurance = false;
   let showCustoms = false;
@@ -811,72 +811,6 @@ function renderTableRow({
   `;
 }
 
-function renderGroupedItems(offers, bundles, groups, session, currency) {
-  // Match offers/bundles to groups based on product IDs
-  // v2.0 uses offer.ids.product, old format uses offer.product_id
-  const groupedItems = groups
-    .map((group) => {
-      const groupProductIds = new Set(group.productIds || []);
-      const groupOffers = offers.filter((o) => {
-        const productId = o.ids?.product ?? o.product_id;
-        return groupProductIds.has(productId);
-      });
-      const groupBundles = bundles.filter((b) => {
-        const productIds = b.ids?.products ?? b.product_ids ?? [];
-        return productIds.some((pid) => groupProductIds.has(pid));
-      });
-      return { group, offers: groupOffers, bundles: groupBundles };
-    })
-    .filter((g) => g.offers.length > 0 || g.bundles.length > 0);
-
-  // Find items not in any group
-  const allGroupProductIds = new Set(groups.flatMap((g) => g.productIds || []));
-  const ungroupedOffers = offers.filter((o) => {
-    const productId = o.ids?.product ?? o.product_id;
-    return !allGroupProductIds.has(productId);
-  });
-  const ungroupedBundles = bundles.filter((b) => {
-    const productIds = b.ids?.products ?? b.product_ids ?? [];
-    return !productIds.some((pid) => allGroupProductIds.has(pid));
-  });
-
-  let html = "";
-
-  // Render grouped items
-  for (const { group, offers: gOffers, bundles: gBundles } of groupedItems) {
-    html += `
-      <div class="mb-3">
-        <p class="text-sm font-medium muted-text mb-2">${group.name || t("results.group")}</p>
-        <div class="pl-2 border-l-2 border-default">
-          ${gOffers.map((o) => renderOfferItem(o, session, currency)).join("")}
-          ${gBundles.map((b) => renderBundleItem(b, session, currency)).join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  // Render ungrouped items
-  if (ungroupedOffers.length > 0 || ungroupedBundles.length > 0) {
-    html += `
-      <div class="mb-3">
-        ${ungroupedOffers.map((o) => renderOfferItem(o, session, currency)).join("")}
-        ${ungroupedBundles.map((b) => renderBundleItem(b, session, currency)).join("")}
-      </div>
-    `;
-  }
-
-  return html;
-}
-
-function renderFlatItems(offers, bundles, session, currency) {
-  return `
-    <div class="space-y-1">
-      ${offers.map((o) => renderOfferItem(o, session, currency)).join("")}
-      ${bundles.map((b) => renderBundleItem(b, session, currency)).join("")}
-    </div>
-  `;
-}
-
 function findOriginalOffer(selectedOffer, session) {
   // v2.0 uses ids.offer, old format uses offer_id
   const offerId = selectedOffer.ids?.offer ?? selectedOffer.offer_id;
@@ -885,106 +819,6 @@ function findOriginalOffer(selectedOffer, session) {
     if (offer) return offer;
   }
   return null;
-}
-
-function renderOfferItem(offer, session, currency) {
-  // v2.0 uses ids.product, ids.offer, pricing.product_total
-  const productId = offer.ids?.product ?? offer.product_id;
-  const offerId = offer.ids?.offer ?? offer.offer_id;
-  const totalPrice = offer.pricing?.product_total ?? offer.total_price ?? 0;
-
-  const product = session.products?.find((p) => p.id === productId);
-  const originalOffer = findOriginalOffer(offer, session);
-
-  // v2.0 has costs.insurance.amount, fallback to original offer lookup
-  let insurance = 0;
-  if (offer.costs?.insurance?.amount) {
-    insurance = offer.costs.insurance.amount;
-  } else if (originalOffer?.insurancePrice) {
-    insurance = originalOffer.insurancePrice * offer.quantity;
-  }
-
-  const showQty = session.manageQuantity;
-  // Use affiliated_url from API if available, fallback to url from API, then original offer
-  const offerUrl = offer.affiliated_url || offer.url || originalOffer?.url || "";
-
-  const details = [];
-  if (showQty) details.push(`${t("results.qty")}: ${offer.quantity}`);
-  if (insurance > 0)
-    details.push(`${t("offers.insurance")}: ${formatCurrency(insurance, currency)}`);
-
-  return `
-    <div class="flex items-center py-2 gap-3">
-      ${
-        offerUrl
-          ? `
-      <button class="open-offer-button primary-bg primary-text p-2 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" data-url="${offerUrl}" title="${t("offers.openInNewTab")}">
-        <span class="icon icon-open_external h-5 w-5"></span>
-      </button>
-      `
-          : ""
-      }
-      <div class="flex-1 min-w-0">
-        <p class="card-text font-medium truncate">${product?.name || productId}</p>
-        ${details.length > 0 ? `<p class="text-sm muted-text">${details.join(" • ")}</p>` : ""}
-      </div>
-      <p class="card-text font-medium whitespace-nowrap">${formatCurrency(totalPrice, currency)}</p>
-    </div>
-  `;
-}
-
-function renderBundleItem(bundle, session, currency) {
-  // v2.0 uses ids.bundle, ids.products, pricing.product_total
-  const bundleId = bundle.ids?.bundle ?? bundle.bundle_id;
-  const productIds = bundle.ids?.products ?? bundle.product_ids ?? [];
-  const totalPrice = bundle.pricing?.product_total ?? bundle.total_price ?? 0;
-
-  const bundleObj = session.bundles?.find((b) => b.id === bundleId);
-
-  // v2.0 has costs.insurance.amount, fallback to original bundle lookup
-  let insurance = 0;
-  if (bundle.costs?.insurance?.amount) {
-    insurance = bundle.costs.insurance.amount;
-  } else if (bundleObj?.insurancePrice) {
-    insurance = bundleObj.insurancePrice * bundle.quantity;
-  }
-
-  const showQty = session.manageQuantity;
-  // Use affiliated_url from API if available, fallback to url from API, then original bundle
-  const bundleUrl = bundle.affiliated_url || bundle.url || bundleObj?.url || "";
-
-  // Get product names in bundle
-  const productNames = productIds
-    .map((pid) => {
-      const product = session.products?.find((p) => p.id === pid);
-      return product?.name || pid;
-    })
-    .join(", ");
-
-  const details = [];
-  if (showQty) details.push(`${t("results.qty")}: ${bundle.quantity}`);
-  if (productNames) details.push(productNames);
-  if (insurance > 0)
-    details.push(`${t("offers.insurance")}: ${formatCurrency(insurance, currency)}`);
-
-  return `
-    <div class="flex items-center py-2 gap-3">
-      ${
-        bundleUrl
-          ? `
-      <button class="open-offer-button primary-bg primary-text p-2 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" data-url="${bundleUrl}" title="${t("offers.openInNewTab")}">
-        <span class="icon icon-open_external h-5 w-5"></span>
-      </button>
-      `
-          : ""
-      }
-      <div class="flex-1 min-w-0">
-        <p class="card-text font-medium truncate">${bundleObj?.name || t("results.bundle")}</p>
-        ${details.length > 0 ? `<p class="text-sm muted-text truncate">${details.join(" • ")}</p>` : ""}
-      </div>
-      <p class="card-text font-medium whitespace-nowrap">${formatCurrency(totalPrice, currency)}</p>
-    </div>
-  `;
 }
 
 function getStatusClass(status) {

@@ -1,16 +1,15 @@
 // Ensure `browser` is available in all browsers (Firefox, Chrome, etc.)
 if (typeof browser === "undefined" && typeof chrome !== "undefined") {
-  // eslint-disable-next-line no-global-assign
   browser = chrome;
 }
 
 console.log("Content script initializing...");
 
 // Listen for scrape command from background script
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   console.log("Content script received message:", message);
   if (message.action === "scrape") {
-    // Le background script ne devrait envoyer le message que si l'onglet est actif
+    // the background script should only send the message if the tab is active
     console.log("Starting to scrape the page...");
     scrapeCurrentPage().then((pageData) => {
       browser.runtime.sendMessage({
@@ -187,7 +186,7 @@ const strategies = {
     try {
       const element = document.querySelector(selector);
       return element ? element.textContent.trim() : "";
-    } catch (e) {
+    } catch {
       return "";
     }
   },
@@ -200,7 +199,7 @@ const strategies = {
       if (!element) return "";
 
       // Nettoyer et normaliser le texte (convertir en minuscules)
-      let text = element.textContent.trim().toLowerCase();
+      const text = element.textContent.trim().toLowerCase();
 
       // Liste des mots indiquant la gratuité
       const freeTerms = [

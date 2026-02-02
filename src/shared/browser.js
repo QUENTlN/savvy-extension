@@ -13,7 +13,7 @@
       // In MV2 we can safely alias directly; we don't need Promise-wrapped methods here
       globalThis.browser = globalThis.chrome;
       return;
-    } catch (e) {
+    } catch {
       // If for some reason direct aliasing fails, we silently ignore
     }
   }
