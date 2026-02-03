@@ -18,7 +18,12 @@ export class ErrorHandler {
    * @returns {AppError} - Normalized AppError instance
    */
   static handle(error, options = {}) {
-    const { silent = false, fallbackMessage = "An unexpected error occurred", showToast, t } = options;
+    const {
+      silent = false,
+      fallbackMessage = "An unexpected error occurred",
+      showToast,
+      t,
+    } = options;
 
     // Normalize to AppError
     const appError = ErrorHandler.normalize(error);
