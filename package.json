@@ -10,6 +10,10 @@
     ],
     "src/**/*.{css,html,json}": [
       "prettier --write"
+    ],
+    "e2e-tests/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "scripts": {
@@ -24,6 +28,11 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{js,css,html}\"",
     "format:check": "prettier --check \"src/**/*.{js,css,html}\"",
+    "test:e2e": "playwright test --config e2e-tests/playwright.config.ts",
+    "test:e2e:headed": "HEADED=1 playwright test --config e2e-tests/playwright.config.ts --headed",
+    "test:e2e:debug": "playwright test --config e2e-tests/playwright.config.ts --debug",
+    "test:e2e:ui": "playwright test --config e2e-tests/playwright.config.ts --ui",
+    "pretest:e2e": "npm run build:chrome",
     "prepare": "husky"
   },
   "repository": {
@@ -44,12 +53,16 @@
     "postcss": "^8.5.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^25.2.0",
     "esbuild": "^0.27.2",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
     "globals": "^15.14.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.4.2"
+    "prettier": "^3.4.2",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.22.0"
   }
 }

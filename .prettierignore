@@ -1,2 +1,4 @@
 build/
 node_modules/
+e2e-tests/test-results/
+e2e-tests/playwright-report/

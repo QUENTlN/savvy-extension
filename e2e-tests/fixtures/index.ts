@@ -1,0 +1,42 @@
+// Re-export all fixtures and helpers for easy importing
+
+export { test, expect, type ExtensionFixtures } from "./extension.fixture";
+export {
+  seedStorage,
+  clearStorage,
+  getStorage,
+  seedSettings,
+  getSettings,
+  seedOptimizationResult,
+  type Session,
+  type Product,
+  type Offer,
+  type Bundle,
+  type DeliveryRule,
+  type AlternativeGroup,
+  type CustomsCategory,
+  type Forwarder,
+  type StorageData,
+  type Settings,
+} from "./storage.fixture";
+export {
+  resetCounters,
+  createSessionId,
+  createProductId,
+  createOfferId,
+  createBundleId,
+  createForwarderId,
+  createAlternativeGroupId,
+  createCustomsCategoryId,
+  createSessionData,
+  createProductData,
+  createOfferData,
+  createBundleData,
+  createDeliveryRuleData,
+  createForwarderData,
+  createAlternativeGroupData,
+  createCustomsCategoryData,
+  createCompleteSessionData,
+  createCompleteOptimizableSession,
+  createOptimizationResult,
+} from "./data.fixture";
