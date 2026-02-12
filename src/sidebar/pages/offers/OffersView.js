@@ -1,6 +1,7 @@
 import { t } from "../../../shared/i18n.js";
 import { formatNumber, getCurrencySymbol } from "../../utils/formatters.js";
 import { DEFAULT_CURRENCY } from "../../../shared/config/currencies.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderOffersView({ session, product }) {
   return `
@@ -11,7 +12,7 @@ export function renderOffersView({ session, product }) {
           <button class="muted-text p-2 cursor-pointer" id="back-button">
             <span class="icon icon-back h-8 w-8"></span>
           </button>
-          <h1 class="text-2xl pl-4 font-semibold card-text">${product.name}</h1>
+          <h1 class="text-2xl pl-4 font-semibold card-text">${escapeHTML(product.name)}</h1>
         </div>
       </div>
 
@@ -48,7 +49,7 @@ function renderOfferCard(offer) {
     <div class="card-bg rounded-xl shadow-md p-4">
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0 mr-4">
-          <p class="text-lg font-medium text-[hsl(var(--foreground))] truncate">${offer.seller || offer.url}</p>
+          <p class="text-lg font-medium text-[hsl(var(--foreground))] truncate">${escapeHTML(offer.seller || offer.url)}</p>
           <div class="mt-1 space-y-1">
             <p class="muted-text">${t("offers.price")}: ${formatPrice(offer.price, currency)}</p>
             <p class="muted-text">${t("offers.shipping")}: ${formatPrice(offer.shippingPrice, currency)}</p>
@@ -58,7 +59,7 @@ function renderOfferCard(offer) {
           </div>
         </div>
         <div class="flex items-start space-x-2">
-          <button class="muted-text p-1 cursor-pointer open-offer-button" data-url="${offer.url}" title="${t("offers.openInNewTab")}">
+          <button class="muted-text p-1 cursor-pointer open-offer-button" data-url="${escapeHTML(offer.url)}" title="${t("offers.openInNewTab")}">
             <span class="icon icon-open_external h-6 w-6"></span>
           </button>
           <button class="muted-text p-1 cursor-pointer edit-offer-button" data-id="${offer.id}" title="${t("offers.editOfferTitle")}">
@@ -91,7 +92,7 @@ function renderBundleCards(session, product) {
         <div class="flex-1 min-w-0 mr-4">
           <div class="flex items-center space-x-2">
             <span class="card-bg secondary-text text-xs font-semibold px-2.5 py-0.5 rounded border border-default">${t("products.bundle").toUpperCase()}</span>
-            <p class="text-lg font-medium card-text truncate">${bundle.seller || bundle.url}</p>
+            <p class="text-lg font-medium card-text truncate">${escapeHTML(bundle.seller || bundle.url)}</p>
           </div>
           <div class="mt-1 space-y-1">
             <p class="muted-text">${t("offers.price")}: ${formatPrice(bundle.price, currency)}</p>
@@ -107,7 +108,7 @@ function renderBundleCards(session, product) {
                         .map((bp) => {
                           const prod = session.products.find((p) => p.id === bp.productId);
                           return prod
-                            ? `<li class="text-sm muted-text">• ${prod.name} ${session.manageQuantity !== false && bp.quantity > 1 ? `(x${bp.quantity})` : ""}</li>`
+                            ? `<li class="text-sm muted-text">• ${escapeHTML(prod.name)} ${session.manageQuantity !== false && bp.quantity > 1 ? `(x${bp.quantity})` : ""}</li>`
                             : "";
                         })
                         .join("")
@@ -118,7 +119,7 @@ function renderBundleCards(session, product) {
           </div>
         </div>
         <div class="flex items-start space-x-2">
-          <button class="muted-text p-1 cursor-pointer open-offer-button" data-url="${bundle.url}" title="${t("offers.openInNewTab")}">
+          <button class="muted-text p-1 cursor-pointer open-offer-button" data-url="${escapeHTML(bundle.url)}" title="${t("offers.openInNewTab")}">
             <span class="icon icon-open_external h-6 w-6"></span>
           </button>
           <button class="muted-text p-1 cursor-pointer edit-bundle-button" data-id="${bundle.id}" title="${t("bundles.editBundle")}">

@@ -1,6 +1,7 @@
 import { t } from "../../../../shared/i18n.js";
 import { setupEscapeKey, setupEnterKey, setupAutoFocus } from "../../../modals.js";
 import { showToast } from "../../../utils/toast.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 export function showAssignForwarderModal(session, onSelect) {
   const forwarders = session.forwarders || [];
@@ -27,7 +28,7 @@ export function showAssignForwarderModal(session, onSelect) {
             ${forwarders
               .map(
                 (f) => `
-              <option value="${f.id}">${f.name}</option>
+              <option value="${f.id}">${escapeHTML(f.name)}</option>
             `
               )
               .join("")}

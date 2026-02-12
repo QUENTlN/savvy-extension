@@ -1,6 +1,7 @@
 import { t } from "../../../../shared/i18n.js";
 import { formatPercent, formatNumber, getCurrencySymbol } from "../../../utils/formatters.js";
 import { DEFAULT_CURRENCY } from "../../../../shared/config/currencies.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 function renderCalcMethodDetails(calcMethod, currency, indent = false) {
   if (!calcMethod || !calcMethod.type) return "";
@@ -344,7 +345,7 @@ export function renderSellerRecapCard(session, seller, rule) {
       <div class="p-3 secondary-bg rounded-lg border border-default">
         <p class="text-sm secondary-text">
           <span class="font-medium">${t("deliveryRules.sameSellerAs")}:</span>
-          <span class="card-text font-semibold">${copiedFrom}</span>
+          <span class="card-text font-semibold">${escapeHTML(copiedFrom)}</span>
         </p>
       </div>
     `;
@@ -389,7 +390,7 @@ export function renderSellerRecapCard(session, seller, rule) {
       detailsHtml += `
         <div class="p-2 bg-[hsl(var(--card))] rounded border border-default/50 space-y-1">
           <div class="flex justify-between items-start">
-            <p class="text-sm font-medium card-text">${group.name || t("deliveryRules.newGroupPlaceholder")}</p>
+            <p class="text-sm font-medium card-text">${escapeHTML(group.name) || t("deliveryRules.newGroupPlaceholder")}</p>
             <span class="text-xs secondary-text bg-[hsl(var(--muted))] px-2 py-0.5 rounded">
               ${productCount} ${productCount === 1 ? t("sessions.product") : t("sessions.products")}
             </span>
@@ -431,8 +432,8 @@ export function renderSellerRecapCard(session, seller, rule) {
   return `
     <div class="card-bg rounded-xl shadow-md p-4 border border-default">
       <div class="flex justify-between items-start mb-3">
-        <h4 class="text-lg font-semibold card-text">${seller}</h4>
-        <button class="edit-seller-btn text-sm secondary-bg secondary-text px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 border border-default flex-shrink-0" data-seller="${seller}">
+        <h4 class="text-lg font-semibold card-text">${escapeHTML(seller)}</h4>
+        <button class="edit-seller-btn text-sm secondary-bg secondary-text px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 border border-default flex-shrink-0" data-seller="${escapeHTML(seller)}">
           ${t("common.edit")}
         </button>
       </div>

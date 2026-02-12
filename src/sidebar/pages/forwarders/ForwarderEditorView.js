@@ -1,6 +1,7 @@
 import { t } from "../../../shared/i18n.js";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../../shared/config/currencies.js";
 import { renderCalculationRules } from "../../components/fees/index.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 const BILLING_MODES = [
   { value: "perOrder", labelKey: "forwarders.billingMode.perOrder" },
@@ -126,7 +127,7 @@ export function renderForwarderEditorView({ forwarder }) {
       <!-- Forwarder Name -->
       <div class="mb-6">
         <label class="block text-sm font-medium secondary-text mb-1">${t("forwarders.forwarderName")}</label>
-        <input type="text" id="forwarder-name" value="${forwarder.name}" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
+        <input type="text" id="forwarder-name" value="${escapeHTML(forwarder.name)}" class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
       </div>
 
       <!-- Currency -->

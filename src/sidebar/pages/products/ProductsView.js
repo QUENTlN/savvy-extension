@@ -1,4 +1,5 @@
 import { t } from "../../../shared/i18n.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderProductsView({ session, optimizationState = {}, rateLimit = null }) {
   return `
@@ -9,7 +10,7 @@ export function renderProductsView({ session, optimizationState = {}, rateLimit 
           <button class="muted-text p-2 cursor-pointer" id="back-button">
             <span class="icon icon-back h-8 w-8"></span>
           </button>
-          <h1 class="text-2xl pl-4 font-semibold card-text">${session.name}</h1>
+          <h1 class="text-2xl pl-4 font-semibold card-text">${escapeHTML(session.name)}</h1>
         </div>
       </div>
 
@@ -133,7 +134,7 @@ function renderProductCard(product, session) {
     <div class="card-bg rounded-xl shadow-md p-4 product-item" data-id="${product.id}">
       <div class="flex justify-between items-center cursor-pointer">
         <div class="flex-1 min-w-0 mr-4 cursor-pointer">
-          <h2 class="text-xl font-medium card-text truncate">${product.name}${session.manageQuantity !== false && product.quantity && product.quantity > 1 ? ` (×${product.quantity})` : ""}</h2>
+          <h2 class="text-xl font-medium card-text truncate">${escapeHTML(product.name)}${session.manageQuantity !== false && product.quantity && product.quantity > 1 ? ` (×${product.quantity})` : ""}</h2>
           <p class="muted-text text-md truncate">
             ${product.offers.length} ${t("products.offers")}
             ${bundleCount > 0 ? ` • ${bundleCount} ${t("products.bundles")}` : ""}

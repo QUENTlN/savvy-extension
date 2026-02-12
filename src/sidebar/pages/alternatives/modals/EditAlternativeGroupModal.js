@@ -7,6 +7,7 @@ import {
   clearAllErrors,
   validateRequiredField,
 } from "../../../modals.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 export function showEditAlternativeGroupModal(group) {
   const session = actions.getSession();
@@ -20,7 +21,7 @@ export function showEditAlternativeGroupModal(group) {
 
         <div class="mb-4">
           <label class="block text-sm font-medium secondary-text mb-1">${t("alternatives.groupName")}</label>
-          <input type="text" id="group-name" value="${group.name}" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          <input type="text" id="group-name" value="${escapeHTML(group.name)}" class="w-full px-4 py-2 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
 
         ${
@@ -76,7 +77,7 @@ export function showEditAlternativeGroupModal(group) {
             return `
           <div class="flex items-center gap-2">
             <input type="checkbox" id="${optionId}-prod-${p.id}" value="${p.id}" class="product-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary" ${initialProd ? "checked" : ""}>
-            <label for="${optionId}-prod-${p.id}" class="flex-1 text-sm secondary-text truncate">${p.name}</label>
+            <label for="${optionId}-prod-${p.id}" class="flex-1 text-sm secondary-text truncate">${escapeHTML(p.name)}</label>
             ${
               session.manageQuantity !== false
                 ? `

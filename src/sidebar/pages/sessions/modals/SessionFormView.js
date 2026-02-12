@@ -1,4 +1,5 @@
 import { t } from "../../../../shared/i18n.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 /**
  * Renders a session form view for both creating and editing sessions.
@@ -42,7 +43,7 @@ export function renderSessionFormView(session = null) {
           <input
             type="text"
             id="${prefix}session-name"
-            value="${name}"
+            value="${escapeHTML(name)}"
             ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ""}
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >

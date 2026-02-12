@@ -7,6 +7,7 @@ import {
   clearAllErrors,
   validateRequiredField,
 } from "../../../modals.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 export function showNewAlternativeGroupModal() {
   const session = actions.getSession();
@@ -76,7 +77,7 @@ export function showNewAlternativeGroupModal() {
             return `
           <div class="flex items-center gap-2">
             <input type="checkbox" id="${optionId}-prod-${p.id}" value="${p.id}" class="product-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary" ${initialProd ? "checked" : ""}>
-            <label for="${optionId}-prod-${p.id}" class="flex-1 text-sm secondary-text truncate">${p.name}</label>
+            <label for="${optionId}-prod-${p.id}" class="flex-1 text-sm secondary-text truncate">${escapeHTML(p.name)}</label>
             ${
               session.manageQuantity !== false
                 ? `

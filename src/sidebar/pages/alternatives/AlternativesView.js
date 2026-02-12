@@ -1,4 +1,5 @@
 import { t } from "../../../shared/i18n.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderAlternativesView({ session }) {
   const groups = session.alternativeGroups || [];
@@ -32,7 +33,7 @@ function renderGroupCard(session, group) {
     <div class="card-bg rounded-xl shadow-md p-4 group-item">
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0 mr-4">
-          <h2 class="text-xl font-medium card-text truncate">${group.name}</h2>
+          <h2 class="text-xl font-medium card-text truncate">${escapeHTML(group.name)}</h2>
           <div class="mt-2 space-y-1">
             ${group.options
               .map(
@@ -47,7 +48,7 @@ function renderGroupCard(session, group) {
                             (product) => product.id === p.productId
                           );
                           const qty = p.quantity > 1 ? ` (×${p.quantity})` : "";
-                          return prod ? `${prod.name}${qty}` : t("offers.noProducts");
+                          return prod ? `${escapeHTML(prod.name)}${qty}` : t("offers.noProducts");
                         })
                         .join(" + ")
                     : t("offers.noProducts")

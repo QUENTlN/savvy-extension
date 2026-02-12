@@ -1,5 +1,6 @@
 import { t } from "../../../../shared/i18n.js";
 import { WEIGHT_UNITS, VOLUME_UNITS, DIMENSION_UNITS } from "../../../../shared/config/units.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 /**
  * Renders a product form view for both creating and editing products.
@@ -57,7 +58,7 @@ export function renderProductFormView({
           <input
             type="text"
             id="product-name"
-            value="${name}"
+            value="${escapeHTML(name)}"
             ${namePlaceholder ? `placeholder="${namePlaceholder}"` : ""}
             class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
@@ -178,7 +179,7 @@ export function renderProductFormView({
                 (p) => `
               <div class="flex items-center">
                 <input type="checkbox" id="compat-${p.id}" value="${p.id}" class="compat-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary" ${isCompatChecked(p.id) ? "checked" : ""}>
-                <label for="compat-${p.id}" class="ml-2 text-sm secondary-text">${p.name}</label>
+                <label for="compat-${p.id}" class="ml-2 text-sm secondary-text">${escapeHTML(p.name)}</label>
               </div>
             `
               )

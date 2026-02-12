@@ -8,6 +8,7 @@ import {
   DEFAULT_VOLUME_UNIT,
   DEFAULT_DIMENSION_UNIT,
 } from "../../../../shared/config/units.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 /**
  * Renders a unified offer form for both Pages and Bundles.
@@ -29,7 +30,7 @@ export function renderOfferFormView({ offer = null, session, product = null, scr
   if (isEdit) {
     title = isBundle ? t("bundles.editBundle") : t("offers.editPage");
   } else {
-    title = t("modals.addOfferFor") + " " + (product?.name || "");
+    title = t("modals.addOfferFor") + " " + escapeHTML(product?.name || "");
   }
 
   // Source data for form values
@@ -64,13 +65,13 @@ export function renderOfferFormView({ offer = null, session, product = null, scr
 
         ${renderProductSelection(session, product, offer, isEdit, isBundle)}
 
-        ${renderUrlField(data.url || "")}
+        ${renderUrlField(escapeHTML(data.url || ""))}
 
         ${renderPriceFields(getValue)}
 
         ${renderCurrencyField(getCurrency())}
 
-        ${renderSellerField(getValue("seller"))}
+        ${renderSellerField(escapeHTML(getValue("seller")))}
 
         ${session.importFeesEnabled ? renderCustomsCategoryField(session, data.customsCategoryId) : ""}
 
@@ -147,7 +148,7 @@ function renderProductSelection(session, product, offer, isEdit, isBundle) {
                 ${isCurrentProduct ? "disabled" : ""}
                 class="bundle-product-checkbox h-4 w-4 accent-primary border-default rounded focus:ring-primary"
               >
-              <label for="product-${p.id}" class="flex-1 text-sm secondary-text">${p.name}</label>
+              <label for="product-${p.id}" class="flex-1 text-sm secondary-text">${escapeHTML(p.name)}</label>
               ${
                 session.manageQuantity !== false
                   ? `
@@ -264,7 +265,7 @@ function renderCustomsCategoryField(session, customsCategoryId) {
         class="w-full px-4 py-3 border border-default input-bg card-text rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <option value="">${t("modals.noCustomsDuties")}</option>
-        ${(session.customsCategories || []).map((cat) => `<option value="${cat.id}" ${customsCategoryId === cat.id ? "selected" : ""}>${cat.name}</option>`).join("")}
+        ${(session.customsCategories || []).map((cat) => `<option value="${cat.id}" ${customsCategoryId === cat.id ? "selected" : ""}>${escapeHTML(cat.name)}</option>`).join("")}
       </select>
     </div>
   `;

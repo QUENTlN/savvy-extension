@@ -1,4 +1,5 @@
 import { t } from "../../../shared/i18n.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderSessionsView({ sessions }) {
   return `
@@ -35,7 +36,7 @@ function renderSessionCard(session) {
     <div class="card-bg rounded-xl shadow-md p-4 session-item" data-id="${session.id}">
       <div class="flex justify-between items-center">
         <div class="flex-1 min-w-0 mr-4 cursor-pointer">
-          <h2 class="text-xl font-medium card-text truncate">${session.name}</h2>
+          <h2 class="text-xl font-medium card-text truncate">${escapeHTML(session.name)}</h2>
           <p class="muted-text text-md truncate">${session.products.length} ${t("sessions.products")}</p>
         </div>
         <div class="flex space-x-2 flex-shrink-0">

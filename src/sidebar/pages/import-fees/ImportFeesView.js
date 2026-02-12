@@ -1,5 +1,6 @@
 import { t } from "../../../shared/i18n.js";
 import { formatPercent } from "../../utils/formatters.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderImportFeesView({ session }) {
   return `
@@ -43,7 +44,7 @@ export function renderImportFeesView({ session }) {
               (cat) => `
             <div class="flex items-center justify-between p-3 secondary-bg rounded-lg border border-default">
               <div class="flex-1">
-                <p class="font-medium card-text">${cat.name}</p>
+                <p class="font-medium card-text">${escapeHTML(cat.name)}</p>
                 <p class="text-sm muted-text">
                   ${t("deliveryRules.dutyRate")}: ${formatPercent(cat.dutyRate)}%<br>
                   ${t("deliveryRules.vatRate")}: ${formatPercent(cat.vatRate)}%

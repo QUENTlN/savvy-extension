@@ -1,5 +1,6 @@
 import { t } from "../../../shared/i18n.js";
 import { formatCurrency, formatPercent } from "../../utils/formatters.js";
+import { escapeHTML } from "../../utils/sanitize.js";
 
 export function renderResultsView({ result, session, isHistorical, hasHistory }) {
   const data = result.result;
@@ -487,7 +488,7 @@ function renderSellerCard(seller, sellerData, session, currency, groups) {
     <div class="card-bg rounded-xl shadow-md p-4 mb-4">
       <!-- Seller Header -->
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-default">
-        <h2 class="text-lg font-semibold card-text">${seller}</h2>
+        <h2 class="text-lg font-semibold card-text">${escapeHTML(seller)}</h2>
         <p class="text-lg font-semibold card-text">${formatCurrency(sellerTotal, currency)}</p>
       </div>
 
@@ -544,10 +545,10 @@ function renderSellerCard(seller, sellerData, session, currency, groups) {
           const chainLinks = [...rule.forwarderChain].sort((a, b) => a.order - b.order);
           const forwarderNames = chainLinks.map((link) => {
             const fw = session.forwarders?.find((f) => f.id === link.forwarderId);
-            return fw?.name || link.forwarderId;
+            return escapeHTML(fw?.name || link.forwarderId);
           });
           if (forwarderNames.length > 0) {
-            const fullChain = [seller, ...forwarderNames, t("results.you")];
+            const fullChain = [escapeHTML(seller), ...forwarderNames, t("results.you")];
             return `
                <div class="mt-4 pt-3 border-t border-dashed border-default flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                  <span class="font-medium flex items-center gap-1">
@@ -601,7 +602,7 @@ function renderGroupedItemsRows(offers, bundles, groups, session, currency, colu
       (columns.forwarder ? 1 : 0);
     html += `
       <tr class="bg-gray-50 dark:bg-gray-800/50">
-        <td colspan="${colSpan}" class="py-2 pl-2 text-xs font-semibold muted-text">${group.name || t("results.group")}</td>
+        <td colspan="${colSpan}" class="py-2 pl-2 text-xs font-semibold muted-text">${escapeHTML(group.name) || t("results.group")}</td>
       </tr>
       ${gOffers.map((o) => renderOfferRow(o, session, currency, columns)).join("")}
       ${gBundles.map((b) => renderBundleRow(b, session, currency, columns)).join("")}
@@ -666,7 +667,7 @@ function renderOfferRow(offer, session, currency, columns) {
   const forwarderTooltip = getForwarderBreakdownTooltip(offer.costs?.forwarder, currency);
 
   return renderTableRow({
-    name: product?.name || productId,
+    name: escapeHTML(product?.name || productId),
     url: offerUrl,
     quantity: offer.quantity,
     price: productPrice,
@@ -722,7 +723,7 @@ function renderBundleRow(bundle, session, currency, columns) {
   const productNames = productIds
     .map((pid) => {
       const product = session.products?.find((p) => p.id === pid);
-      return product?.name || pid;
+      return escapeHTML(product?.name || pid);
     })
     .join(", ");
 
@@ -732,7 +733,7 @@ function renderBundleRow(bundle, session, currency, columns) {
   const bundleUrl = bundle.affiliatedUrl || bundle.url || originalBundle?.url;
 
   return renderTableRow({
-    name: `${originalBundle?.name || t("results.bundle")}: ${productNames}`,
+    name: `${escapeHTML(originalBundle?.name) || t("results.bundle")}: ${productNames}`,
     url: bundleUrl,
     quantity: bundle.quantity,
     price: productPrice,
@@ -770,13 +771,13 @@ function renderTableRow({
             ${
               url
                 ? `
-             <button class="open-offer-button flex items-center gap-1 group/link text-left" data-url="${url}" title="${t("offers.openInNewTab")}">
-               <span class="card-text font-medium text-sm truncate max-w-[150px] sm:max-w-[200px] group-hover/link:text-[hsl(var(--primary))] transition-colors" title="${name}">${name}</span>
+             <button class="open-offer-button flex items-center gap-1 group/link text-left" data-url="${escapeHTML(url)}" title="${t("offers.openInNewTab")}">
+               <span class="card-text font-medium text-sm truncate max-w-[150px] sm:max-w-[200px] group-hover/link:text-[hsl(var(--primary))] transition-colors" title="${escapeHTML(name)}">${escapeHTML(name)}</span>
                <span class="icon icon-open_external h-4 w-4 text-gray-400 group-hover/link:text-[hsl(var(--primary))] transition-colors"></span>
              </button>
             `
                 : `
-               <span class="card-text font-medium text-sm truncate max-w-[150px] sm:max-w-[200px]" title="${name}">${name}</span>
+               <span class="card-text font-medium text-sm truncate max-w-[150px] sm:max-w-[200px]" title="${escapeHTML(name)}">${escapeHTML(name)}</span>
             `
             }
          </div>
@@ -851,7 +852,7 @@ function renderForwarderFeesBreakdownCard(data, session, currency) {
             return `
             <div class="border-b border-default pb-2 last:border-0 last:pb-0">
               <div class="flex justify-between text-sm font-medium mb-1">
-                <span class="card-text">${name}</span>
+                <span class="card-text">${escapeHTML(name)}</span>
                 <span class="card-text">${formatCurrency(detail.total, currency)}</span>
               </div>
               <div class="space-y-1 pl-2">

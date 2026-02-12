@@ -1,4 +1,5 @@
 import { t } from "../../../../shared/i18n.js";
+import { escapeHTML } from "../../../utils/sanitize.js";
 
 function renderFeeSummary(fees) {
   if (!fees) return t("forwarders.noFeesConfigured");
@@ -42,7 +43,7 @@ export function renderForwarderCard(forwarder) {
     <div class="card-bg rounded-xl shadow-md p-4 forwarder-item" data-id="${forwarder.id}">
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0 mr-4">
-          <h2 class="text-xl font-medium card-text mb-2">${forwarder.name}</h2>
+          <h2 class="text-xl font-medium card-text mb-2">${escapeHTML(forwarder.name)}</h2>
           <p class="text-sm secondary-text mb-1">${renderFeeSummary(forwarder.fees)}</p>
         </div>
         <div class="flex space-x-2 flex-shrink-0">
