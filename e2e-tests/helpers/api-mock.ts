@@ -12,10 +12,10 @@ import type { Page, BrowserContext } from "@playwright/test";
 export interface MockOptimizationResponse {
   meta: {
     status: "OPTIMAL" | "FEASIBLE" | "INFEASIBLE" | "ERROR";
-    computation_time_ms?: number;
+    solveTimeMs?: number;
   };
   totals: {
-    grand_total: number;
+    grandTotal: number;
     breakdown: {
       products: number;
       shipping: number;
@@ -27,7 +27,7 @@ export interface MockOptimizationResponse {
       ids: { product: string; offer: string };
       seller: string;
       quantity: number;
-      pricing: { unit_price: number; product_total: number };
+      pricing: { unitPrice: number; productTotal: number };
       costs: { shipping: { amount: number } };
       url: string;
     }>;
@@ -79,9 +79,9 @@ export async function mockOptimizeSuccess(
   response?: Partial<MockOptimizationResponse>
 ): Promise<void> {
   const defaultResponse: MockOptimizationResponse = {
-    meta: { status: "OPTIMAL", computation_time_ms: 150 },
+    meta: { status: "OPTIMAL", solveTimeMs: 150 },
     totals: {
-      grand_total: 99.99,
+      grandTotal: 99.99,
       breakdown: { products: 69.99, shipping: 20.0, insurance: 10.0 },
     },
     solution: {
@@ -90,7 +90,7 @@ export async function mockOptimizeSuccess(
           ids: { product: "p1", offer: "o1" },
           seller: "Seller 1",
           quantity: 1,
-          pricing: { unit_price: 49.99, product_total: 49.99 },
+          pricing: { unitPrice: 49.99, productTotal: 49.99 },
           costs: { shipping: { amount: 5.99 } },
           url: "https://example.com/offer1",
         },
@@ -117,8 +117,8 @@ export async function mockOptimizeInfeasible(page: Page): Promise<void> {
   await installOptimizeMock(page, {
     success: true,
     result: {
-      meta: { status: "INFEASIBLE", computation_time_ms: 50 },
-      totals: { grand_total: 0, breakdown: { products: 0, shipping: 0, insurance: 0 } },
+      meta: { status: "INFEASIBLE", solveTimeMs: 50 },
+      totals: { grandTotal: 0, breakdown: { products: 0, shipping: 0, insurance: 0 } },
       solution: { offers: [], bundles: [] },
       logistics: { shipping: [] },
     },

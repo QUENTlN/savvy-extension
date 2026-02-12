@@ -298,8 +298,8 @@ export function createOptimizationResult(
         seller: offer.seller,
         quantity: product.quantity || 1,
         pricing: {
-          unit_price: offer.price,
-          product_total: offer.price * (product.quantity || 1),
+          unitPrice: offer.price,
+          productTotal: offer.price * (product.quantity || 1),
         },
         costs: {
           shipping: { amount: offer.shippingPrice },
@@ -313,7 +313,7 @@ export function createOptimizationResult(
   return {
     meta: { status },
     totals: {
-      grand_total: totalCost,
+      grandTotal: totalCost,
       breakdown: {
         products: totalCost * 0.7,
         shipping: totalCost * 0.2,

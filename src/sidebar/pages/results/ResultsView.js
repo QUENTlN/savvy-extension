@@ -7,9 +7,9 @@ export function renderResultsView({ result, session, isHistorical, hasHistory })
 
   const status = data.meta?.status || data.status;
   const totals = data.totals?.breakdown || {};
-  const grandTotal = data.totals?.grand_total ?? data.total_cost ?? 0;
-  const customsDuties = totals.customs?.duties ?? data.customs_cost ?? 0;
-  const customsVat = totals.customs?.vat ?? data.vat_cost ?? 0;
+  const grandTotal = data.totals?.grandTotal ?? 0;
+  const customsDuties = totals.customs?.duties ?? 0;
+  const customsVat = totals.customs?.vat ?? 0;
   const customsClearance = totals.customs?.clearance ?? 0;
   const customsTotal = customsDuties + customsVat + customsClearance;
   const forwarderTotal =
@@ -66,9 +66,9 @@ export function renderResultsView({ result, session, isHistorical, hasHistory })
               <!-- First row: Coût total, Produits, Livraison, Assurance -->
               <div class="grid grid-cols-2 gap-3 mb-3">
                 ${renderSummaryCard(t("results.totalCost"), formatCurrency(grandTotal, currency), "primary")}
-                ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? data.products_cost ?? 0, currency))}
-                ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? data.shipping_cost ?? 0, currency))}
-                ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? data.insurance_cost ?? 0, currency))}
+                ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? 0, currency))}
+                ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? 0, currency))}
+                ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? 0, currency))}
               </div>
               
               <!-- Second row: Transitaire et Douane (cartes plus grandes) -->
@@ -128,9 +128,9 @@ export function renderResultsView({ result, session, isHistorical, hasHistory })
                 <!-- Left column: 4 summary cards -->
                 <div class="grid grid-cols-2 gap-3">
                   ${renderSummaryCard(t("results.totalCost"), formatCurrency(grandTotal, currency), "primary")}
-                  ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? data.products_cost ?? 0, currency))}
-                  ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? data.shipping_cost ?? 0, currency))}
-                  ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? data.insurance_cost ?? 0, currency))}
+                  ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? 0, currency))}
+                  ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? 0, currency))}
+                  ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? 0, currency))}
                 </div>
                 
                 <!-- Right column: Category card -->
@@ -145,9 +145,9 @@ export function renderResultsView({ result, session, isHistorical, hasHistory })
           return `
             <div class="grid grid-cols-2 gap-3">
               ${renderSummaryCard(t("results.totalCost"), formatCurrency(grandTotal, currency), "primary")}
-              ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? data.products_cost ?? 0, currency))}
-              ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? data.shipping_cost ?? 0, currency))}
-              ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? data.insurance_cost ?? 0, currency))}
+              ${renderSummaryCard(t("results.productsCost"), formatCurrency(totals.products ?? 0, currency))}
+              ${renderSummaryCard(t("results.shippingCost"), formatCurrency(totals.shipping ?? 0, currency))}
+              ${renderSummaryCard(t("results.insuranceCost"), formatCurrency(totals.insurance ?? 0, currency))}
             </div>
           `;
         })()}
@@ -270,9 +270,9 @@ function renderCategoryCard(label, value, details = null, currency = "EUR") {
 
 function renderSellerCards(data, session, currency) {
   // v2.0 API format: data.solution.offers, data.solution.bundles, data.logistics.shipping
-  const offers = data.solution?.offers || data.selected_offers || [];
-  const bundles = data.solution?.bundles || data.selected_bundles || [];
-  const shippingBreakdown = data.logistics?.shipping || data.shipping_breakdown || [];
+  const offers = data.solution?.offers || [];
+  const bundles = data.solution?.bundles || [];
+  const shippingBreakdown = data.logistics?.shipping || [];
 
   // Group offers and bundles by seller
   const sellerMap = new Map();
@@ -388,7 +388,7 @@ function renderSellerCard(seller, sellerData, session, currency, groups) {
   // Helper to process item for totals and visibility
   const processItem = (item) => {
     // Products
-    productsTotal += item.pricing?.product_total ?? item.total_price ?? 0;
+    productsTotal += item.pricing?.productTotal ?? 0;
 
     // Quantity
     totalQuantity += item.quantity;
@@ -573,11 +573,10 @@ function renderGroupedItemsRows(offers, bundles, groups, session, currency, colu
     .map((group) => {
       const groupProductIds = new Set(group.productIds || []);
       const groupOffers = offers.filter((o) => {
-        const productId = o.ids?.product ?? o.product_id;
-        return groupProductIds.has(productId);
+        return groupProductIds.has(o.ids?.product);
       });
       const groupBundles = bundles.filter((b) => {
-        const productIds = b.ids?.products ?? b.product_ids ?? [];
+        const productIds = b.ids?.products ?? [];
         return productIds.some((pid) => groupProductIds.has(pid));
       });
       return { group, offers: groupOffers, bundles: groupBundles };
@@ -586,11 +585,9 @@ function renderGroupedItemsRows(offers, bundles, groups, session, currency, colu
 
   // Find ungrouped
   const allGroupProductIds = new Set(groups.flatMap((g) => g.productIds || []));
-  const ungroupedOffers = offers.filter(
-    (o) => !allGroupProductIds.has(o.ids?.product ?? o.product_id)
-  );
+  const ungroupedOffers = offers.filter((o) => !allGroupProductIds.has(o.ids?.product));
   const ungroupedBundles = bundles.filter(
-    (b) => !(b.ids?.products ?? b.product_ids ?? []).some((pid) => allGroupProductIds.has(pid))
+    (b) => !(b.ids?.products ?? []).some((pid) => allGroupProductIds.has(pid))
   );
 
   let html = "";
@@ -629,10 +626,10 @@ function renderFlatItemsRows(offers, bundles, session, currency, columns) {
 }
 
 function renderOfferRow(offer, session, currency, columns) {
-  const productId = offer.ids?.product ?? offer.product_id;
+  const productId = offer.ids?.product;
   const product = session.products?.find((p) => p.id === productId);
   const originalOffer = findOriginalOffer(offer, session);
-  const productPrice = offer.pricing?.product_total ?? offer.total_price ?? 0;
+  const productPrice = offer.pricing?.productTotal ?? 0;
   const shippingCost = offer.costs?.shipping?.amount ?? 0;
 
   // Insurance
@@ -663,8 +660,7 @@ function renderOfferRow(offer, session, currency, columns) {
   }
 
   const rowTotal = productPrice + shippingCost + insurance + customs + forwarder;
-  // Use affiliated_url from API if available, fallback to url from API, then original offer
-  const offerUrl = offer.affiliated_url || offer.url || originalOffer?.url;
+  const offerUrl = offer.affiliatedUrl || offer.url || originalOffer?.url;
 
   const customsTooltip = getCustomsBreakdownTooltip(offer.costs?.customs, currency);
   const forwarderTooltip = getForwarderBreakdownTooltip(offer.costs?.forwarder, currency);
@@ -687,11 +683,11 @@ function renderOfferRow(offer, session, currency, columns) {
 }
 
 function renderBundleRow(bundle, session, currency, columns) {
-  const bundleId = bundle.ids?.bundle ?? bundle.bundle_id;
-  const productIds = bundle.ids?.products ?? bundle.product_ids ?? [];
+  const bundleId = bundle.ids?.bundle;
+  const productIds = bundle.ids?.products ?? [];
   const originalBundle = session.bundles?.find((b) => b.id === bundleId);
 
-  const productPrice = bundle.pricing?.product_total ?? bundle.total_price ?? 0;
+  const productPrice = bundle.pricing?.productTotal ?? 0;
   const shippingCost = bundle.costs?.shipping?.amount ?? 0;
 
   // Insurance
@@ -733,8 +729,7 @@ function renderBundleRow(bundle, session, currency, columns) {
   const customsTooltip = getCustomsBreakdownTooltip(bundle.costs?.customs, currency);
   const forwarderTooltip = getForwarderBreakdownTooltip(bundle.costs?.forwarder, currency);
 
-  // Use affiliated_url from API if available, fallback to url from API, then original bundle
-  const bundleUrl = bundle.affiliated_url || bundle.url || originalBundle?.url;
+  const bundleUrl = bundle.affiliatedUrl || bundle.url || originalBundle?.url;
 
   return renderTableRow({
     name: `${originalBundle?.name || t("results.bundle")}: ${productNames}`,
@@ -812,8 +807,7 @@ function renderTableRow({
 }
 
 function findOriginalOffer(selectedOffer, session) {
-  // v2.0 uses ids.offer, old format uses offer_id
-  const offerId = selectedOffer.ids?.offer ?? selectedOffer.offer_id;
+  const offerId = selectedOffer.ids?.offer;
   for (const product of session.products || []) {
     const offer = product.offers?.find((o) => o.id === offerId);
     if (offer) return offer;
@@ -836,13 +830,10 @@ function getStatusClass(status) {
 }
 
 function renderForwarderFeesBreakdownCard(data, session, currency) {
-  // v2.0 API format: data.logistics.forwarders
   const forwarders = data.logistics?.forwarders;
-  const breakdown = data.forwarder_fees_breakdown;
 
-  // Use v2.0 format if available
-  const total = forwarders?.total ?? breakdown?.total ?? 0;
-  const byProvider = forwarders?.by_provider ?? breakdown?.by_forwarder ?? {};
+  const total = forwarders?.total ?? 0;
+  const byProvider = forwarders?.byProvider ?? {};
 
   if (total <= 0) return "";
 
@@ -856,8 +847,7 @@ function renderForwarderFeesBreakdownCard(data, session, currency) {
         ${forwarderNames
           .map((name) => {
             const detail = byProvider[name];
-            // v2.0 uses 'reshipping', old format uses 're_shipping'
-            const reshipping = detail.reshipping ?? detail.re_shipping ?? 0;
+            const reshipping = detail.reshipping ?? 0;
             return `
             <div class="border-b border-default pb-2 last:border-0 last:pb-0">
               <div class="flex justify-between text-sm font-medium mb-1">

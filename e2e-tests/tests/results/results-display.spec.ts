@@ -33,9 +33,9 @@ test.describe("Results display", () => {
 
     // Mock at page level (after seedStorage reload)
     await mockOptimizeSuccess(sidebarPage, {
-      meta: { status: "OPTIMAL", computation_time_ms: 100 },
+      meta: { status: "OPTIMAL", solveTimeMs: 100 },
       totals: {
-        grand_total: 75.0,
+        grandTotal: 75.0,
         breakdown: { products: 50.0, shipping: 15.0, insurance: 10.0 },
       },
       solution: {
@@ -44,7 +44,7 @@ test.describe("Results display", () => {
             ids: { product: "p1", offer: "o1" },
             seller: "Store Alpha",
             quantity: 1,
-            pricing: { unit_price: 25.0, product_total: 25.0 },
+            pricing: { unitPrice: 25.0, productTotal: 25.0 },
             costs: { shipping: { amount: 5.0 } },
             url: "https://example.com/alpha",
           },
@@ -52,7 +52,7 @@ test.describe("Results display", () => {
             ids: { product: "p2", offer: "o2" },
             seller: "Store Beta",
             quantity: 1,
-            pricing: { unit_price: 25.0, product_total: 25.0 },
+            pricing: { unitPrice: 25.0, productTotal: 25.0 },
             costs: { shipping: { amount: 5.0 } },
             url: "https://example.com/beta",
           },

@@ -7,10 +7,10 @@ const API_URL_REGEX = /\/api\/v[0-9]+\/optimize/;
 export interface OptimizationResponse {
   meta: {
     status: "OPTIMAL" | "FEASIBLE" | "INFEASIBLE" | "ERROR";
-    computation_time_ms?: number;
+    solveTimeMs?: number;
   };
   totals: {
-    grand_total: number;
+    grandTotal: number;
     breakdown: {
       products: number;
       shipping: number;
@@ -33,7 +33,7 @@ export interface OptimizationResponse {
       ids: { product: string; offer: string };
       seller: string;
       quantity: number;
-      pricing: { unit_price: number; product_total: number };
+      pricing: { unitPrice: number; productTotal: number };
       costs: {
         shipping: { amount: number };
         insurance?: { amount: number };
@@ -45,7 +45,7 @@ export interface OptimizationResponse {
       ids: { bundle: string; products: string[] };
       seller: string;
       quantity: number;
-      pricing: { unit_price: number; product_total: number };
+      pricing: { unitPrice: number; productTotal: number };
       costs: { shipping: { amount: number } };
     }>;
   };
@@ -73,9 +73,9 @@ export function createSuccessResponse(
   const { totalCost = 99.99, status = "OPTIMAL", sellers = ["Test Seller"] } = options;
 
   return {
-    meta: { status, computation_time_ms: 150 },
+    meta: { status, solveTimeMs: 150 },
     totals: {
-      grand_total: totalCost,
+      grandTotal: totalCost,
       breakdown: {
         products: totalCost * 0.7,
         shipping: totalCost * 0.2,
@@ -88,8 +88,8 @@ export function createSuccessResponse(
         seller,
         quantity: 1,
         pricing: {
-          unit_price: totalCost / sellers.length,
-          product_total: totalCost / sellers.length,
+          unitPrice: totalCost / sellers.length,
+          productTotal: totalCost / sellers.length,
         },
         costs: { shipping: { amount: 5.99 } },
         url: `https://example.com/${seller.toLowerCase().replace(/\s/g, "-")}`,
@@ -107,9 +107,9 @@ export function createSuccessResponse(
  */
 export function createInfeasibleResponse(): OptimizationResponse {
   return {
-    meta: { status: "INFEASIBLE", computation_time_ms: 50 },
+    meta: { status: "INFEASIBLE", solveTimeMs: 50 },
     totals: {
-      grand_total: 0,
+      grandTotal: 0,
       breakdown: { products: 0, shipping: 0, insurance: 0 },
     },
     solution: { offers: [], bundles: [] },

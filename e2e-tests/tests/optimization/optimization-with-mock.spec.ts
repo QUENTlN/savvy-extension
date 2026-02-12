@@ -36,9 +36,9 @@ test.describe("Optimization with mocked API", () => {
 
     // Mock the API with a successful response (page-level interception)
     await mockOptimizeSuccess(sidebarPage, {
-      meta: { status: "OPTIMAL", computation_time_ms: 150 },
+      meta: { status: "OPTIMAL", solveTimeMs: 150 },
       totals: {
-        grand_total: 87.5,
+        grandTotal: 87.5,
         breakdown: { products: 60.0, shipping: 17.5, insurance: 10.0 },
       },
       solution: {
@@ -47,7 +47,7 @@ test.describe("Optimization with mocked API", () => {
             ids: { product: "p1", offer: "o1" },
             seller: "Seller 1",
             quantity: 1,
-            pricing: { unit_price: 30.0, product_total: 30.0 },
+            pricing: { unitPrice: 30.0, productTotal: 30.0 },
             costs: { shipping: { amount: 5.0 } },
             url: "https://example.com/offer1",
           },
@@ -55,7 +55,7 @@ test.describe("Optimization with mocked API", () => {
             ids: { product: "p2", offer: "o2" },
             seller: "Seller 2",
             quantity: 1,
-            pricing: { unit_price: 30.0, product_total: 30.0 },
+            pricing: { unitPrice: 30.0, productTotal: 30.0 },
             costs: { shipping: { amount: 5.0 } },
             url: "https://example.com/offer2",
           },

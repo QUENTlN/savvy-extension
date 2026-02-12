@@ -21,9 +21,9 @@ test.describe("History", () => {
   });
 
   const mockResponse = {
-    meta: { status: "OPTIMAL" as const, computation_time_ms: 100 },
+    meta: { status: "OPTIMAL" as const, solveTimeMs: 100 },
     totals: {
-      grand_total: 50.0,
+      grandTotal: 50.0,
       breakdown: { products: 35.0, shipping: 10.0, insurance: 5.0 },
     },
     solution: {
@@ -32,7 +32,7 @@ test.describe("History", () => {
           ids: { product: "p1", offer: "o1" },
           seller: "Seller 1",
           quantity: 1,
-          pricing: { unit_price: 25.0, product_total: 25.0 },
+          pricing: { unitPrice: 25.0, productTotal: 25.0 },
           costs: { shipping: { amount: 5.0 } },
           url: "https://example.com/offer1",
         },
